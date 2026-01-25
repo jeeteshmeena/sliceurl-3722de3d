@@ -1,0 +1,9 @@
+-- Add missing columns to profiles table for Settings page functionality
+ALTER TABLE public.profiles 
+ADD COLUMN IF NOT EXISTS scheduled_deletion_at TIMESTAMPTZ DEFAULT NULL,
+ADD COLUMN IF NOT EXISTS link_preview_enabled BOOLEAN DEFAULT TRUE,
+ADD COLUMN IF NOT EXISTS language TEXT DEFAULT 'en',
+ADD COLUMN IF NOT EXISTS has_password BOOLEAN DEFAULT FALSE,
+ADD COLUMN IF NOT EXISTS google_linked BOOLEAN DEFAULT FALSE,
+ADD COLUMN IF NOT EXISTS google_email TEXT DEFAULT NULL,
+ADD COLUMN IF NOT EXISTS auto_dashboard_refresh BOOLEAN DEFAULT TRUE;
