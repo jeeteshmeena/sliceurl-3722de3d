@@ -172,21 +172,30 @@ const Index = () => {
               </div>
             </form>
 
-            {/* Signup Prompt - below Slice Link button */}
-            {!user && !showResult && (
+            {/* Helper Text - below Slice Link button (always visible) */}
+            {!showResult && (
               <motion.p
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ delay: 0.3 }}
-                className="mt-4 text-xs sm:text-sm text-muted-foreground max-w-lg mx-auto leading-relaxed"
+                className="mt-4 text-[11px] sm:text-xs text-muted-foreground max-w-md mx-auto leading-snug"
               >
-                Sign up for SliceURL to unlock analytics, custom slugs, link management, QR codes, and secure tracking—
-                <button
-                  onClick={() => navigate("/register")}
-                  className="text-muted-foreground hover:text-foreground transition-colors underline underline-offset-2"
-                >
-                  register your account now
-                </button>
+                Sign up for SliceURL to unlock analytics, custom slugs, link management, QR codes, and secure tracking—{" "}
+                {user ? (
+                  <button
+                    onClick={() => navigate("/dashboard")}
+                    className="text-muted-foreground hover:text-foreground transition-colors underline underline-offset-2"
+                  >
+                    Go to dashboard
+                  </button>
+                ) : (
+                  <button
+                    onClick={() => navigate("/register")}
+                    className="text-muted-foreground hover:text-foreground transition-colors underline underline-offset-2"
+                  >
+                    Register your account now
+                  </button>
+                )}
               </motion.p>
             )}
 
