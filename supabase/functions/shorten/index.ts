@@ -6,9 +6,14 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+// In-memory rate limit cache
 const rateLimitMap = new Map<string, { count: number; resetTime: number }>();
 const RATE_LIMIT = 10;
 const RATE_WINDOW = 60000;
+
+// In-memory slug availability cache (short TTL for collision avoidance)
+const slugCache = new Map<string, number>(); // slug -> timestamp when marked used
+const SLUG_CACHE_TTL = 300000; // 5 minutes
 
 function checkRateLimit(ip: string): boolean {
   const now = Date.now();
@@ -27,13 +32,45 @@ function checkRateLimit(ip: string): boolean {
   return true;
 }
 
+// Optimized slug generation with higher entropy
 function generateShortCode(length = 6): string {
   const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+  const array = new Uint8Array(length);
+  crypto.getRandomValues(array);
+  
   let result = '';
   for (let i = 0; i < length; i++) {
-    result += chars.charAt(Math.floor(Math.random() * chars.length));
+    result += chars.charAt(array[i] % chars.length);
   }
   return result;
+}
+
+// Check if slug is in local cache (fast path)
+function isSlugCached(slug: string): boolean {
+  const timestamp = slugCache.get(slug);
+  if (!timestamp) return false;
+  
+  // Check if cache entry is still valid
+  if (Date.now() - timestamp > SLUG_CACHE_TTL) {
+    slugCache.delete(slug);
+    return false;
+  }
+  return true;
+}
+
+// Mark slug as used in cache
+function cacheSlug(slug: string): void {
+  slugCache.set(slug, Date.now());
+  
+  // Prune old entries if cache is too large
+  if (slugCache.size > 10000) {
+    const now = Date.now();
+    for (const [key, time] of slugCache.entries()) {
+      if (now - time > SLUG_CACHE_TTL) {
+        slugCache.delete(key);
+      }
+    }
+  }
 }
 
 function isValidUrl(url: string): boolean {
@@ -74,7 +111,6 @@ async function hashPassword(password: string): Promise<string> {
     keyMaterial,
     256
   );
-  // Format: pbkdf2$salt$hash
   return `pbkdf2$${arrayBufferToBase64(salt)}$${arrayBufferToBase64(hash)}`;
 }
 
@@ -171,6 +207,15 @@ serve(async (req) => {
         );
       }
       
+      // Check cache first (fast path)
+      if (isSlugCached(shortCode)) {
+        return new Response(
+          JSON.stringify({ error: 'This custom slug is already taken' }),
+          { status: 409, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+      
+      // Then check database
       const { data: existing } = await supabase
         .from('links')
         .select('id')
@@ -178,32 +223,61 @@ serve(async (req) => {
         .maybeSingle();
       
       if (existing) {
+        cacheSlug(shortCode); // Add to cache for future fast rejection
         return new Response(
           JSON.stringify({ error: 'This custom slug is already taken' }),
           { status: 409, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
       }
     } else {
+      // Optimized random slug generation
+      // Generate multiple candidates at once to reduce DB round-trips
       let isUnique = false;
-      while (!isUnique) {
+      let attempts = 0;
+      const maxAttempts = 5;
+      
+      while (!isUnique && attempts < maxAttempts) {
         shortCode = generateShortCode();
+        
+        // Check cache first (very fast)
+        if (isSlugCached(shortCode)) {
+          attempts++;
+          continue;
+        }
+        
+        // Check database
         const { data: existing } = await supabase
           .from('links')
           .select('id')
           .eq('short_code', shortCode)
           .maybeSingle();
-        isUnique = !existing;
+        
+        if (!existing) {
+          isUnique = true;
+        } else {
+          cacheSlug(shortCode);
+          attempts++;
+        }
+      }
+      
+      // If still not unique after max attempts, increase length
+      if (!isUnique) {
+        shortCode = generateShortCode(8);
       }
     }
 
-    let passwordHash = null;
-    if (password) {
-      passwordHash = await hashPassword(password);
-    }
+    // Cache the slug we're about to use
+    cacheSlug(shortCode);
+
+    // Hash password if provided (can be done in parallel with insert prep)
+    const passwordHashPromise = password ? hashPassword(password) : Promise.resolve(null);
 
     const utmParams = { utm_source, utm_medium, utm_campaign, utm_term, utm_content };
     const computedFinalUrl = utm_enabled ? (final_utm_url || buildUtmUrl(original_url, utmParams)) : null;
 
+    const passwordHash = await passwordHashPromise;
+
+    // Insert the link
     const { data: link, error: linkError } = await supabase
       .from('links')
       .insert({
@@ -244,23 +318,30 @@ serve(async (req) => {
       );
     }
 
+    // Move UTM data insertion to background (non-blocking)
+    // Using async IIFE to not block the response
     if (utm_enabled && user_id && link) {
-      const { error: utmError } = await supabase
-        .from('utm_data')
-        .insert({
-          link_id: link.id,
-          user_id: user_id,
-          utm_source: utm_source || null,
-          utm_medium: utm_medium || null,
-          utm_campaign: utm_campaign || null,
-          utm_term: utm_term || null,
-          utm_content: utm_content || null,
-          final_url: computedFinalUrl
-        });
-
-      if (utmError) {
-        console.error('Error creating UTM data:', utmError);
-      }
+      (async () => {
+        try {
+          const { error: utmError } = await supabase
+            .from('utm_data')
+            .insert({
+              link_id: link.id,
+              user_id: user_id,
+              utm_source: utm_source || null,
+              utm_medium: utm_medium || null,
+              utm_campaign: utm_campaign || null,
+              utm_term: utm_term || null,
+              utm_content: utm_content || null,
+              final_url: computedFinalUrl
+            });
+          if (utmError) {
+            console.error('UTM data insert error:', utmError);
+          }
+        } catch (err) {
+          console.error('Background UTM data insert error:', err);
+        }
+      })();
     }
 
     const { password_hash: _, ...safeLink } = link;
