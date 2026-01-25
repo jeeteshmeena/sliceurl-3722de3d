@@ -27,10 +27,10 @@ Deno.serve(async (req) => {
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    // Fetch file metadata
+    // Fetch file metadata including encryption info
     const { data: file, error: fetchError } = await supabase
       .from("slicebox_files")
-      .select("file_id, storage_path, original_name, file_size, mime_type, expires_at, is_deleted, password_hash, download_count")
+      .select("file_id, storage_path, original_name, file_size, mime_type, expires_at, is_deleted, password_hash, download_count, is_encrypted, encryption_iv")
       .eq("file_id", fileId)
       .single();
 
@@ -91,7 +91,7 @@ Deno.serve(async (req) => {
       .update({ download_count: (file.download_count || 0) + 1 })
       .eq("file_id", fileId);
 
-    console.log("[slicebox-download] Download URL generated successfully");
+    console.log("[slicebox-download] Download URL generated successfully, encrypted:", !!file.is_encrypted);
 
     return new Response(
       JSON.stringify({
@@ -100,6 +100,9 @@ Deno.serve(async (req) => {
         fileName: file.original_name,
         fileSize: file.file_size,
         mimeType: file.mime_type,
+        // Include encryption metadata for client-side decryption
+        isEncrypted: file.is_encrypted || false,
+        encryptionIv: file.encryption_iv || null,
       }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );

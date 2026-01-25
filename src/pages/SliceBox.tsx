@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { 
   Upload, Link as LinkIcon, Copy, Check, FileText, Image, Video, Music, 
   Archive, File, ChevronDown, ChevronUp, ArrowLeft,
-  ExternalLink, Share2, HardDrive, Clock, Gauge
+  ExternalLink, Share2, HardDrive, Clock, Gauge, Shield
 } from "lucide-react";
 import { IsolatedButton, SLICEBOX_COLORS } from "@/components/slicebox/IsolatedButton";
 import { toast } from "sonner";
@@ -13,6 +13,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { triggerHaptic } from "@/lib/haptics";
 import { cn } from "@/lib/utils";
 import { UploadStatusPanel } from "@/components/slicebox/UploadStatusPanel";
+import { encryptFileObject } from "@/lib/encryption";
 
 // SliceBox: Permanent file hosting - 200MB limit, no expiry
 const MAX_FILE_SIZE = 200 * 1024 * 1024; // 200MB
@@ -23,6 +24,7 @@ interface UploadedFile {
   fileSize: number;
   mimeType: string;
   shareUrl: string;
+  isEncrypted?: boolean;
 }
 
 interface FileUploadState {
@@ -87,12 +89,17 @@ export default function SliceBox() {
     onProgress: (loaded: number, total: number, speed: number, remaining: number) => void
   ): Promise<UploadedFile> => {
     const fileId = crypto.randomUUID().split("-")[0] + Date.now().toString(36);
-    const storagePath = `uploads/${fileId}/${file.name}`;
     const deleteToken = crypto.randomUUID();
 
     const { data: session } = await supabase.auth.getSession();
     const authToken = session?.session?.access_token;
     const anonKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+
+    // Step 1: Encrypt the file client-side (E2E encryption)
+    const { encryptedBlob, key, iv, originalSize, originalType } = await encryptFileObject(file);
+    
+    // Storage path uses .enc extension to indicate encrypted file
+    const storagePath = `uploads/${fileId}/${file.name}.enc`;
 
     return new Promise((resolve, reject) => {
       const xhr = new XMLHttpRequest();
@@ -104,10 +111,9 @@ export default function SliceBox() {
       xhr.upload.onprogress = (e) => {
         if (e.lengthComputable) {
           const now = Date.now();
-          const timeDelta = (now - lastTime) / 1000; // seconds
+          const timeDelta = (now - lastTime) / 1000;
           const bytesDelta = e.loaded - lastLoaded;
           
-          // Calculate speed (smoothed)
           const instantSpeed = timeDelta > 0 ? bytesDelta / timeDelta : 0;
           const remainingBytes = e.total - e.loaded;
           const remainingTime = instantSpeed > 0 ? remainingBytes / instantSpeed : 0;
@@ -122,27 +128,31 @@ export default function SliceBox() {
       xhr.onload = async () => {
         if (xhr.status >= 200 && xhr.status < 300) {
           try {
-            // Insert metadata - NO expiry for SliceBox (permanent hosting)
+            // Insert metadata with encryption info - NO expiry for SliceBox
             const { error: dbError } = await supabase.from("slicebox_files").insert({
               file_id: fileId,
               original_name: file.name,
-              file_size: file.size,
-              mime_type: file.type || "application/octet-stream",
+              file_size: originalSize, // Store original size, not encrypted size
+              mime_type: originalType,
               storage_path: storagePath,
               user_id: user?.id || null,
               delete_token: deleteToken,
               expires_at: null, // PERMANENT - no expiry
+              is_encrypted: true,
+              encryption_iv: iv, // Store IV in database (safe - key is in URL fragment)
             });
 
             if (dbError) throw dbError;
 
-            const shareUrl = `${window.location.origin}/slicebox/${fileId}`;
+            // Key goes in URL fragment - never sent to server!
+            const shareUrl = `${window.location.origin}/slicebox/${fileId}#${key}`;
             resolve({
               fileId,
               originalName: file.name,
-              fileSize: file.size,
-              mimeType: file.type || "application/octet-stream",
+              fileSize: originalSize,
+              mimeType: originalType,
               shareUrl,
+              isEncrypted: true,
             });
           } catch (err) {
             await supabase.storage.from("slicebox").remove([storagePath]);
@@ -159,7 +169,8 @@ export default function SliceBox() {
       xhr.setRequestHeader("Authorization", `Bearer ${authToken || anonKey}`);
       xhr.setRequestHeader("apikey", anonKey);
       xhr.setRequestHeader("x-upsert", "false");
-      xhr.send(file);
+      xhr.setRequestHeader("Content-Type", "application/octet-stream");
+      xhr.send(encryptedBlob);
     });
   }, [user]);
 
