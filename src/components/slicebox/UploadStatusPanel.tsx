@@ -151,57 +151,8 @@ export function UploadStatusPanel({ uploads, onClose, isOpen, variant = "slicebo
             </div>
           </motion.div>
 
-          {/* Mobile: Bottom slide-in */}
-          <motion.div
-            initial={{ opacity: 0, y: 100 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 100 }}
-            className="lg:hidden fixed bottom-0 left-0 right-0 z-40"
-          >
-            <div 
-              className="rounded-t-2xl border-t shadow-2xl overflow-hidden"
-              style={{ 
-                backgroundColor: "#FFFFFF", 
-                borderColor: variant === "slicebox" ? "#E8E8E8" : "#E2EEF2" 
-              }}
-            >
-              {/* Handle */}
-              <div className="flex justify-center pt-2 pb-1">
-                <div className="w-10 h-1 rounded-full bg-[#D0D0D0]" />
-              </div>
-
-              {/* Header */}
-              <div className="px-4 py-2 flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <Gauge className="h-4 w-4" style={{ color: accentColorDark }} />
-                  <span className="font-semibold text-sm text-[#0B0B0B]">
-                    Uploading {activeUploads.length} file{activeUploads.length > 1 ? "s" : ""}
-                  </span>
-                </div>
-                <span className="text-sm font-bold" style={{ color: accentColorDark }}>
-                  {avgProgress}%
-                </span>
-              </div>
-
-              {/* Progress & Speed */}
-              <div className="px-4 pb-4">
-                <div className="h-2 bg-[#F0F0F0] rounded-full overflow-hidden mb-2">
-                  <motion.div
-                    className="h-full rounded-full"
-                    style={{ backgroundColor: accentColor }}
-                    animate={{ width: `${avgProgress}%` }}
-                    transition={{ duration: 0.3 }}
-                  />
-                </div>
-                <div className="flex justify-between text-xs text-[#6B7280]">
-                  <span>{formatSpeed(totalSpeed)}</span>
-                  <span>
-                    {activeUploads[0] && formatTime(activeUploads[0].remainingTime)} remaining
-                  </span>
-                </div>
-              </div>
-            </div>
-          </motion.div>
+          {/* Mobile: HIDDEN - No floating panel on mobile/tablet */}
+          {/* Mobile users see progress inline in the file list instead */}
         </>
       )}
     </AnimatePresence>
