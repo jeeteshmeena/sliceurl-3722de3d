@@ -628,13 +628,11 @@ export type Database = {
           created_at: string
           delete_token: string
           download_count: number | null
-          encryption_iv: string | null
           expires_at: string | null
           file_id: string
           file_size: number
           id: string
           is_deleted: boolean | null
-          is_encrypted: boolean | null
           mime_type: string
           original_name: string
           password_hash: string | null
@@ -645,13 +643,11 @@ export type Database = {
           created_at?: string
           delete_token: string
           download_count?: number | null
-          encryption_iv?: string | null
           expires_at?: string | null
           file_id: string
           file_size: number
           id?: string
           is_deleted?: boolean | null
-          is_encrypted?: boolean | null
           mime_type: string
           original_name: string
           password_hash?: string | null
@@ -662,13 +658,11 @@ export type Database = {
           created_at?: string
           delete_token?: string
           download_count?: number | null
-          encryption_iv?: string | null
           expires_at?: string | null
           file_id?: string
           file_size?: number
           id?: string
           is_deleted?: boolean | null
-          is_encrypted?: boolean | null
           mime_type?: string
           original_name?: string
           password_hash?: string | null

@@ -82,10 +82,10 @@ Deno.serve(async (req) => {
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    // Fetch file metadata including encryption info
+    // Fetch file metadata
     const { data: file, error: fetchError } = await supabase
       .from("slicebox_files")
-      .select("password_hash, storage_path, original_name, file_size, mime_type, expires_at, is_deleted, is_encrypted, encryption_iv")
+      .select("password_hash, storage_path, original_name, file_size, mime_type, expires_at, is_deleted")
       .eq("file_id", fileId)
       .single();
 
@@ -158,9 +158,6 @@ Deno.serve(async (req) => {
         fileName: file.original_name,
         fileSize: file.file_size,
         mimeType: file.mime_type,
-        // Include encryption metadata for client-side decryption
-        isEncrypted: file.is_encrypted || false,
-        encryptionIv: file.encryption_iv || null,
       }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );

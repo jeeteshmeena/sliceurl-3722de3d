@@ -6,15 +6,11 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-// High-entropy slug generation using crypto
 function generateShortCode(length = 6): string {
   const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-  const array = new Uint8Array(length);
-  crypto.getRandomValues(array);
-  
   let result = '';
   for (let i = 0; i < length; i++) {
-    result += chars.charAt(array[i] % chars.length);
+    result += chars.charAt(Math.floor(Math.random() * chars.length));
   }
   return result;
 }
@@ -31,7 +27,7 @@ function isValidUrl(url: string): boolean {
   }
 }
 
-// PBKDF2 password hashing
+// PBKDF2 password hashing with unique salts
 const PBKDF2_ITERATIONS = 100000;
 
 function arrayBufferToBase64(buffer: ArrayBuffer | Uint8Array): string {
@@ -58,12 +54,14 @@ async function hashPassword(password: string): Promise<string> {
     keyMaterial,
     256
   );
+  // Format: pbkdf2$salt$hash
   return `pbkdf2$${arrayBufferToBase64(salt)}$${arrayBufferToBase64(hash)}`;
 }
 
 function appendUtmParams(url: string, batchId: string): string {
   try {
     const urlObj = new URL(url);
+    // Only add UTM params if they don't already exist
     if (!urlObj.searchParams.has('utm_source')) {
       urlObj.searchParams.set('utm_source', 'sliceurl');
     }
@@ -75,6 +73,7 @@ function appendUtmParams(url: string, batchId: string): string {
     }
     return urlObj.toString();
   } catch {
+    // Fallback: simple string append with proper separator
     const separator = url.includes('?') ? '&' : '?';
     return `${url}${separator}utm_source=sliceurl&utm_medium=bulk&utm_campaign=${batchId}`;
   }
@@ -114,38 +113,6 @@ async function generateTitle(url: string, apiKey: string): Promise<string | null
     return null;
   }
 }
-
-// Pre-generate all slugs to minimize collision checks
-function generateBatchSlugs(count: number, existingCodes: Set<string>, prefix?: string): string[] {
-  const slugs: string[] = [];
-  const used = new Set<string>(existingCodes);
-  
-  for (let i = 0; i < count; i++) {
-    let slug: string;
-    const paddedIndex = String(i + 1).padStart(3, '0');
-    
-    if (prefix) {
-      slug = `${prefix}${paddedIndex}`;
-      let attempt = 0;
-      while (used.has(slug) && attempt < 10) {
-        attempt++;
-        slug = `${prefix}${paddedIndex}-${attempt}`;
-      }
-    } else {
-      do {
-        slug = generateShortCode();
-      } while (used.has(slug));
-    }
-    
-    slugs.push(slug);
-    used.add(slug);
-  }
-  
-  return slugs;
-}
-
-// Process URLs in parallel batches
-const PARALLEL_BATCH_SIZE = 10;
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -197,14 +164,16 @@ serve(async (req) => {
       );
     }
 
+    // Generate batch ID
     const batchId = `batch_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
     
-    // Hash password once if provided
-    const passwordHash = password && password.length > 0 
-      ? await hashPassword(password) 
-      : null;
+    // Hash password if provided
+    let passwordHash: string | null = null;
+    if (password && password.length > 0) {
+      passwordHash = await hashPassword(password);
+    }
 
-    // Get existing short codes to avoid duplicates (single query)
+    // Get existing short codes to avoid duplicates
     const { data: existingLinks } = await supabase
       .from('links')
       .select('short_code, custom_slug');
@@ -215,130 +184,106 @@ serve(async (req) => {
       if (l.custom_slug) existingCodes.add(l.custom_slug);
     });
 
-    // Pre-generate all slugs at once
-    const prefix = slugPrefix?.trim() || '';
-    const slugs = generateBatchSlugs(validUrls.length, existingCodes, prefix || undefined);
-
-    console.log(`Bulk shorten: Processing ${validUrls.length} URLs with batch ID ${batchId}`);
-
-    // Prepare all link data
-    const linksToInsert: any[] = [];
-    const urlsWithTitles: Array<{ index: number; url: string; slug: string; title: string | null }> = [];
-
-    // Generate titles in parallel if autoTitle is enabled
-    if (autoTitle && lovableApiKey) {
-      const titlePromises = validUrls.map((url, i) => 
-        generateTitle(url, lovableApiKey).then(title => ({ index: i, title }))
-      );
-      const titles = await Promise.all(titlePromises);
-      
-      validUrls.forEach((url, i) => {
-        urlsWithTitles.push({
-          index: i,
-          url,
-          slug: slugs[i],
-          title: titles.find(t => t.index === i)?.title || null,
-        });
-      });
-    } else {
-      validUrls.forEach((url, i) => {
-        urlsWithTitles.push({ index: i, url, slug: slugs[i], title: null });
-      });
-    }
-
-    // Build insert data
-    for (const item of urlsWithTitles) {
-      const urlWithUtm = appendUtmParams(item.url, batchId);
-      
-      linksToInsert.push({
-        original_url: item.url,
-        final_utm_url: urlWithUtm,
-        short_code: item.slug,
-        custom_slug: prefix ? item.slug : null,
-        title: item.title,
-        user_id: user.id,
-        batch_id: batchId,
-        order_index: item.index,
-        password_hash: passwordHash,
-        is_password_protected: !!passwordHash,
-        expires_at: expiry || null,
-        max_clicks: maxClicks || null,
-        utm_enabled: true,
-        utm_source: 'sliceurl',
-        utm_medium: 'bulk',
-        utm_campaign: batchId,
-        click_count: 0,
-      });
-    }
-
-    // Batch insert all links at once
-    const { data: insertedLinks, error: insertError } = await supabase
-      .from('links')
-      .insert(linksToInsert)
-      .select('id, short_code, custom_slug, title, original_url');
-
-    if (insertError) {
-      console.error('Batch insert error:', insertError);
-      
-      // Fallback: try inserting one by one
-      const results: Array<{
-        index: number;
-        url: string;
-        success: boolean;
-        error?: string;
-        link?: { id: string; short_code: string; custom_slug?: string; title?: string; original_url: string };
-      }> = [];
-
-      for (let i = 0; i < linksToInsert.length; i++) {
-        try {
-          const { data: link, error } = await supabase
-            .from('links')
-            .insert(linksToInsert[i])
-            .select('id, short_code, custom_slug, title, original_url')
-            .single();
-
-          if (error) {
-            results.push({ index: i, url: validUrls[i], success: false, error: 'Database error' });
-          } else {
-            results.push({ index: i, url: validUrls[i], success: true, link });
-          }
-        } catch {
-          results.push({ index: i, url: validUrls[i], success: false, error: 'Processing error' });
-        }
-      }
-
-      const successCount = results.filter(r => r.success).length;
-      const failCount = results.filter(r => !r.success).length;
-
-      return new Response(
-        JSON.stringify({
-          batchId,
-          batchName: batchName || null,
-          totalUrls: validUrls.length,
-          successCount,
-          failCount,
-          results,
-        }),
-        { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
-
-    // Build results from successful batch insert
-    const results = urlsWithTitles.map((item, i) => {
-      const insertedLink = insertedLinks?.find(l => l.short_code === item.slug);
-      return {
-        index: item.index,
-        url: item.url,
-        success: !!insertedLink,
-        link: insertedLink ? {
-          id: insertedLink.id,
-          short_code: insertedLink.short_code,
-          custom_slug: insertedLink.custom_slug,
-          title: insertedLink.title,
-          original_url: insertedLink.original_url,
-        } : undefined,
+    const results: Array<{
+      index: number;
+      url: string;
+      success: boolean;
+      error?: string;
+      link?: {
+        id: string;
+        short_code: string;
+        custom_slug?: string;
+        title?: string;
+        original_url: string;
       };
-    });
+    }> = [];
+
+    for (let i = 0; i < validUrls.length; i++) {
+      const originalUrl = validUrls[i];
+      
+      try {
+        // Generate slug
+        let slug: string;
+        const prefix = slugPrefix?.trim() || '';
+        const paddedIndex = String(i + 1).padStart(3, '0');
+        
+        if (prefix) {
+          slug = `${prefix}${paddedIndex}`;
+          // Ensure uniqueness
+          let attempt = 0;
+          while (existingCodes.has(slug) && attempt < 10) {
+            attempt++;
+            slug = `${prefix}${paddedIndex}-${attempt}`;
+          }
+        } else {
+          // Generate random short code
+          do {
+            slug = generateShortCode();
+          } while (existingCodes.has(slug));
+        }
+        
+        existingCodes.add(slug);
+
+        // Generate title if autoTitle enabled
+        let title: string | null = null;
+        if (autoTitle && lovableApiKey) {
+          title = await generateTitle(originalUrl, lovableApiKey);
+        }
+
+        // Append UTM parameters to original URL
+        const urlWithUtm = appendUtmParams(originalUrl, batchId);
+
+        // Insert link
+        const { data: link, error: insertError } = await supabase
+          .from('links')
+          .insert({
+            original_url: originalUrl,
+            final_utm_url: urlWithUtm,
+            short_code: slug,
+            custom_slug: prefix ? slug : null,
+            title: title,
+            user_id: user.id,
+            batch_id: batchId,
+            order_index: i,
+            password_hash: passwordHash,
+            is_password_protected: !!passwordHash,
+            expires_at: expiry || null,
+            max_clicks: maxClicks || null,
+            utm_enabled: true,
+            utm_source: 'sliceurl',
+            utm_medium: 'bulk',
+            utm_campaign: batchId,
+            click_count: 0,
+          })
+          .select('id, short_code, custom_slug, title, original_url')
+          .single();
+
+        if (insertError) {
+          console.error(`Insert error for URL ${i}:`, insertError);
+          results.push({
+            index: i,
+            url: originalUrl,
+            success: false,
+            error: 'Database error',
+          });
+        } else {
+          results.push({
+            index: i,
+            url: originalUrl,
+            success: true,
+            link: link,
+          });
+        }
+      } catch (error) {
+        console.error(`Processing error for URL ${i}:`, error);
+        results.push({
+          index: i,
+          url: originalUrl,
+          success: false,
+          error: 'Processing error',
+        });
+      }
+    }
 
     const successCount = results.filter(r => r.success).length;
     const failCount = results.filter(r => !r.success).length;

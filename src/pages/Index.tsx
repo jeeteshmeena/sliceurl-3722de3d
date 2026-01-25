@@ -1,16 +1,17 @@
 import { useState } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
-  Copy, Check, Scissors, AlertTriangle, LayoutDashboard,
+  Copy, Check, Scissors, AlertTriangle, LogIn, UserPlus, LayoutDashboard,
   Lock, QrCode, Share2, BarChart3, Globe, FolderOpen, Clock,
-  Zap, Shield, Target, Moon, Sun, Languages, X
+  Zap, Shield, Target
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useLinks } from "@/hooks/useLinks";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
+import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { GlobalStats } from "@/components/GlobalStats";
 import { FAQSection } from "@/components/FAQSection";
@@ -23,7 +24,6 @@ import { FeatureKey } from "@/components/FeaturePreviewVisuals";
 import { useTone } from "@/hooks/useTone";
 import { checkUrlSafety } from "@/lib/malwareCheck";
 import { triggerHaptic } from "@/lib/haptics";
-import { useTheme } from "@/lib/theme";
 
 // Feature grid - 10 interactive cards
 const featureKeys: Array<{ icon: React.ComponentType<{ className?: string }>; titleKey: FeatureKey; descKey: string; isQR?: boolean }> = [
@@ -42,7 +42,6 @@ const featureKeys: Array<{ icon: React.ComponentType<{ className?: string }>; ti
 const Index = () => {
   const { t, language } = useLanguage();
   const { greeting, heroDesc } = useTone();
-  const { resolvedTheme, setTheme } = useTheme();
   const isHindi = language === "hi";
   const [url, setUrl] = useState("");
   const [shortUrl, setShortUrl] = useState("");
@@ -113,268 +112,234 @@ const Index = () => {
     setTimeout(() => setCopied(false), 2000);
   };
 
-  const handleThemeToggle = () => {
-    setTheme(resolvedTheme === "dark" ? "light" : "dark");
-  };
-
   return (
     <div className="min-h-screen bg-background flex flex-col">
-      {/* Minimal Header Bar */}
-      <header className="sticky top-0 z-50 bg-background border-b border-border h-14">
-        <div className="h-full max-w-screen-xl mx-auto px-4 flex items-center justify-between">
-          {/* Left: Logo + Wordmark */}
-          <Link to="/" className="flex items-center gap-2.5">
-            <img
-              src="/favicon.png"
-              alt="SliceURL"
-              className={`h-8 w-8 rounded-lg object-contain ${
-                resolvedTheme === "dark" ? "invert brightness-110" : ""
-              }`}
-            />
-            <span className="text-lg font-medium tracking-tight">
-              <span className="text-foreground">Slice</span>
-              <span className="text-muted-foreground">URL</span>
-            </span>
-          </Link>
-
-          {/* Right: Icons */}
-          <div className="flex items-center gap-3">
-            <button
-              onClick={handleThemeToggle}
-              className="h-9 w-9 flex items-center justify-center rounded-full hover:bg-muted/50 transition-colors"
-              aria-label="Toggle theme"
-            >
-              {resolvedTheme === "dark" ? (
-                <Sun className="h-[18px] w-[18px] text-foreground" />
-              ) : (
-                <Moon className="h-[18px] w-[18px] text-foreground" />
-              )}
-            </button>
-            <button
-              onClick={() => navigate("/settings")}
-              className="h-9 w-9 flex items-center justify-center rounded-full hover:bg-muted/50 transition-colors"
-              aria-label="Language"
-            >
-              <Languages className="h-[18px] w-[18px] text-foreground" />
-            </button>
-            <button
-              onClick={() => window.history.back()}
-              className="h-9 w-9 flex items-center justify-center rounded-full hover:bg-muted/50 transition-colors"
-              aria-label="Close"
-            >
-              <X className="h-[18px] w-[18px] text-foreground" />
-            </button>
-          </div>
-        </div>
-      </header>
+      <Header />
 
       <SliceCelebration show={showCelebration} onComplete={() => setShowCelebration(false)} />
 
-      <main className="flex-1 flex flex-col">
-        {/* Hero Section - Clean Onboarding Gate for non-logged in users */}
-        {!user ? (
-          <div className="flex-1 flex flex-col items-center justify-center px-4 py-16">
-            <div className="w-full max-w-[360px] flex flex-col gap-4">
-              <Button
-                variant="outline"
-                onClick={() => navigate("/login")}
-                className="w-full h-12 text-base font-medium rounded-xl bg-background border border-border hover:bg-muted/50"
-              >
-                {t("sign_in")}
-              </Button>
-              <Button
-                onClick={() => navigate("/register")}
-                className="w-full h-14 text-base font-medium rounded-xl bg-foreground text-background hover:bg-foreground/90"
-              >
-                {t("get_started")}
-              </Button>
+      <main className="flex-1 pt-20 pb-16 sm:pt-24 sm:pb-20">
+        <div className="container px-4 sm:px-6">
+          {/* Hero Section */}
+          <motion.div
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4 }}
+            className="text-center max-w-2xl mx-auto"
+          >
+            {/* SliceBuddy Mascot - Static with slice animation on success */}
+            <div className="flex items-center justify-center mb-4 sm:mb-6 scale-[0.82]">
+              <SliceBuddy size="lg" isSlicing={isSplitting} isActive={isActive} />
             </div>
-          </div>
-        ) : (
-          /* Logged-in User: Show URL Shortener */
-          <div className="pt-16 pb-16 sm:pt-20 sm:pb-20">
-            <div className="container px-4 sm:px-6">
-              <motion.div
-                initial={{ opacity: 0, y: 16 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.4 }}
-                className="text-center max-w-2xl mx-auto"
+
+            {/* Title */}
+            <h1 className={`text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight mb-3 ${
+              isHindi ? "font-hindi-decorative" : ""
+            }`}>
+              <span className="inline-block">Slice</span>
+              <span className="text-muted-foreground">URL</span>
+            </h1>
+            
+            {/* Dynamic Greeting from Tone System */}
+            <p className={`text-base sm:text-lg text-muted-foreground mb-3 ${
+              isHindi ? "font-hindi-decorative text-lg sm:text-xl" : ""
+            }`}>
+              {greeting}
+            </p>
+            
+            {/* Dynamic Hero Description from Tone System */}
+            <p className="text-sm sm:text-base text-muted-foreground mb-8 max-w-md mx-auto">
+              {heroDesc}
+            </p>
+
+            {/* URL Shortener Form */}
+            <form onSubmit={handleShorten} className="max-w-2xl mx-auto">
+              <div className="flex flex-col sm:flex-row gap-3 p-2 bg-secondary/50 rounded-2xl border border-border">
+                <Input
+                  type="url"
+                  placeholder={t("paste_url")}
+                  value={url}
+                  onChange={(e) => {
+                    setUrl(e.target.value);
+                    setMalwareWarning(null);
+                  }}
+                  className="flex-1 border-0 bg-background h-12 text-base"
+                />
+                <Button type="submit" size="lg" className="h-12 px-8 btn-micro" disabled={loading || !!malwareWarning}>
+                  {loading ? t("slicing") : t("slice_link")}
+                  <Scissors className="h-4 w-4 ml-2" />
+                </Button>
+              </div>
+            </form>
+
+            {/* Signup Prompt - below Slice Link button */}
+            {!user && !showResult && (
+              <motion.p
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.3 }}
+                className="mt-4 text-xs sm:text-sm text-muted-foreground max-w-lg mx-auto leading-relaxed"
               >
-                {/* SliceBuddy Mascot */}
-                <div className="flex items-center justify-center mb-4 sm:mb-6 scale-[0.82]">
-                  <SliceBuddy size="lg" isSlicing={isSplitting} isActive={isActive} />
+                Sign up for SliceURL to unlock analytics, custom slugs, link management, QR codes, and secure tracking—
+                <button
+                  onClick={() => navigate("/register")}
+                  className="text-muted-foreground hover:text-foreground transition-colors underline underline-offset-2"
+                >
+                  register your account now
+                </button>
+              </motion.p>
+            )}
+
+            {/* Malware Warning */}
+            {malwareWarning && (
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                className="mt-6 p-4 bg-destructive/10 border border-destructive/20 rounded-2xl max-w-2xl mx-auto"
+              >
+                <div className="flex items-center gap-3 text-left">
+                  <div className="h-10 w-10 rounded-full bg-destructive/20 flex items-center justify-center shrink-0">
+                    <AlertTriangle className="h-5 w-5 text-destructive" />
+                  </div>
+                  <div>
+                    <p className="font-medium text-destructive">⚠ This URL appears unsafe</p>
+                    <p className="text-sm text-muted-foreground">{malwareWarning}</p>
+                    <p className="text-xs text-muted-foreground mt-1">SliceURL blocked this link to protect users.</p>
+                  </div>
                 </div>
+              </motion.div>
+            )}
 
-                {/* Title */}
-                <h1 className={`text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight mb-3 ${
-                  isHindi ? "font-hindi-decorative" : ""
-                }`}>
-                  <span className="inline-block">Slice</span>
-                  <span className="text-muted-foreground">URL</span>
-                </h1>
-                
-                {/* Dynamic Greeting */}
-                <p className={`text-base sm:text-lg text-muted-foreground mb-3 ${
-                  isHindi ? "font-hindi-decorative text-lg sm:text-xl" : ""
-                }`}>
-                  {greeting}
-                </p>
-                
-                <p className="text-sm sm:text-base text-muted-foreground mb-8 max-w-md mx-auto">
-                  {heroDesc}
-                </p>
-
-                {/* URL Shortener Form */}
-                <form onSubmit={handleShorten} className="max-w-2xl mx-auto">
-                  <div className="flex flex-col sm:flex-row gap-3 p-2 bg-secondary/50 rounded-2xl border border-border">
-                    <Input
-                      type="url"
-                      placeholder={t("paste_url")}
-                      value={url}
-                      onChange={(e) => {
-                        setUrl(e.target.value);
-                        setMalwareWarning(null);
-                      }}
-                      className="flex-1 border-0 bg-background h-12 text-base"
-                    />
-                    <Button type="submit" size="lg" className="h-12 px-8 btn-micro" disabled={loading || !!malwareWarning}>
-                      {loading ? t("slicing") : t("slice_link")}
-                      <Scissors className="h-4 w-4 ml-2" />
-                    </Button>
+            {/* Splitting Animation */}
+            <AnimatePresence>
+              {isSplitting && splitUrl && (
+                <div className="mt-6 max-w-2xl mx-auto h-12 flex items-center justify-center relative overflow-hidden">
+                  <div className="url-split-container">
+                    <span className="opacity-0 text-lg font-medium">{splitUrl}</span>
+                    <span className={`url-split-left ${isSplitting ? 'splitting' : ''} text-lg font-medium text-foreground`}>
+                      {splitUrl}
+                    </span>
+                    <span className={`url-split-right ${isSplitting ? 'splitting' : ''} text-lg font-medium text-foreground`}>
+                      {splitUrl}
+                    </span>
                   </div>
-                </form>
+                </div>
+              )}
+            </AnimatePresence>
 
-                {/* Malware Warning */}
-                {malwareWarning && (
-                  <motion.div
-                    initial={{ opacity: 0, scale: 0.95 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    className="mt-6 p-4 bg-destructive/10 border border-destructive/20 rounded-2xl max-w-2xl mx-auto"
-                  >
-                    <div className="flex items-center gap-3 text-left">
-                      <div className="h-10 w-10 rounded-full bg-destructive/20 flex items-center justify-center shrink-0">
-                        <AlertTriangle className="h-5 w-5 text-destructive" />
-                      </div>
-                      <div>
-                        <p className="font-medium text-destructive">⚠ This URL appears unsafe</p>
-                        <p className="text-sm text-muted-foreground">{malwareWarning}</p>
-                        <p className="text-xs text-muted-foreground mt-1">SliceURL blocked this link to protect users.</p>
-                      </div>
-                    </div>
-                  </motion.div>
-                )}
-
-                {/* Splitting Animation */}
-                <AnimatePresence>
-                  {isSplitting && splitUrl && (
-                    <div className="mt-6 max-w-2xl mx-auto h-12 flex items-center justify-center relative overflow-hidden">
-                      <div className="url-split-container">
-                        <span className="opacity-0 text-lg font-medium">{splitUrl}</span>
-                        <span className={`url-split-left ${isSplitting ? 'splitting' : ''} text-lg font-medium text-foreground`}>
-                          {splitUrl}
-                        </span>
-                        <span className={`url-split-right ${isSplitting ? 'splitting' : ''} text-lg font-medium text-foreground`}>
-                          {splitUrl}
-                        </span>
-                      </div>
-                    </div>
-                  )}
-                </AnimatePresence>
-
-                {/* Result */}
-                {showResult && shortUrl && !malwareWarning && (
-                  <div className="mt-6 p-4 bg-muted/50 border border-border rounded-2xl max-w-2xl mx-auto result-reveal">
-                    <div className="flex items-center justify-between gap-4 flex-wrap">
-                      <div className="text-left">
-                        <p className="text-sm text-muted-foreground">{t("your_sliced_link")}</p>
-                        <p className="font-medium text-lg">{shortUrl}</p>
-                      </div>
-                      <Button onClick={copyToClipboard} variant="secondary" size="sm" className="btn-micro">
-                        {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
-                        {copied ? t("copied") : t("copy")}
-                      </Button>
-                    </div>
+            {/* Result */}
+            {showResult && shortUrl && !malwareWarning && (
+              <div className="mt-6 p-4 bg-muted/50 border border-border rounded-2xl max-w-2xl mx-auto result-reveal">
+                <div className="flex items-center justify-between gap-4 flex-wrap">
+                  <div className="text-left">
+                    <p className="text-sm text-muted-foreground">{t("your_sliced_link")}</p>
+                    <p className="font-medium text-lg">{shortUrl}</p>
                   </div>
-                )}
+                  <Button onClick={copyToClipboard} variant="secondary" size="sm" className="btn-micro">
+                    {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+                    {copied ? t("copied") : t("copy")}
+                  </Button>
+                </div>
+              </div>
+            )}
 
-                {/* CTA after result */}
-                <AnimatePresence>
-                  {showResult && shortUrl && !malwareWarning && (
-                    <motion.div
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: -10 }}
-                      transition={{ delay: 0.3, duration: 0.4, ease: [0.25, 0.46, 0.45, 0.94] }}
-                      className="mt-4 max-w-2xl mx-auto"
-                    >
-                      <div className="p-4 bg-secondary/40 border border-border/50 rounded-2xl">
-                        <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-                          <div className="text-center sm:text-left">
-                            <p className="font-medium text-foreground">{t("link_ready_title")}</p>
-                            <p className="text-sm text-muted-foreground">{t("link_ready_desc")}</p>
-                          </div>
-                          <Button onClick={() => navigate("/dashboard")} className="btn-micro shrink-0">
-                            <LayoutDashboard className="h-4 w-4 mr-2" />
-                            {t("go_dashboard")}
+            {/* CTA after result */}
+            <AnimatePresence>
+              {showResult && shortUrl && !malwareWarning && (
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  transition={{ delay: 0.3, duration: 0.4, ease: [0.25, 0.46, 0.45, 0.94] }}
+                  className="mt-4 max-w-2xl mx-auto"
+                >
+                  {user ? (
+                    <div className="p-4 bg-secondary/40 border border-border/50 rounded-2xl">
+                      <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+                        <div className="text-center sm:text-left">
+                          <p className="font-medium text-foreground">{t("link_ready_title")}</p>
+                          <p className="text-sm text-muted-foreground">{t("link_ready_desc")}</p>
+                        </div>
+                        <Button onClick={() => navigate("/dashboard")} className="btn-micro shrink-0">
+                          <LayoutDashboard className="h-4 w-4 mr-2" />
+                          {t("go_dashboard")}
+                        </Button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="p-4 bg-secondary/40 border border-border/50 rounded-2xl">
+                      <div className="flex flex-col items-center gap-4">
+                        <div className="text-center">
+                          <p className="font-medium text-foreground">{t("want_track_title")}</p>
+                          <p className="text-sm text-muted-foreground">{t("want_track_desc")}</p>
+                        </div>
+                        <div className="flex items-center gap-3">
+                          <Button onClick={() => navigate("/register")} className="btn-micro">
+                            <UserPlus className="h-4 w-4 mr-2" />
+                            {t("create_free_account")}
+                          </Button>
+                          <Button onClick={() => navigate("/login")} variant="outline" className="btn-micro">
+                            <LogIn className="h-4 w-4 mr-2" />
+                            {t("sign_in")}
                           </Button>
                         </div>
                       </div>
-                    </motion.div>
+                    </div>
                   )}
-                </AnimatePresence>
-              </motion.div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </motion.div>
 
-              {/* Features Section with Interactive Cards */}
-              <motion.section
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 0.2, duration: 0.3 }}
-                className="mt-16 sm:mt-20 max-w-5xl mx-auto"
-              >
-                <div className="text-center mb-8 sm:mb-10">
-                  <h2 className="text-xl sm:text-2xl font-bold mb-2">
-                    {t("features_title")}
-                  </h2>
-                  <p className="text-sm text-muted-foreground max-w-md mx-auto">
-                    {t("features_subtitle")}
-                  </p>
-                </div>
-
-                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4">
-                  {featureKeys.map((feature, index) => (
-                    <FeatureCard
-                      key={feature.titleKey}
-                      icon={feature.icon}
-                      titleKey={feature.titleKey}
-                      descKey={feature.descKey}
-                      index={index}
-                      isQR={feature.isQR}
-                    />
-                  ))}
-                </div>
-              </motion.section>
-
-              {/* SliceBox Promo */}
-              <SliceBoxPromo />
-
-              {/* Global Stats */}
-              <motion.div
-                initial={{ opacity: 0, y: 8 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.3, duration: 0.25 }}
-                className="mt-12 sm:mt-16 max-w-3xl mx-auto"
-              >
-                <p className="text-center text-muted-foreground mb-6 text-xs sm:text-sm">
-                  {t("marketing_tagline")}
-                </p>
-                <GlobalStats />
-              </motion.div>
-
-              {/* FAQ Section */}
-              <FAQSection />
+          {/* Features Section with Interactive Cards */}
+          <motion.section
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.2, duration: 0.3 }}
+            className="mt-16 sm:mt-20 max-w-5xl mx-auto"
+          >
+            <div className="text-center mb-8 sm:mb-10">
+              <h2 className="text-xl sm:text-2xl font-bold mb-2">
+                {t("features_title")}
+              </h2>
+              <p className="text-sm text-muted-foreground max-w-md mx-auto">
+                {t("features_subtitle")}
+              </p>
             </div>
-          </div>
-        )}
+
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4">
+              {featureKeys.map((feature, index) => (
+                <FeatureCard
+                  key={feature.titleKey}
+                  icon={feature.icon}
+                  titleKey={feature.titleKey}
+                  descKey={feature.descKey}
+                  index={index}
+                  isQR={feature.isQR}
+                />
+              ))}
+            </div>
+          </motion.section>
+
+          {/* SliceBox Promo */}
+          <SliceBoxPromo />
+
+          {/* Global Stats */}
+          <motion.div
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3, duration: 0.25 }}
+            className="mt-12 sm:mt-16 max-w-3xl mx-auto"
+          >
+            <p className="text-center text-muted-foreground mb-6 text-xs sm:text-sm">
+              {t("marketing_tagline")}
+            </p>
+            <GlobalStats />
+          </motion.div>
+
+          {/* FAQ Section */}
+          <FAQSection />
+        </div>
       </main>
 
       <Footer />
