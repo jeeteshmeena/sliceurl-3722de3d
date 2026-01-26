@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Switch } from "@/components/ui/switch";
+import { SlidingToggle } from "@/components/ui/sliding-toggle";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Lock } from "lucide-react";
 import { toast } from "sonner";
@@ -106,7 +106,7 @@ export function EditLinkDialog({ open, onOpenChange, link, onUpdateLink }: EditL
                 <Lock className="h-4 w-4 text-muted-foreground" />
                 <Label htmlFor="edit-password-toggle" className="cursor-pointer">Password Protection</Label>
               </div>
-              <Switch
+              <SlidingToggle
                 id="edit-password-toggle"
                 checked={isPasswordProtected}
                 onCheckedChange={setIsPasswordProtected}

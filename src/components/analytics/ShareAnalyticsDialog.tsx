@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Switch } from "@/components/ui/switch";
+import { SlidingToggle } from "@/components/ui/sliding-toggle";
 import {
   Dialog,
   DialogContent,
@@ -182,7 +182,7 @@ export function ShareAnalyticsDialog({
                     <p className="text-xs text-muted-foreground">Require password to view</p>
                   </div>
                 </div>
-                <Switch 
+                <SlidingToggle 
                   checked={passwordEnabled} 
                   onCheckedChange={setPasswordEnabled}
                 />
