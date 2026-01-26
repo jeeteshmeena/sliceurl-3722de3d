@@ -2,7 +2,7 @@ import { useState, useCallback, memo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Blend, Wand2, Loader2 } from "lucide-react";
 import { Label } from "@/components/ui/label";
-import { Switch } from "@/components/ui/switch";
+import { SlidingToggle } from "@/components/ui/sliding-toggle";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { QRDesign } from "@/hooks/useQRDesign";
@@ -213,7 +213,7 @@ export const ColorSection = memo(function ColorSection({ design, onUpdate, desti
             </div>
             <Label className="text-sm font-medium cursor-pointer">Gradient Mode</Label>
           </div>
-          <Switch
+          <SlidingToggle
             checked={design.gradient_enabled}
             onCheckedChange={handleGradientToggle}
           />
