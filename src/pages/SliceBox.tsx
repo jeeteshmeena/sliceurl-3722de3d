@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
   Upload, Link as LinkIcon, Copy, Check, FileText, Image, Video, Music, 
-  Archive, File, ChevronDown, ChevronUp, ArrowLeft,
+  Archive, File, ChevronDown, ChevronUp,
   ExternalLink, Share2, HardDrive, Clock, Gauge
 } from "lucide-react";
 import { IsolatedButton, SLICEBOX_COLORS } from "@/components/slicebox/IsolatedButton";
@@ -13,6 +13,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { triggerHaptic } from "@/lib/haptics";
 import { cn } from "@/lib/utils";
 import { UploadStatusPanel } from "@/components/slicebox/UploadStatusPanel";
+import { SliceNavToggle } from "@/components/SliceNavToggle";
 
 // SliceBox: Permanent file hosting - 200MB limit, no expiry
 const MAX_FILE_SIZE = 200 * 1024 * 1024; // 200MB
@@ -338,7 +339,7 @@ export default function SliceBox() {
 
   return (
     <div className="min-h-dvh flex flex-col bg-[#FAFAFA]">
-      {/* Header - LEFT: Logo + Name | RIGHT: Back button */}
+      {/* Header - LEFT: Logo + Name | RIGHT: Toggle */}
       <header className="sticky top-0 z-50 border-b border-[#E8E8E8] bg-white shadow-sm">
         <div className="max-w-5xl mx-auto h-14 flex items-center justify-between px-4 sm:px-6">
           {/* Left: Brand */}
@@ -352,20 +353,13 @@ export default function SliceBox() {
             </span>
           </div>
 
-          {/* Right: Back button */}
-          <IsolatedButton 
-            variant="ghost" 
-            size="sm" 
-            asChild 
-            colorScheme="slicebox"
-            className="gap-2 font-medium"
-          >
-            <Link to="/">
-              <ArrowLeft className="h-4 w-4" />
-              <span className="hidden sm:inline">Back to SliceURL</span>
-              <span className="sm:hidden">Back</span>
-            </Link>
-          </IsolatedButton>
+          {/* Right: Navigation Toggle */}
+          <SliceNavToggle />
+        </div>
+        
+        {/* Helper text */}
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 pb-2">
+          <p className="text-xs text-[#6B7280]">Permanent file hosting</p>
         </div>
       </header>
 

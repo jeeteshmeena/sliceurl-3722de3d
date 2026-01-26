@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
   Upload, Link as LinkIcon, Copy, Check, FileText, Image, Video, Music, 
-  Archive, File, ArrowLeft, ExternalLink, Share2, Clock, Lock, Eye, EyeOff, Gauge
+  Archive, File, ExternalLink, Share2, Clock, Lock, Eye, EyeOff, Gauge
 } from "lucide-react";
 import { IsolatedButton, LITTLESLICE_COLORS } from "@/components/slicebox/IsolatedButton";
 import { IsolatedInput } from "@/components/slicebox/IsolatedInput";
@@ -21,8 +21,9 @@ import { useAuth } from "@/hooks/useAuth";
 import { triggerHaptic } from "@/lib/haptics";
 import { cn } from "@/lib/utils";
 import { UploadStatusPanel } from "@/components/slicebox/UploadStatusPanel";
+import { SliceNavToggle } from "@/components/SliceNavToggle";
 
-// LittleSlice: Temporary file sharing - 2GB limit, required expiry
+// LittleSlice: Temporary file sharing - 2GB limit, optional expiry (default 1 day)
 const MAX_FILE_SIZE = 2 * 1024 * 1024 * 1024; // 2GB
 
 // Pastel blue color palette
@@ -36,7 +37,7 @@ const COLORS = {
   border: "#E2EEF2",
 };
 
-type ExpiryOption = "1hour" | "1day" | "7days" | "30days";
+type ExpiryOption = "1hour" | "1day" | "7days" | "30days" | "never";
 
 interface UploadedFile {
   fileId: string;
@@ -44,7 +45,7 @@ interface UploadedFile {
   fileSize: number;
   mimeType: string;
   shareUrl: string;
-  expiresAt: string;
+  expiresAt: string | null;
   passwordProtected: boolean;
 }
 
@@ -92,7 +93,8 @@ function formatTime(seconds: number): string {
   return `${Math.floor(seconds / 3600)}h ${Math.floor((seconds % 3600) / 60)}m`;
 }
 
-function getExpiryDate(option: ExpiryOption): string {
+function getExpiryDate(option: ExpiryOption): string | null {
+  if (option === "never") return null;
   const now = new Date();
   switch (option) {
     case "1hour":
@@ -119,11 +121,13 @@ function formatExpiryLabel(option: ExpiryOption): string {
     case "1day": return "1 day";
     case "7days": return "7 days";
     case "30days": return "30 days";
+    case "never": return "Never";
     default: return "1 day";
   }
 }
 
-function formatExpiryTime(isoString: string): string {
+function formatExpiryTime(isoString: string | null): string {
+  if (!isoString) return "Never expires";
   const date = new Date(isoString);
   const now = new Date();
   const diffMs = date.getTime() - now.getTime();
@@ -184,7 +188,7 @@ export default function LittleSlice() {
   const uploadSingleFile = useCallback(async (
     file: File, 
     onProgress: (loaded: number, total: number, speed: number, remaining: number) => void,
-    expiresAt: string,
+    expiresAt: string | null,
     filePassword: string | null
   ): Promise<UploadedFile> => {
     const fileId = crypto.randomUUID().split("-")[0] + Date.now().toString(36);
@@ -225,7 +229,7 @@ export default function LittleSlice() {
       xhr.onload = async () => {
         if (xhr.status >= 200 && xhr.status < 300) {
           try {
-            // Insert metadata with REQUIRED expiry and optional password for LittleSlice
+            // Insert metadata with optional expiry and optional password for LittleSlice
             const { error: dbError } = await supabase.from("slicebox_files").insert({
               file_id: fileId,
               original_name: file.name,
@@ -234,7 +238,7 @@ export default function LittleSlice() {
               storage_path: storagePath,
               user_id: user?.id || null,
               delete_token: deleteToken,
-              expires_at: expiresAt, // REQUIRED for LittleSlice
+              expires_at: expiresAt, // null for "never" expiry
               password_hash: passwordHash, // Optional password protection
             });
 
@@ -421,7 +425,7 @@ export default function LittleSlice() {
 
   return (
     <div className="min-h-dvh flex flex-col" style={{ backgroundColor: COLORS.background }}>
-      {/* Header - LEFT: Logo + Name | RIGHT: Back button */}
+      {/* Header - LEFT: Logo + Name | RIGHT: Toggle */}
       <header 
         className="sticky top-0 z-50 border-b shadow-sm"
         style={{ backgroundColor: COLORS.card, borderColor: COLORS.border }}
@@ -441,20 +445,13 @@ export default function LittleSlice() {
             </span>
           </div>
 
-          {/* Right: Back button */}
-          <IsolatedButton 
-            variant="ghost" 
-            size="sm" 
-            asChild 
-            colorScheme="littleslice"
-            className="gap-2 font-medium"
-          >
-            <Link to="/">
-              <ArrowLeft className="h-4 w-4" />
-              <span className="hidden sm:inline">Back to SliceURL</span>
-              <span className="sm:hidden">Back</span>
-            </Link>
-          </IsolatedButton>
+          {/* Right: Navigation Toggle */}
+          <SliceNavToggle />
+        </div>
+        
+        {/* Helper text */}
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 pb-2">
+          <p className="text-xs" style={{ color: COLORS.textSecondary }}>Temporary file sharing</p>
         </div>
       </header>
 
@@ -482,22 +479,23 @@ export default function LittleSlice() {
         <div className="flex flex-col sm:flex-row gap-4 mb-6">
           {/* Expiry Selector */}
           <div className="flex-1">
-            <Label className="text-xs mb-1.5 block" style={{ color: COLORS.textSecondary }}>
+            <Label className="text-xs mb-1.5 block text-foreground dark:text-foreground">
               <Clock className="h-3 w-3 inline mr-1" />
-              Expires in (required)
+              Expires in
             </Label>
             <Select value={expiryOption} onValueChange={(v) => setExpiryOption(v as ExpiryOption)}>
               <SelectTrigger 
-                className="h-11 rounded-xl border-2"
-                style={{ borderColor: COLORS.border, backgroundColor: COLORS.card }}
+                className="h-11 rounded-xl border-2 text-foreground dark:text-foreground bg-background dark:bg-background"
+                style={{ borderColor: COLORS.border }}
               >
                 <SelectValue />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="bg-background dark:bg-background text-foreground dark:text-foreground">
                 <SelectItem value="1hour">1 hour</SelectItem>
                 <SelectItem value="1day">1 day</SelectItem>
                 <SelectItem value="7days">7 days</SelectItem>
                 <SelectItem value="30days">30 days</SelectItem>
+                <SelectItem value="never">Never</SelectItem>
               </SelectContent>
             </Select>
           </div>
