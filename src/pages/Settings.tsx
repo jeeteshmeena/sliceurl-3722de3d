@@ -8,7 +8,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { TextSwitch } from "@/components/ui/text-switch";
+import { SlidingToggle } from "@/components/ui/sliding-toggle";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -735,7 +735,7 @@ export default function Settings() {
                   </p>
                 </div>
               </div>
-              <TextSwitch
+              <SlidingToggle
                 checked={localLinkPreview}
                 onCheckedChange={handleLinkPreviewChange}
               />
@@ -778,7 +778,7 @@ export default function Settings() {
                   </p>
                 </div>
               </div>
-              <TextSwitch
+              <SlidingToggle
                 checked={localAutoRefresh}
                 onCheckedChange={handleAutoRefreshChange}
               />

@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Switch } from "@/components/ui/switch";
+import { SlidingToggle } from "@/components/ui/sliding-toggle";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Lock, ChevronDown, Settings2 } from "lucide-react";
@@ -178,7 +178,7 @@ export function CreateLinkDialog({ open, onOpenChange, onCreateLink }: CreateLin
                 <Lock className="h-4 w-4 text-muted-foreground" />
                 <Label htmlFor="password-toggle" className="cursor-pointer">Password Protection</Label>
               </div>
-              <Switch
+              <SlidingToggle
                 id="password-toggle"
                 checked={isPasswordProtected}
                 onCheckedChange={setIsPasswordProtected}
