@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import {
-  ArrowLeft, User, Mail, Lock, KeyRound, Monitor, LogOut, Globe, Moon, Sun,
+  ArrowLeft, User, Mail, Lock, KeyRound, Monitor, LogOut, Globe,
   Eye, Shield, RefreshCw, AlertTriangle, Pencil, Loader2
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -17,6 +17,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { SettingsPageSkeleton } from "@/components/Skeleton";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import { useAuth } from "@/hooks/useAuth";
 import { useProfile, SecurityMode } from "@/hooks/useProfile";
 import { useLinkBehavior } from "@/hooks/useLinkBehavior";
@@ -718,22 +719,9 @@ export default function Settings() {
             {/* Theme Toggle Row */}
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                {resolvedTheme === "dark" ? (
-                  <Moon className="h-4 w-4 text-neutral-500 dark:text-neutral-400" />
-                ) : (
-                  <Sun className="h-4 w-4 text-neutral-500 dark:text-neutral-400" />
-                )}
                 <span className="text-sm text-neutral-700 dark:text-neutral-300">Theme</span>
               </div>
-              <div className="flex items-center gap-2">
-                <span className="text-xs text-neutral-500">
-                  {resolvedTheme === "dark" ? "Dark" : "Light"}
-                </span>
-                <Switch
-                  checked={resolvedTheme === "dark"}
-                  onCheckedChange={(checked) => setTheme(checked ? "dark" : "light")}
-                />
-              </div>
+              <ThemeToggle />
             </div>
 
             {/* Link Preview Toggle Row */}
