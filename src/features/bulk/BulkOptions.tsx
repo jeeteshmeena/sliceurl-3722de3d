@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Calendar, Lock, Hash, MousePointerClick, Settings2, Wand2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Switch } from "@/components/ui/switch";
+import { TextSwitch } from "@/components/ui/text-switch";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar as CalendarComponent } from "@/components/ui/calendar";
 import { Button } from "@/components/ui/button";
@@ -77,7 +77,7 @@ export function BulkOptions({ options, onChange }: BulkOptionsProps) {
             <Lock className="h-3 w-3" />
             Password Protection
           </Label>
-          <Switch
+          <TextSwitch
             id="passwordToggle"
             checked={options.passwordEnabled}
             onCheckedChange={(checked) => updateOption("passwordEnabled", checked)}
@@ -157,7 +157,7 @@ export function BulkOptions({ options, onChange }: BulkOptionsProps) {
           <Wand2 className="h-3 w-3" />
           AI Auto-Title
         </Label>
-        <Switch
+        <TextSwitch
           id="autoTitle"
           checked={options.autoTitle}
           onCheckedChange={(checked) => updateOption("autoTitle", checked)}
