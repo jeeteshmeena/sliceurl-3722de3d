@@ -32,7 +32,7 @@ interface UseLinkBehaviorReturn {
 export function useLinkBehavior(): UseLinkBehaviorReturn {
   const { user } = useAuth();
   const [securityMode, setSecurityMode] = useState<SecurityMode>('warn');
-  const [linkPreviewEnabled, setLinkPreviewEnabled] = useState(true);
+  const [linkPreviewEnabled, setLinkPreviewEnabled] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [hasUserChanged, setHasUserChanged] = useState(false);
