@@ -44,6 +44,23 @@ const DEVICE_COLORS: Record<string, string> = {
   unknown: "#cccccc",
 };
 
+// Filter out bot traffic from analytics data
+function filterHumanTraffic(clicks: Click[]): Click[] {
+  return clicks.filter(click => {
+    const deviceType = (click.device_type || '').toLowerCase();
+    const browser = (click.browser || '').toLowerCase();
+    
+    // Exclude bot device types
+    if (deviceType === 'bot') return false;
+    
+    // Exclude known bot browsers
+    const botBrowsers = ['googlebot', 'bingbot', 'bot', 'crawler', 'spider', 'facebook bot', 'twitter bot', 'linkedin bot'];
+    if (botBrowsers.some(b => browser.includes(b))) return false;
+    
+    return true;
+  });
+}
+
 export function useAnalytics(linkId: string, dateRangeStart?: Date | null) {
   const [clicks, setClicks] = useState<Click[]>([]);
   const [loading, setLoading] = useState(true);
@@ -58,25 +75,27 @@ export function useAnalytics(linkId: string, dateRangeStart?: Date | null) {
     clicksTimeline: [],
   });
 
-  // Filter clicks by date range
+  // Filter clicks by date range and exclude bot traffic
   const filteredClicks = useMemo(() => {
-    if (!dateRangeStart) return clicks;
-    return clicks.filter((c) => new Date(c.clicked_at) >= dateRangeStart);
+    const humanClicks = filterHumanTraffic(clicks);
+    if (!dateRangeStart) return humanClicks;
+    return humanClicks.filter((c) => new Date(c.clicked_at) >= dateRangeStart);
   }, [clicks, dateRangeStart]);
 
-  // Calculate previous period stats for trends
+  // Calculate previous period stats for trends (using only human traffic)
   const trendStats = useMemo(() => {
+    const humanClicks = filterHumanTraffic(clicks);
     const now = new Date();
     const periodDays = 7;
     const currentPeriodStart = new Date(now.getTime() - periodDays * 24 * 60 * 60 * 1000);
     const previousPeriodStart = new Date(currentPeriodStart.getTime() - periodDays * 24 * 60 * 60 * 1000);
 
-    const currentClicks = clicks.filter((c) => {
+    const currentClicks = humanClicks.filter((c) => {
       const d = new Date(c.clicked_at);
       return d >= currentPeriodStart && d <= now;
     });
 
-    const previousClicks = clicks.filter((c) => {
+    const previousClicks = humanClicks.filter((c) => {
       const d = new Date(c.clicked_at);
       return d >= previousPeriodStart && d < currentPeriodStart;
     });
@@ -90,10 +109,11 @@ export function useAnalytics(linkId: string, dateRangeStart?: Date | null) {
   }, [clicks]);
 
   const processAnalytics = useCallback((clicksData: Click[], rangeStart?: Date | null) => {
-    // Filter by date range if provided
+    // Filter out bot traffic first, then apply date range filter
+    const humanClicks = filterHumanTraffic(clicksData);
     const dataToProcess = rangeStart 
-      ? clicksData.filter((c) => new Date(c.clicked_at) >= rangeStart)
-      : clicksData;
+      ? humanClicks.filter((c) => new Date(c.clicked_at) >= rangeStart)
+      : humanClicks;
 
     const totalClicks = dataToProcess.length;
     const uniqueClicks = dataToProcess.filter((c) => c.is_unique).length;
