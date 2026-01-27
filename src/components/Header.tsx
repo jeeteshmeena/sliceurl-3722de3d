@@ -136,12 +136,10 @@ export function Header() {
 
         {/* Right Section - Clean icon layout with consistent spacing */}
         <div className="flex items-center gap-2 sm:gap-2.5 mr-2 sm:mr-4 lg:mr-6">
-          {/* Theme Toggle - Clean icon, no pill background */}
-          <Button
-            variant="ghost"
-            size="icon"
+          {/* Theme Toggle - Plain icon, no background */}
+          <button
             onClick={handleThemeToggle}
-            className="h-9 w-9 rounded-full hover:bg-muted/50"
+            className="flex items-center justify-center text-foreground opacity-100 hover:opacity-70 active:scale-95 transition-all duration-150 focus:outline-none"
             aria-label={`Switch to ${resolvedTheme === "dark" ? "light" : "dark"} mode`}
           >
             {resolvedTheme === "dark" ? (
@@ -149,19 +147,17 @@ export function Header() {
             ) : (
               <Moon className="h-[18px] w-[18px]" />
             )}
-          </Button>
+          </button>
 
-          {/* Language Selector - Clean icon, no pill background */}
+          {/* Language Selector - Plain icon, no background */}
           <Popover open={langOpen} onOpenChange={setLangOpen}>
             <PopoverTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-9 w-9 rounded-full hover:bg-muted/50"
+              <button
+                className="flex items-center justify-center text-foreground opacity-100 hover:opacity-70 active:scale-95 transition-all duration-150 focus:outline-none"
                 aria-label="Change language"
               >
                 <Languages className="h-[18px] w-[18px]" />
-              </Button>
+              </button>
             </PopoverTrigger>
             <PopoverContent
               align="end"
@@ -314,19 +310,17 @@ export function Header() {
                 </Button>
               </div>
 
-              {/* Mobile Menu Toggle */}
-              <Button
-                variant="ghost"
-                size="icon"
+              {/* Mobile Menu Toggle - Plain icon, no background */}
+              <button
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                className="h-9 w-9 rounded-full sm:hidden"
+                className="flex items-center justify-center text-foreground opacity-100 hover:opacity-70 active:scale-95 transition-all duration-150 focus:outline-none sm:hidden"
               >
                 {mobileMenuOpen ? (
                   <X className="h-5 w-5" />
                 ) : (
                   <Menu className="h-5 w-5" />
                 )}
-              </Button>
+              </button>
             </>
           )}
         </div>

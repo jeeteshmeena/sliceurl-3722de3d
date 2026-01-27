@@ -151,12 +151,12 @@ export function LanguageSuggestion() {
           onTouchEnd={handleResume}
         >
           <div className="relative overflow-hidden bg-background border border-border rounded-2xl shadow-lg shadow-black/5 dark:shadow-black/20">
-            {/* Close Button */}
+            {/* Close Button - Plain icon, no background */}
             <button
               onClick={handleDismiss}
-              className={`absolute top-3 ${isRTL ? "left-3" : "right-3"} h-7 w-7 rounded-full flex items-center justify-center text-muted-foreground/60 hover:text-foreground hover:bg-muted/80 transition-colors duration-150`}
+              className={`absolute top-3 ${isRTL ? "left-3" : "right-3"} flex items-center justify-center text-foreground opacity-100 hover:opacity-70 active:scale-95 transition-all duration-150`}
             >
-              <X className="h-3.5 w-3.5" />
+              <X className="h-4 w-4" />
             </button>
 
             {/* Content */}

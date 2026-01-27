@@ -40,10 +40,10 @@ export function AuthFixBanner() {
             </div>
             <button
               onClick={dismiss}
-              className="shrink-0 p-1 rounded-md hover:bg-primary/10 transition-colors"
+              className="shrink-0 flex items-center justify-center text-foreground opacity-100 hover:opacity-70 active:scale-95 transition-all duration-150"
               aria-label="Dismiss"
             >
-              <X className="h-4 w-4 text-muted-foreground" />
+              <X className="h-4 w-4" />
             </button>
           </div>
         </motion.div>
