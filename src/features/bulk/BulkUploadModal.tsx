@@ -50,6 +50,7 @@ export function BulkUploadModal({ open, onOpenChange, onComplete }: BulkUploadMo
     maxClicks: undefined,
     slugPrefix: "",
     autoTitle: false,
+    linkPreviewEnabled: false,
   });
   
   const [results, setResults] = useState<BulkResult[]>([]);
@@ -306,6 +307,7 @@ export function BulkUploadModal({ open, onOpenChange, onComplete }: BulkUploadMo
         maxClicks: undefined,
         slugPrefix: "",
         autoTitle: false,
+        linkPreviewEnabled: false,
       });
     }, 300);
   };

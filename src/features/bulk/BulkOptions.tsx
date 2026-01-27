@@ -1,13 +1,15 @@
 import { useState } from "react";
-import { Calendar, Lock, Hash, MousePointerClick, Settings2, Wand2 } from "lucide-react";
+import { Calendar, Lock, Hash, MousePointerClick, Settings2, Wand2, Eye } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { TextSwitch } from "@/components/ui/text-switch";
+import { SlidingToggle } from "@/components/ui/sliding-toggle";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar as CalendarComponent } from "@/components/ui/calendar";
 import { Button } from "@/components/ui/button";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
+import { useLinkBehavior } from "@/hooks/useLinkBehavior";
 
 export interface BulkOptionsData {
   batchName: string;
@@ -17,6 +19,7 @@ export interface BulkOptionsData {
   maxClicks: number | undefined;
   slugPrefix: string;
   autoTitle: boolean;
+  linkPreviewEnabled: boolean;
 }
 
 interface BulkOptionsProps {
@@ -25,6 +28,9 @@ interface BulkOptionsProps {
 }
 
 export function BulkOptions({ options, onChange }: BulkOptionsProps) {
+  // Get global link preview setting
+  const { linkPreviewEnabled: globalLinkPreview } = useLinkBehavior();
+  
   const updateOption = <K extends keyof BulkOptionsData>(key: K, value: BulkOptionsData[K]) => {
     onChange({ ...options, [key]: value });
   };
@@ -35,6 +41,28 @@ export function BulkOptions({ options, onChange }: BulkOptionsProps) {
         <Settings2 className="h-4 w-4 text-muted-foreground" />
         Batch Settings
       </h3>
+
+      {/* Link Preview Toggle - Only visible when global setting is OFF */}
+      {!globalLinkPreview && (
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Eye className="h-4 w-4 text-muted-foreground" />
+            <div>
+              <Label htmlFor="linkPreview" className="text-xs text-muted-foreground">
+                Link Preview
+              </Label>
+              <p className="text-xs text-muted-foreground/70">
+                Show preview before redirecting
+              </p>
+            </div>
+          </div>
+          <SlidingToggle
+            id="linkPreview"
+            checked={options.linkPreviewEnabled}
+            onCheckedChange={(checked) => updateOption("linkPreviewEnabled", checked)}
+          />
+        </div>
+      )}
 
       {/* Batch Name */}
       <div className="space-y-2">

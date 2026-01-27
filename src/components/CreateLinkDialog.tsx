@@ -5,13 +5,14 @@ import { Label } from "@/components/ui/label";
 import { SlidingToggle } from "@/components/ui/sliding-toggle";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { Lock, ChevronDown, Settings2 } from "lucide-react";
+import { Lock, ChevronDown, Settings2, Eye } from "lucide-react";
 import { toast } from "sonner";
 import { CreateLinkData } from "@/hooks/useLinks";
 import { getDisplayDomain } from "@/lib/domain";
 import { UtmSection } from "./utm/UtmSection";
 import { UtmParams } from "./utm/UtmForm";
 import { buildUtmUrl } from "./utm/UtmPreview";
+import { useLinkBehavior } from "@/hooks/useLinkBehavior";
 
 interface CreateLinkDialogProps {
   open: boolean;
@@ -31,6 +32,9 @@ export function CreateLinkDialog({ open, onOpenChange, onCreateLink }: CreateLin
   const [loading, setLoading] = useState(false);
   const [showAdvanced, setShowAdvanced] = useState(false);
   
+  // Get global link preview setting
+  const { linkPreviewEnabled: globalLinkPreview } = useLinkBehavior();
+  
   // Form state
   const [url, setUrl] = useState("");
   const [customSlug, setCustomSlug] = useState("");
@@ -40,6 +44,9 @@ export function CreateLinkDialog({ open, onOpenChange, onCreateLink }: CreateLin
   const [confirmPassword, setConfirmPassword] = useState("");
   const [expiresAt, setExpiresAt] = useState("");
   const [maxClicks, setMaxClicks] = useState("");
+  
+  // Per-link preview toggle (only used when global is OFF)
+  const [linkPreviewForThis, setLinkPreviewForThis] = useState(false);
 
   // UTM state
   const [utmEnabled, setUtmEnabled] = useState(false);
@@ -59,6 +66,7 @@ export function CreateLinkDialog({ open, onOpenChange, onCreateLink }: CreateLin
     setUtmEnabled(false);
     setUtmParams(emptyUtmParams);
     setUtmError("");
+    setLinkPreviewForThis(false);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -170,6 +178,28 @@ export function CreateLinkDialog({ open, onOpenChange, onCreateLink }: CreateLin
               onChange={(e) => setTitle(e.target.value)}
             />
           </div>
+
+          {/* Link Preview Toggle - Only visible when global setting is OFF */}
+          {!globalLinkPreview && (
+            <div className="space-y-3 rounded-xl border border-border p-4 bg-muted/30">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Eye className="h-4 w-4 text-muted-foreground" />
+                  <div>
+                    <Label htmlFor="preview-toggle" className="cursor-pointer">Link Preview</Label>
+                    <p className="text-xs text-muted-foreground">
+                      Show preview before redirecting
+                    </p>
+                  </div>
+                </div>
+                <SlidingToggle
+                  id="preview-toggle"
+                  checked={linkPreviewForThis}
+                  onCheckedChange={setLinkPreviewForThis}
+                />
+              </div>
+            </div>
+          )}
 
           {/* Password Protection */}
           <div className="space-y-3 rounded-xl border border-border p-4 bg-muted/30">
