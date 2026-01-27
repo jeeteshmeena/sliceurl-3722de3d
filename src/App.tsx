@@ -32,7 +32,7 @@ const CreepyURL = lazy(() => import("@/pages/CreepyURL"));
 const SliceBox = lazy(() => import("@/pages/SliceBox"));
 const LittleSlice = lazy(() => import("@/pages/LittleSlice"));
 const SliceBoxView = lazy(() => import("@/pages/SliceBoxView"));
-const Status = lazy(() => import("@/pages/Status"));
+
 const Feedback = lazy(() => import("@/pages/Feedback"));
 const FeedbackAdmin = lazy(() => import("@/pages/FeedbackAdmin"));
 const AdminInbox = lazy(() => import("@/pages/AdminInbox"));
@@ -161,12 +161,6 @@ const App = () => (
                     </Suspense>
                   } />
                   
-                  {/* Status Page */}
-                  <Route path="/status" element={
-                    <Suspense fallback={<PageLoader />}>
-                      <Status />
-                    </Suspense>
-                  } />
                   
                   {/* Feedback Routes */}
                   <Route path="/feedback" element={

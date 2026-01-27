@@ -1,4 +1,4 @@
-import { Mail, Send, Twitter, Info, Skull, Activity, MessageSquareHeart } from "lucide-react";
+import { Mail, Send, Twitter, Info, Skull, MessageSquareHeart } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useLanguage } from "@/lib/i18n";
 
@@ -37,13 +37,6 @@ export function Footer() {
             >
               <Info className="h-3 w-3" />
               {t("about_us")}
-            </Link>
-            <Link
-              to="/status"
-              className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors"
-            >
-              <Activity className="h-3 w-3" />
-              {t("status") || "Status"}
             </Link>
             <Link
               to="/feedback"

@@ -141,7 +141,7 @@ export function ProfileModal({ open, onOpenChange }: ProfileModalProps) {
           </div>
           
           <div className="px-6 pb-6 pt-4 space-y-6">
-            {/* Avatar Section */}
+            {/* Avatar Section - Image + Buttons */}
             <div className="flex flex-col items-center">
               <motion.div 
                 className="relative"
@@ -183,12 +183,6 @@ export function ProfileModal({ open, onOpenChange }: ProfileModalProps) {
                     <RefreshCw className="h-4 w-4" />
                   </Button>
                 </motion.div>
-              </div>
-              
-              {/* Name & Email Preview */}
-              <div className="mt-4 text-center">
-                <p className="font-semibold text-foreground">{displayName || "Not set"}</p>
-                <p className="text-sm text-muted-foreground">{email}</p>
               </div>
             </div>
             

@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import {
   ArrowLeft, User, Mail, Lock, KeyRound, Monitor, LogOut, Globe,
-  Eye, Shield, RefreshCw, AlertTriangle, Pencil, Loader2
+  Eye, Shield, RefreshCw, AlertTriangle, Pencil, Loader2, Palette
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -591,11 +591,17 @@ export default function Settings() {
               <div className="flex items-center justify-between p-3 bg-white dark:bg-neutral-800 rounded-lg border border-neutral-200 dark:border-neutral-700 mb-3">
                 <div className="flex items-center gap-3">
                   <div className="h-8 w-8 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center">
-                    <Monitor className="h-4 w-4 text-green-600 dark:text-green-400" />
+                    {/Mobile|Android|iPhone|iPad|iPod/i.test(navigator.userAgent) ? (
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-green-600 dark:text-green-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="14" height="20" x="5" y="2" rx="2" ry="2"/><path d="M12 18h.01"/></svg>
+                    ) : (
+                      <Monitor className="h-4 w-4 text-green-600 dark:text-green-400" />
+                    )}
                   </div>
                   <div>
-                    <p className="text-sm font-medium text-neutral-900 dark:text-neutral-100">This device</p>
-                    <p className="text-xs text-green-600 dark:text-green-400">Active now</p>
+                    <p className="text-sm font-medium text-neutral-900 dark:text-neutral-100">
+                      {/Mobile|Android|iPhone|iPad|iPod/i.test(navigator.userAgent) ? "Mobile" : "Desktop"} • Active now
+                    </p>
+                    <p className="text-xs text-green-600 dark:text-green-400">Current session</p>
                   </div>
                 </div>
               </div>
@@ -648,16 +654,6 @@ export default function Settings() {
             )}
 
             {/* Logout Row */}
-            <div className="pt-3 border-t border-neutral-200 dark:border-neutral-700">
-              <Button
-                variant="outline"
-                onClick={handleLogout}
-                className="w-full h-9 border-neutral-300 dark:border-neutral-600 text-neutral-700 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-800"
-              >
-                <LogOut className="h-4 w-4 mr-2" />
-                Logout
-              </Button>
-            </div>
           </motion.section>
 
           {/* ═══════════════════════════════════════════════════════════════════ */}
@@ -719,6 +715,7 @@ export default function Settings() {
             {/* Theme Toggle Row */}
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
+                <Palette className="h-4 w-4 text-neutral-500 dark:text-neutral-400" />
                 <span className="text-sm text-neutral-700 dark:text-neutral-300">Theme</span>
               </div>
               <ThemeToggle />
@@ -821,17 +818,17 @@ export default function Settings() {
       {/* ═══════════════════════════════════════════════════════════════════════ */}
       <Dialog open={passwordDialogOpen} onOpenChange={setPasswordDialogOpen}>
         <DialogContent className="bg-white dark:bg-neutral-900 border-neutral-200 dark:border-neutral-800 sm:max-w-md">
-          <DialogHeader>
+          <DialogHeader className="space-y-3">
             <DialogTitle>
               {hasPassword ? "Change Password" : "Set Password"}
             </DialogTitle>
-            <DialogDescription>
+            <DialogDescription className="mb-2">
               {hasPassword
                 ? "Enter your current password and choose a new one."
                 : "Create a password to enable email/password login alongside Google."}
             </DialogDescription>
           </DialogHeader>
-          <div className="space-y-4 py-4">
+          <div className="space-y-4 pt-2">
             {hasPassword && (
               <div className="space-y-2">
                 <Label>Current Password</Label>
