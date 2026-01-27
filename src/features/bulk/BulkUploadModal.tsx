@@ -371,13 +371,15 @@ export function BulkUploadModal({ open, onOpenChange, onComplete }: BulkUploadMo
                 </p>
               </div>
             </div>
-            <button
-              className="flex items-center justify-center text-foreground opacity-100 hover:opacity-70 active:scale-95 transition-all duration-150 focus:outline-none"
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8 rounded-full hover:bg-muted"
               onClick={handleClose}
               aria-label="Close"
             >
-              <X className="h-5 w-5" />
-            </button>
+              <X className="h-4 w-4" />
+            </Button>
           </div>
         )}
 

@@ -1,5 +1,6 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { Gauge, Clock, Wifi, FileUp, X } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
 interface UploadStats {
@@ -80,12 +81,14 @@ export function UploadStatusPanel({ uploads, onClose, isOpen, variant = "slicebo
                   <Gauge className="h-4 w-4 text-[#0B0B0B]" />
                   <span className="font-semibold text-sm text-[#0B0B0B]">Upload Status</span>
                 </div>
-                <button
+                <Button
+                  variant="ghost"
+                  size="icon-sm"
                   onClick={onClose}
-                  className="flex items-center justify-center text-[#0B0B0B] opacity-100 hover:opacity-70 active:scale-95 transition-all duration-150"
+                  className="h-6 w-6 hover:bg-black/10"
                 >
-                  <X className="h-4 w-4" />
-                </button>
+                  <X className="h-3.5 w-3.5" />
+                </Button>
               </div>
 
               {/* Stats */}

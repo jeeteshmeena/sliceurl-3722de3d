@@ -1,6 +1,7 @@
 import { memo, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from "@/components/ui/drawer";
 import { QRDesign } from "@/hooks/useQRDesign";
 import { ColorSection } from "./ColorSection";
@@ -93,12 +94,14 @@ export const QRDrawerPanel = memo(function QRDrawerPanel({
             <DrawerTitle className="text-base font-semibold">
               {activeTab ? panelTitles[activeTab] : ""}
             </DrawerTitle>
-            <button
+            <Button
+              variant="ghost"
+              size="icon"
               onClick={onClose}
-              className="flex items-center justify-center text-foreground opacity-100 hover:opacity-70 active:scale-95 transition-all duration-150 focus:outline-none"
+              className="h-8 w-8 rounded-full hover:bg-muted"
             >
-              <X className="w-5 h-5" />
-            </button>
+              <X className="w-4 h-4" />
+            </Button>
           </div>
         </DrawerHeader>
         

@@ -145,12 +145,12 @@ export function PWAInstallPrompt() {
                 : "bottom-4 right-4 w-[380px] rounded-2xl"
             }`}
           >
-            {/* Close Button - Plain icon, no background */}
+            {/* Close Button */}
             <button
               onClick={handleDismiss}
-              className="absolute top-4 right-4 flex items-center justify-center text-foreground opacity-100 hover:opacity-70 active:scale-95 transition-all duration-150"
+              className="absolute top-4 right-4 h-8 w-8 rounded-full flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
             >
-              <X className="h-5 w-5" />
+              <X className="h-4 w-4" />
             </button>
 
             {/* Content */}
