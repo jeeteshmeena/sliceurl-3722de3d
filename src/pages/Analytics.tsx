@@ -3,7 +3,7 @@ import { motion } from "framer-motion";
 import { useState, useMemo } from "react";
 import { 
   ArrowLeft, Link2, MousePointer, Users, Globe, Monitor, 
-  Smartphone, Tablet, Download, Activity, MapPin, 
+  Smartphone, Tablet, Download, Activity, Bot, MapPin, 
   TrendingUp, Clock, Grid3X3, List, Zap
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -454,7 +454,8 @@ const Analytics = () => {
                   <div className="mt-3 space-y-2">
                     {summary.deviceStats.map((d, idx) => {
                       const Icon = d.name.toLowerCase() === 'mobile' ? Smartphone : 
-                                   d.name.toLowerCase() === 'tablet' ? Tablet : Monitor;
+                                   d.name.toLowerCase() === 'tablet' ? Tablet :
+                                   d.name.toLowerCase() === 'bot' ? Bot : Monitor;
                       return (
                         <div key={idx} className="flex items-center gap-2 text-sm">
                           <div className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: d.fill }} />

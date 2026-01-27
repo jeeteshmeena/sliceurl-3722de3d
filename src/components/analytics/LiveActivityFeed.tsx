@@ -25,22 +25,8 @@ function formatTimeAgo(dateString: string): string {
 }
 
 export function LiveActivityFeed({ clicks, maxItems = 5 }: LiveActivityFeedProps) {
-  // Filter to only show real human activity (exclude any bot traffic)
   const recentClicks = useMemo(() => {
-    const humanClicks = clicks.filter(click => {
-      const deviceType = (click.device_type || '').toLowerCase();
-      const browser = (click.browser || '').toLowerCase();
-      
-      // Exclude bot device types
-      if (deviceType === 'bot') return false;
-      
-      // Exclude known bot browsers
-      const botPatterns = ['bot', 'crawler', 'spider', 'googlebot', 'bingbot'];
-      if (botPatterns.some(p => browser.includes(p))) return false;
-      
-      return true;
-    });
-    return humanClicks.slice(0, maxItems);
+    return clicks.slice(0, maxItems);
   }, [clicks, maxItems]);
 
   const getDeviceIcon = (deviceType: string | null) => {
