@@ -10,51 +10,21 @@ interface UAResult {
   device_type: string;
   browser: string;
   os: string;
-  is_bot: boolean;
-}
-
-// Bot detection patterns
-const BOT_PATTERNS = [
-  /bot|crawler|spider|scraper|headless/i,
-  /googlebot|bingbot|slurp|duckduckbot|baiduspider|yandexbot/i,
-  /facebookexternalhit|twitterbot|linkedinbot|pinterestbot/i,
-  /whatsapp|telegrambot|discordbot|slackbot/i,
-  /curl|wget|python-requests|axios|node-fetch|go-http-client/i,
-  /lighthouse|pagespeed|gtmetrix/i,
-  /ahrefs|semrush|moz|majestic/i,
-];
-
-function isBot(ua: string): boolean {
-  return BOT_PATTERNS.some(pattern => pattern.test(ua));
 }
 
 function parseUserAgent(ua: string): UAResult {
   const result: UAResult = {
     device_type: 'desktop',
-    browser: 'unknown',
-    os: 'unknown',
-    is_bot: isBot(ua)
+    browser: 'Unknown',
+    os: 'Unknown',
   };
-
-  // If it's a bot, mark device type accordingly
-  if (result.is_bot) {
-    result.device_type = 'bot';
-    // Try to identify the bot
-    if (/googlebot/i.test(ua)) result.browser = 'Googlebot';
-    else if (/bingbot/i.test(ua)) result.browser = 'Bingbot';
-    else if (/facebookexternalhit/i.test(ua)) result.browser = 'Facebook Bot';
-    else if (/twitterbot/i.test(ua)) result.browser = 'Twitter Bot';
-    else if (/linkedinbot/i.test(ua)) result.browser = 'LinkedIn Bot';
-    else result.browser = 'Bot';
-    return result;
-  }
 
   // Device type detection
   if (/Mobile|Android|iPhone|iPad|iPod|webOS|BlackBerry|IEMobile|Opera Mini/i.test(ua)) {
     result.device_type = /iPad|Tablet/i.test(ua) ? 'tablet' : 'mobile';
   }
 
-  // Browser detection - more comprehensive including in-app browsers
+  // Browser detection - comprehensive including in-app browsers
   if (ua.includes('WhatsApp')) result.browser = 'WhatsApp';
   else if (ua.includes('Telegram')) result.browser = 'Telegram';
   else if (ua.includes('Instagram')) result.browser = 'Instagram';
@@ -246,7 +216,7 @@ serve(async (req) => {
                req.headers.get('x-real-ip') ||
                'unknown';
     const userAgent = req.headers.get('user-agent') || '';
-    const { device_type, browser, os, is_bot } = parseUserAgent(userAgent);
+    const { device_type, browser, os } = parseUserAgent(userAgent);
     
     // Parse referrer source
     const referrerSource = parseReferrerSource(referrer, userAgent);
@@ -264,7 +234,7 @@ serve(async (req) => {
 
     const isUnique = !existingClick;
 
-    // Record the click with enhanced data
+    // Record the click with enhanced data - all visits are treated as human traffic
     const { error: clickError } = await supabase
       .from('clicks')
       .insert({
@@ -293,10 +263,10 @@ serve(async (req) => {
       })
       .eq('id', link_id);
 
-    console.log(`Click tracked for link ${link_id}: ${device_type}/${browser}/${os} from ${geo.country}/${geo.city} via ${referrerSource}${is_bot ? ' [BOT]' : ''}`);
+    console.log(`Click tracked for link ${link_id}: ${device_type}/${browser}/${os} from ${geo.country}/${geo.city} via ${referrerSource}`);
 
     return new Response(
-      JSON.stringify({ success: true, is_unique: isUnique, is_bot }),
+      JSON.stringify({ success: true, is_unique: isUnique }),
       { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
 
