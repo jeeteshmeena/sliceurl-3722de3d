@@ -37,7 +37,7 @@ export default function Terms() {
       {/* Main Content */}
       <main className="flex-1 container max-w-2xl mx-auto py-12 px-4">
         <h1 className="text-3xl font-bold mb-2">{t("terms_of_service")}</h1>
-        <p className="text-muted-foreground text-sm mb-8">{t("last_updated")}: January 2025</p>
+        <p className="text-muted-foreground text-sm mb-8">{t("last_updated")}: January 2026</p>
 
         <div className="space-y-8">
           {/* Introduction */}
