@@ -26,7 +26,7 @@ const colorPresets = [
   "#f97316",
 ];
 
-// Memoized color swatch component
+// Memoized color swatch component - rounded square design
 const ColorSwatch = memo(function ColorSwatch({ 
   color, 
   isSelected, 
@@ -39,10 +39,10 @@ const ColorSwatch = memo(function ColorSwatch({
   return (
     <button
       onClick={onClick}
-      className={`w-7 h-7 rounded-full border-2 transition-all duration-200 shrink-0 ${
+      className={`w-9 h-9 rounded-lg border-2 transition-all duration-200 shrink-0 ${
         isSelected
-          ? "border-primary ring-2 ring-primary/30 scale-110"
-          : "border-border/60 hover:border-primary/40 hover:scale-105"
+          ? "border-primary ring-2 ring-primary/30 ring-offset-1 ring-offset-background"
+          : "border-border/60 hover:border-primary/40"
       }`}
       style={{ backgroundColor: color }}
     />
