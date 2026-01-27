@@ -36,16 +36,9 @@ function parseUserAgent(ua: string): UAResult {
     is_bot: isBot(ua)
   };
 
-  // If it's a bot, mark device type accordingly
+  // If it's a bot, we will skip tracking entirely (handled in main flow)
+  // Just return early without setting device type
   if (result.is_bot) {
-    result.device_type = 'bot';
-    // Try to identify the bot
-    if (/googlebot/i.test(ua)) result.browser = 'Googlebot';
-    else if (/bingbot/i.test(ua)) result.browser = 'Bingbot';
-    else if (/facebookexternalhit/i.test(ua)) result.browser = 'Facebook Bot';
-    else if (/twitterbot/i.test(ua)) result.browser = 'Twitter Bot';
-    else if (/linkedinbot/i.test(ua)) result.browser = 'LinkedIn Bot';
-    else result.browser = 'Bot';
     return result;
   }
 
@@ -248,6 +241,15 @@ serve(async (req) => {
     const userAgent = req.headers.get('user-agent') || '';
     const { device_type, browser, os, is_bot } = parseUserAgent(userAgent);
     
+    // Skip tracking for bots entirely - only track real human visitors
+    if (is_bot) {
+      console.log(`Bot detected, skipping tracking for link ${link_id}: ${userAgent.substring(0, 50)}...`);
+      return new Response(
+        JSON.stringify({ success: false, skipped: true, reason: 'bot_detected' }),
+        { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+    
     // Parse referrer source
     const referrerSource = parseReferrerSource(referrer, userAgent);
 
@@ -293,10 +295,10 @@ serve(async (req) => {
       })
       .eq('id', link_id);
 
-    console.log(`Click tracked for link ${link_id}: ${device_type}/${browser}/${os} from ${geo.country}/${geo.city} via ${referrerSource}${is_bot ? ' [BOT]' : ''}`);
+    console.log(`Click tracked for link ${link_id}: ${device_type}/${browser}/${os} from ${geo.country}/${geo.city} via ${referrerSource}`);
 
     return new Response(
-      JSON.stringify({ success: true, is_unique: isUnique, is_bot }),
+      JSON.stringify({ success: true, is_unique: isUnique }),
       { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
 
