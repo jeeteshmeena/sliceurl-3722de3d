@@ -25,10 +25,10 @@ export function SliceNavToggle() {
         "relative inline-flex h-8 w-[140px] shrink-0 cursor-pointer items-center rounded-full p-1",
         // Transition
         "transition-colors duration-[250ms] ease-in-out",
-        // Background: SliceBox = yellow tint, LittleSlice = blue tint
+        // Background: SliceBox = red tint, LittleSlice = pink tint
         isLittleSlice 
-          ? "bg-[#D0E7EF]" 
-          : "bg-[#FFE580]",
+          ? "bg-[#FFE0E6]" 
+          : "bg-[#FFD9D6]",
         // Focus styles
         "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
       )}

@@ -2,19 +2,12 @@ import { useState, useRef, useCallback } from "react";
 import { Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
-  Upload, Link as LinkIcon, Copy, Check, FileText, Image, Video, Music, 
-  Archive, File, ExternalLink, Share2, Clock, Lock, Eye, EyeOff, Gauge
+  Upload, Link as LinkIcon, Copy, Check,
+  ExternalLink, Share2, Clock, Lock, Eye, EyeOff, Gauge
 } from "lucide-react";
 import { IsolatedButton, LITTLESLICE_COLORS } from "@/components/slicebox/IsolatedButton";
 import { IsolatedInput } from "@/components/slicebox/IsolatedInput";
-import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { FilePreview } from "@/components/slicebox/FilePreview";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -26,27 +19,22 @@ import { SliceNavToggle } from "@/components/SliceNavToggle";
 // LittleSlice: Temporary file sharing - 2GB limit, optional expiry (default 1 day)
 const MAX_FILE_SIZE = 2 * 1024 * 1024 * 1024; // 2GB
 
-// Pastel blue color palette
-const COLORS = {
-  primary: "#D0E7EF",
-  primaryDark: "#A8D4E6",
-  background: "#F8FBFC",
-  card: "#FFFFFF",
-  text: "#0B0B0B",
-  textSecondary: "#6B7280",
-  border: "#E2EEF2",
-};
+// Pinkish Red color theme
+const ACCENT_COLOR = "#FF4D6D";
+const ACCENT_COLOR_LIGHT = "#FFE0E6";
 
 type ExpiryOption = "1hour" | "1day" | "7days" | "30days" | "never";
 
 interface UploadedFile {
   fileId: string;
+  shortCode: string;
   originalName: string;
   fileSize: number;
   mimeType: string;
   shareUrl: string;
   expiresAt: string | null;
   passwordProtected: boolean;
+  file?: File;
 }
 
 interface FileUploadState {
@@ -73,15 +61,6 @@ const EXECUTABLE_MIME_TYPES = [
 function isExecutableFile(file: File): boolean {
   const ext = file.name.split('.').pop()?.toLowerCase() || '';
   return EXECUTABLE_EXTENSIONS.includes(ext) || EXECUTABLE_MIME_TYPES.includes(file.type);
-}
-
-function getFileIcon(mimeType: string) {
-  if (mimeType.startsWith("image/")) return Image;
-  if (mimeType.startsWith("video/")) return Video;
-  if (mimeType.startsWith("audio/")) return Music;
-  if (mimeType === "application/pdf") return FileText;
-  if (mimeType.includes("zip") || mimeType.includes("rar") || mimeType.includes("7z")) return Archive;
-  return File;
 }
 
 function formatFileSize(bytes: number): string {
@@ -153,6 +132,16 @@ function formatExpiryTime(isoString: string | null): string {
   return "Expires soon";
 }
 
+// Generate short code with collision handling
+function generateShortCode(length = 4): string {
+  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+  let result = '';
+  for (let i = 0; i < length; i++) {
+    result += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return result;
+}
+
 // PBKDF2 password hashing with unique salts
 const PBKDF2_ITERATIONS = 100000;
 
@@ -180,7 +169,6 @@ async function hashPassword(password: string): Promise<string> {
     keyMaterial,
     256
   );
-  // Format: pbkdf2$salt$hash
   return `pbkdf2$${arrayBufferToBase64(salt)}$${arrayBufferToBase64(hash)}`;
 }
 
@@ -198,6 +186,7 @@ export default function LittleSlice() {
   const [expiryOption, setExpiryOption] = useState<ExpiryOption>("1day");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [showPasswordField, setShowPasswordField] = useState(false);
 
   const uploadSingleFile = useCallback(async (
     file: File, 
@@ -208,6 +197,9 @@ export default function LittleSlice() {
     const fileId = crypto.randomUUID().split("-")[0] + Date.now().toString(36);
     const storagePath = `uploads/${fileId}/${file.name}`;
     const deleteToken = crypto.randomUUID();
+    
+    // Generate short code
+    let shortCode = generateShortCode(4);
 
     // Hash password if provided
     const passwordHash = filePassword ? await hashPassword(filePassword) : null;
@@ -243,30 +235,50 @@ export default function LittleSlice() {
       xhr.onload = async () => {
         if (xhr.status >= 200 && xhr.status < 300) {
           try {
-            // Insert metadata with optional expiry and optional password for LittleSlice
-            const { error: dbError } = await supabase.from("slicebox_files").insert({
-              file_id: fileId,
-              original_name: file.name,
-              file_size: file.size,
-              mime_type: file.type || "application/octet-stream",
-              storage_path: storagePath,
-              user_id: user?.id || null,
-              delete_token: deleteToken,
-              expires_at: expiresAt, // null for "never" expiry
-              password_hash: passwordHash, // Optional password protection
-            });
+            // Try to insert with short code, retry with longer code if collision
+            let inserted = false;
+            let attempts = 0;
+            while (!inserted && attempts < 5) {
+              const { error: dbError } = await supabase.from("slicebox_files").insert({
+                file_id: fileId,
+                original_name: file.name,
+                file_size: file.size,
+                mime_type: file.type || "application/octet-stream",
+                storage_path: storagePath,
+                user_id: user?.id || null,
+                delete_token: deleteToken,
+                expires_at: expiresAt,
+                password_hash: passwordHash,
+                short_code: shortCode,
+                service_type: 'ls', // LittleSlice
+              });
 
-            if (dbError) throw dbError;
+              if (dbError) {
+                if (dbError.code === '23505') {
+                  shortCode = generateShortCode(5 + attempts);
+                  attempts++;
+                } else {
+                  throw dbError;
+                }
+              } else {
+                inserted = true;
+              }
+            }
 
-            const shareUrl = `${window.location.origin}/slicebox/${fileId}`;
+            if (!inserted) throw new Error("Failed to generate unique short code");
+
+            // Use new short link format
+            const shareUrl = `${window.location.origin}/ls/${shortCode}`;
             resolve({
               fileId,
+              shortCode,
               originalName: file.name,
               fileSize: file.size,
               mimeType: file.type || "application/octet-stream",
               shareUrl,
               expiresAt,
               passwordProtected: !!passwordHash,
+              file,
             });
           } catch (err) {
             await supabase.storage.from("slicebox").remove([storagePath]);
@@ -299,7 +311,6 @@ export default function LittleSlice() {
 
     if (validFiles.length === 0) return;
 
-    // Show warning for executable files
     const hasExecutables = validFiles.some(isExecutableFile);
     if (hasExecutables) {
       toast.warning("Executable files may contain malware. Only download from trusted sources.", {
@@ -383,7 +394,6 @@ export default function LittleSlice() {
         ? "File uploaded!" 
         : `${successfulUploads.length} files uploaded!`
       );
-      // Clear password after successful upload
       setPassword("");
     }
   }, [uploadSingleFile, expiryOption, password]);
@@ -432,6 +442,7 @@ export default function LittleSlice() {
 
   const showResults = uploadedFiles.length > 0;
   const hasActiveUploads = fileUploads.some(u => u.status === "uploading" || u.status === "pending");
+  const hasUploadsInProgress = fileUploads.length > 0;
 
   // Status panel data
   const uploadStats = fileUploads
@@ -445,25 +456,24 @@ export default function LittleSlice() {
       uploadedSize: u.uploadedBytes,
     }));
 
+  const expiryOptions: ExpiryOption[] = ["1hour", "1day", "7days", "30days"];
+
   return (
-    <div className="min-h-dvh flex flex-col" style={{ backgroundColor: COLORS.background }}>
-      {/* Header - LEFT: Logo + Name | RIGHT: Toggle */}
-      <header 
-        className="sticky top-0 z-50 border-b shadow-sm"
-        style={{ backgroundColor: COLORS.card, borderColor: COLORS.border }}
-      >
+    <div className="min-h-dvh flex flex-col bg-[#FFF5F7]">
+      {/* Header */}
+      <header className="sticky top-0 z-50 border-b shadow-sm bg-white" style={{ borderColor: ACCENT_COLOR_LIGHT }}>
         <div className="max-w-4xl mx-auto h-14 flex items-center justify-between px-4 sm:px-6">
           {/* Left: Brand */}
           <div className="flex items-center gap-2.5">
             <div 
               className="h-9 w-9 rounded-lg flex items-center justify-center"
-              style={{ backgroundColor: COLORS.primary }}
+              style={{ backgroundColor: ACCENT_COLOR }}
             >
-              <Clock className="h-4 w-4" style={{ color: COLORS.text }} />
+              <Clock className="h-4 w-4 text-white" />
             </div>
             <span className="text-lg sm:text-xl font-bold tracking-tight">
-              <span style={{ color: COLORS.text }}>Little</span>
-              <span style={{ color: COLORS.textSecondary }}>Slice</span>
+              <span className="text-[#0B0B0B]">Little</span>
+              <span className="text-[#6B7280]">Slice</span>
             </span>
           </div>
 
@@ -473,7 +483,7 @@ export default function LittleSlice() {
         
         {/* Helper text */}
         <div className="max-w-4xl mx-auto px-4 sm:px-6 pb-2">
-          <p className="text-xs" style={{ color: COLORS.textSecondary }}>Temporary file sharing</p>
+          <p className="text-xs text-[#6B7280]">Temporary file sharing</p>
         </div>
       </header>
 
@@ -489,67 +499,81 @@ export default function LittleSlice() {
       <main className="flex-1 max-w-2xl mx-auto w-full px-4 sm:px-6 py-8 sm:py-12">
         {/* Hero */}
         <div className="text-center mb-8">
-          <h1 className="text-2xl sm:text-3xl font-bold mb-2" style={{ color: COLORS.text }}>
+          <h1 className="text-2xl sm:text-3xl font-bold text-[#0B0B0B] mb-2">
             Temporary File Sharing
           </h1>
-          <p className="text-sm sm:text-base" style={{ color: COLORS.textSecondary }}>
+          <p className="text-sm sm:text-base text-[#6B7280]">
             Upload up to 2GB. Files auto-delete after expiry.
           </p>
         </div>
 
-        {/* Options Row */}
-        <div className="flex flex-col sm:flex-row gap-4 mb-6">
-          {/* Expiry Selector */}
-          <div className="flex-1">
-            <Label className="text-xs mb-1.5 block text-foreground dark:text-foreground">
-              <Clock className="h-3 w-3 inline mr-1" />
-              Expires in
-            </Label>
-            <Select value={expiryOption} onValueChange={(v) => setExpiryOption(v as ExpiryOption)}>
-              <SelectTrigger 
-                className="h-11 rounded-xl border-2 text-foreground dark:text-foreground bg-background dark:bg-background"
-                style={{ borderColor: COLORS.border }}
-              >
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent className="bg-background dark:bg-background text-foreground dark:text-foreground">
-                <SelectItem value="1hour">1 hour</SelectItem>
-                <SelectItem value="1day">1 day</SelectItem>
-                <SelectItem value="7days">7 days</SelectItem>
-                <SelectItem value="30days">30 days</SelectItem>
-                <SelectItem value="never">Never</SelectItem>
-              </SelectContent>
-            </Select>
+        {/* Expiry Selector - Pill buttons */}
+        <div className="mb-4">
+          <div className="flex items-center gap-2 mb-2">
+            <Clock className="h-3.5 w-3.5 text-[#6B7280]" />
+            <span className="text-xs font-medium text-[#6B7280]">Expires in</span>
           </div>
-
-          {/* Password (Optional) */}
-          <div className="flex-1">
-            <Label className="text-xs mb-1.5 block" style={{ color: COLORS.textSecondary }}>
-              <Lock className="h-3 w-3 inline mr-1" />
-              Password (optional)
-            </Label>
-            <div className="relative">
-              <IsolatedInput
-                type={showPassword ? "text" : "password"}
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="Leave empty for no password"
-                className="h-11 rounded-xl pr-10"
-                colorScheme="littleslice"
-              />
+          <div className="flex flex-wrap gap-2">
+            {expiryOptions.map((option) => (
               <button
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-1/2 -translate-y-1/2"
-                style={{ color: COLORS.textSecondary }}
+                key={option}
+                onClick={() => setExpiryOption(option)}
+                className={cn(
+                  "px-4 py-2 rounded-full text-sm font-medium transition-all",
+                  expiryOption === option
+                    ? "text-white"
+                    : "bg-white text-[#0B0B0B] border border-[#E8E8E8] hover:border-[#FF4D6D]"
+                )}
+                style={{
+                  backgroundColor: expiryOption === option ? ACCENT_COLOR : undefined,
+                }}
               >
-                {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                {formatExpiryLabel(option)}
               </button>
-            </div>
+            ))}
           </div>
         </div>
 
-        {/* Upload Zone */}
+        {/* Password field - collapsible */}
+        <div className="mb-6">
+          <button
+            onClick={() => setShowPasswordField(!showPasswordField)}
+            className="flex items-center gap-2 text-xs font-medium text-[#6B7280] hover:text-[#0B0B0B] transition-colors"
+          >
+            <Lock className="h-3.5 w-3.5" />
+            Add password (optional)
+          </button>
+          <AnimatePresence>
+            {showPasswordField && (
+              <motion.div
+                initial={{ height: 0, opacity: 0 }}
+                animate={{ height: "auto", opacity: 1 }}
+                exit={{ height: 0, opacity: 0 }}
+                className="overflow-hidden"
+              >
+                <div className="relative mt-2">
+                  <IsolatedInput
+                    type={showPassword ? "text" : "password"}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="Enter password"
+                    className="h-11 rounded-xl pr-10"
+                    colorScheme="littleslice"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-[#6B7280]"
+                  >
+                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </button>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+
+        {/* Upload Zone - Contains uploads inside */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -559,145 +583,145 @@ export default function LittleSlice() {
             onDragOver={handleDragOver}
             onDragLeave={handleDragLeave}
             onDrop={handleDrop}
-            onClick={() => fileInputRef.current?.click()}
+            onClick={() => !hasUploadsInProgress && fileInputRef.current?.click()}
             className={cn(
-              "rounded-2xl p-8 sm:p-10 text-center cursor-pointer transition-all duration-200 border-2 shadow-sm",
-              isDragging ? "scale-[1.01]" : ""
+              "rounded-2xl text-center transition-all duration-200 border-2 bg-white shadow-sm overflow-hidden",
+              isDragging 
+                ? "border-[#FF4D6D] scale-[1.01] shadow-lg" 
+                : "border-[#FFE0E6] hover:border-[#FF4D6D]/50 hover:shadow-md",
+              hasUploadsInProgress ? "cursor-default" : "cursor-pointer"
             )}
-            style={{ 
-              backgroundColor: COLORS.card,
-              borderColor: isDragging ? COLORS.primaryDark : COLORS.border,
-              boxShadow: isDragging ? `0 8px 30px ${COLORS.primary}50` : undefined,
-            }}
           >
-            <div 
-              className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4"
-              style={{ backgroundColor: COLORS.primary }}
-            >
-              <Upload className="h-8 w-8" style={{ color: COLORS.text }} />
+            {/* Drop zone header */}
+            <div className="p-8 sm:p-10" onClick={(e) => hasUploadsInProgress && e.stopPropagation()}>
+              <div 
+                className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4"
+                style={{ backgroundColor: `${ACCENT_COLOR}12` }}
+              >
+                <Upload className="h-8 w-8" style={{ color: ACCENT_COLOR }} />
+              </div>
+              <p className="font-semibold text-lg text-[#0B0B0B] mb-1">
+                {hasUploadsInProgress ? "Upload in progress" : "Drop files here"}
+              </p>
+              <p className="text-sm text-[#6B7280] mb-4">
+                {hasUploadsInProgress ? "Files are being uploaded" : "or click to browse"}
+              </p>
+              <div 
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium text-white"
+                style={{ backgroundColor: ACCENT_COLOR }}
+              >
+                Max 2GB · Expires in {formatExpiryLabel(expiryOption)}
+                {password && " · 🔒 Protected"}
+              </div>
+              <input
+                ref={fileInputRef}
+                type="file"
+                multiple
+                className="hidden"
+                onChange={(e) => e.target.files && handleMultipleFileUpload(e.target.files)}
+              />
             </div>
-            <p className="font-semibold text-lg mb-1" style={{ color: COLORS.text }}>
-              Drop files here
-            </p>
-            <p className="text-sm mb-4" style={{ color: COLORS.textSecondary }}>
-              or click to browse
-            </p>
-            <div 
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium"
-              style={{ backgroundColor: COLORS.primary, color: COLORS.text }}
-            >
-              Max 2GB · Expires in {formatExpiryLabel(expiryOption)}
-              {password && " · 🔒 Protected"}
-            </div>
-            <input
-              ref={fileInputRef}
-              type="file"
-              multiple
-              className="hidden"
-              onChange={(e) => e.target.files && handleMultipleFileUpload(e.target.files)}
-            />
+
+            {/* Active Uploads - Inside the drop zone */}
+            <AnimatePresence mode="popLayout">
+              {fileUploads.length > 0 && (
+                <motion.div
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: "auto" }}
+                  exit={{ opacity: 0, height: 0 }}
+                  className="border-t"
+                  style={{ borderColor: ACCENT_COLOR_LIGHT }}
+                >
+                  <div className="p-4">
+                    <div className="flex items-center justify-between mb-3">
+                      <h3 className="font-semibold text-[#0B0B0B] text-sm">Uploading Files</h3>
+                      {!hasActiveUploads && (
+                        <IsolatedButton 
+                          variant="ghost" 
+                          size="sm" 
+                          onClick={(e) => { e.stopPropagation(); clearCompleted(); }}
+                          colorScheme="littleslice"
+                          className="text-xs"
+                          style={{ color: LITTLESLICE_COLORS.textSecondary }}
+                        >
+                          Clear
+                        </IsolatedButton>
+                      )}
+                    </div>
+                    <div className="space-y-2 max-h-64 overflow-y-auto">
+                      {fileUploads.map((upload) => (
+                        <motion.div
+                          key={upload.id}
+                          layout
+                          initial={{ opacity: 0, y: -10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0, x: -20 }}
+                          className="p-3 bg-[#FFF5F7] rounded-xl"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          <div className="flex items-center gap-3">
+                            <FilePreview 
+                              file={upload.file} 
+                              size="sm" 
+                              variant="littleslice"
+                            />
+                            <div className="flex-1 min-w-0">
+                              <p className="text-sm font-medium text-[#0B0B0B] truncate">
+                                {upload.file.name}
+                              </p>
+                              <div className="flex items-center gap-2 text-xs text-[#6B7280]">
+                                <span>{formatFileSize(upload.file.size)}</span>
+                                {upload.status === "uploading" && upload.speed > 0 && (
+                                  <>
+                                    <span>·</span>
+                                    <span className="flex items-center gap-1">
+                                      <Gauge className="h-3 w-3" />
+                                      {formatSpeed(upload.speed)}
+                                    </span>
+                                    <span>·</span>
+                                    <span className="flex items-center gap-1">
+                                      <Clock className="h-3 w-3" />
+                                      {formatTime(upload.remainingTime)}
+                                    </span>
+                                  </>
+                                )}
+                              </div>
+                            </div>
+                            <div className="shrink-0">
+                              {upload.status === "complete" && (
+                                <Check className="h-5 w-5 text-green-600" />
+                              )}
+                              {upload.status === "error" && (
+                                <span className="text-xs text-red-600">Failed</span>
+                              )}
+                            </div>
+                          </div>
+                          {upload.status === "uploading" && (
+                            <div className="mt-2">
+                              <div className="flex justify-between text-xs text-[#6B7280] mb-1">
+                                <span>{upload.progress}%</span>
+                                <span>{formatFileSize(upload.uploadedBytes)} / {formatFileSize(upload.file.size)}</span>
+                              </div>
+                              <div className="h-1.5 bg-[#FFE0E6] rounded-full overflow-hidden">
+                                <motion.div 
+                                  className="h-full rounded-full"
+                                  style={{ backgroundColor: ACCENT_COLOR }}
+                                  initial={{ width: 0 }}
+                                  animate={{ width: `${upload.progress}%` }}
+                                  transition={{ duration: 0.3 }}
+                                />
+                              </div>
+                            </div>
+                          )}
+                        </motion.div>
+                      ))}
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
         </motion.div>
-
-        {/* Active Uploads */}
-        <AnimatePresence mode="popLayout">
-          {fileUploads.length > 0 && (
-            <motion.div
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: "auto" }}
-              exit={{ opacity: 0, height: 0 }}
-              className="mb-8"
-            >
-              <div className="flex items-center justify-between mb-3">
-                <h3 className="font-semibold" style={{ color: COLORS.text }}>Uploads</h3>
-                {!hasActiveUploads && (
-                  <IsolatedButton 
-                    variant="ghost" 
-                    size="sm" 
-                    onClick={clearCompleted}
-                    colorScheme="littleslice"
-                    className="text-xs"
-                    style={{ color: COLORS.textSecondary }}
-                  >
-                    Clear
-                  </IsolatedButton>
-                )}
-              </div>
-              <div className="space-y-2">
-                {fileUploads.map((upload) => {
-                  const FileIcon = getFileIcon(upload.file.type);
-                  return (
-                    <motion.div
-                      key={upload.id}
-                      layout
-                      initial={{ opacity: 0, y: -10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, x: -20 }}
-                      className="p-3 rounded-xl border"
-                      style={{ backgroundColor: COLORS.card, borderColor: COLORS.border }}
-                    >
-                      <div className="flex items-center gap-3">
-                        <div 
-                          className="h-10 w-10 rounded-lg flex items-center justify-center shrink-0"
-                          style={{ backgroundColor: `${COLORS.primary}50` }}
-                        >
-                          <FileIcon className="h-5 w-5" style={{ color: COLORS.textSecondary }} />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium truncate" style={{ color: COLORS.text }}>
-                            {upload.file.name}
-                          </p>
-                          <div className="flex items-center gap-2 text-xs" style={{ color: COLORS.textSecondary }}>
-                            <span>{formatFileSize(upload.file.size)}</span>
-                            {upload.status === "uploading" && upload.speed > 0 && (
-                              <>
-                                <span>·</span>
-                                <span className="flex items-center gap-1">
-                                  <Gauge className="h-3 w-3" />
-                                  {formatSpeed(upload.speed)}
-                                </span>
-                                <span>·</span>
-                                <span className="flex items-center gap-1">
-                                  <Clock className="h-3 w-3" />
-                                  {formatTime(upload.remainingTime)}
-                                </span>
-                              </>
-                            )}
-                          </div>
-                        </div>
-                        <div className="shrink-0">
-                          {upload.status === "complete" && (
-                            <Check className="h-5 w-5 text-green-600" />
-                          )}
-                          {upload.status === "error" && (
-                            <span className="text-xs text-red-600">Failed</span>
-                          )}
-                        </div>
-                      </div>
-                      {upload.status === "uploading" && (
-                        <div className="mt-2">
-                          <div className="flex justify-between text-xs mb-1" style={{ color: COLORS.textSecondary }}>
-                            <span>{upload.progress}%</span>
-                            <span>{formatFileSize(upload.uploadedBytes)} / {formatFileSize(upload.file.size)}</span>
-                          </div>
-                          <div className="h-1.5 rounded-full overflow-hidden" style={{ backgroundColor: COLORS.border }}>
-                            <motion.div 
-                              className="h-full rounded-full"
-                              style={{ backgroundColor: COLORS.primaryDark }}
-                              initial={{ width: 0 }}
-                              animate={{ width: `${upload.progress}%` }}
-                              transition={{ duration: 0.3 }}
-                            />
-                          </div>
-                        </div>
-                      )}
-                    </motion.div>
-                  );
-                })}
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
 
         {/* Uploaded Files Results */}
         <AnimatePresence>
@@ -707,96 +731,91 @@ export default function LittleSlice() {
               animate={{ opacity: 1 }}
               className="mb-12"
             >
-              <h3 className="font-semibold mb-3" style={{ color: COLORS.text }}>Your Files</h3>
+              <h3 className="font-semibold text-[#0B0B0B] mb-3">Your Files</h3>
               <div className="space-y-3">
-                {uploadedFiles.map((file) => {
-                  const FileIcon = getFileIcon(file.mimeType);
-                  return (
-                    <motion.div
-                      key={file.fileId}
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      className="p-4 rounded-xl border shadow-sm"
-                      style={{ backgroundColor: COLORS.card, borderColor: COLORS.border }}
-                    >
-                      <div className="flex items-start gap-3">
-                        <div 
-                          className="h-12 w-12 rounded-xl flex items-center justify-center shrink-0"
-                          style={{ backgroundColor: `${COLORS.primary}40` }}
-                        >
-                          <FileIcon className="h-6 w-6" style={{ color: COLORS.text }} />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="font-medium truncate mb-1" style={{ color: COLORS.text }}>
-                            {file.originalName}
-                          </p>
-                          <div className="flex items-center gap-2 text-xs" style={{ color: COLORS.textSecondary }}>
-                            <span>{formatFileSize(file.fileSize)}</span>
-                            <span>·</span>
-                            <span className="flex items-center gap-1">
-                              <Clock className="h-3 w-3" />
-                              {formatExpiryTime(file.expiresAt)}
-                            </span>
-                            {file.passwordProtected && (
-                              <>
-                                <span>·</span>
-                                <span className="flex items-center gap-1">
-                                  <Lock className="h-3 w-3" />
-                                  Protected
-                                </span>
-                              </>
-                            )}
-                          </div>
-                          <div 
-                            className="flex items-center gap-2 p-2 rounded-lg mt-2"
-                            style={{ backgroundColor: `${COLORS.primary}30` }}
-                          >
-                            <LinkIcon className="h-3.5 w-3.5 shrink-0" style={{ color: COLORS.textSecondary }} />
-                            <span className="text-xs truncate flex-1 font-mono" style={{ color: COLORS.text }}>
-                              {file.shareUrl}
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-                      <div 
-                        className="flex items-center gap-2 mt-3 pt-3 border-t"
-                        style={{ borderColor: COLORS.border }}
-                      >
-                        <IsolatedButton
-                          size="sm"
-                          onClick={() => handleCopy(file.shareUrl, file.fileId)}
-                          colorScheme="littleslice"
-                          className="flex-1 shadow-none"
-                        >
-                          {copiedId === file.fileId ? (
-                            <Check className="h-4 w-4 mr-1.5" />
-                          ) : (
-                            <Copy className="h-4 w-4 mr-1.5" />
+                {uploadedFiles.map((file) => (
+                  <motion.div
+                    key={file.fileId}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="p-4 bg-white rounded-xl border shadow-sm"
+                    style={{ borderColor: ACCENT_COLOR_LIGHT }}
+                  >
+                    <div className="flex items-start gap-3">
+                      <FilePreview 
+                        file={file.file} 
+                        mimeType={file.mimeType}
+                        fileName={file.originalName}
+                        size="md" 
+                        variant="littleslice"
+                      />
+                      <div className="flex-1 min-w-0">
+                        <p className="font-medium text-[#0B0B0B] truncate mb-1">
+                          {file.originalName}
+                        </p>
+                        <div className="flex items-center gap-2 text-xs text-[#6B7280]">
+                          <span>{formatFileSize(file.fileSize)}</span>
+                          <span>·</span>
+                          <span className="flex items-center gap-1">
+                            <Clock className="h-3 w-3" />
+                            {formatExpiryTime(file.expiresAt)}
+                          </span>
+                          {file.passwordProtected && (
+                            <>
+                              <span>·</span>
+                              <span className="flex items-center gap-1">
+                                <Lock className="h-3 w-3" />
+                                Protected
+                              </span>
+                            </>
                           )}
-                          {copiedId === file.fileId ? "Copied!" : "Copy Link"}
-                        </IsolatedButton>
-                        <IsolatedButton
-                          size="sm"
-                          variant="outline"
-                          onClick={() => handleShare(file)}
-                          colorScheme="littleslice"
+                        </div>
+                        <div 
+                          className="flex items-center gap-2 p-2 rounded-lg mt-2"
+                          style={{ backgroundColor: `${ACCENT_COLOR}10` }}
                         >
-                          <Share2 className="h-4 w-4" />
-                        </IsolatedButton>
-                        <IsolatedButton
-                          size="sm"
-                          variant="outline"
-                          asChild
-                          colorScheme="littleslice"
-                        >
-                          <a href={file.shareUrl} target="_blank" rel="noopener noreferrer">
-                            <ExternalLink className="h-4 w-4" />
-                          </a>
-                        </IsolatedButton>
+                          <LinkIcon className="h-3.5 w-3.5 text-[#6B7280] shrink-0" />
+                          <span className="text-xs text-[#0B0B0B] truncate flex-1 font-mono">
+                            {file.shareUrl}
+                          </span>
+                        </div>
                       </div>
-                    </motion.div>
-                  );
-                })}
+                    </div>
+                    <div className="flex items-center gap-2 mt-3 pt-3 border-t" style={{ borderColor: ACCENT_COLOR_LIGHT }}>
+                      <IsolatedButton
+                        size="sm"
+                        onClick={() => handleCopy(file.shareUrl, file.fileId)}
+                        colorScheme="littleslice"
+                        className="flex-1 shadow-none"
+                      >
+                        {copiedId === file.fileId ? (
+                          <Check className="h-4 w-4 mr-1.5" />
+                        ) : (
+                          <Copy className="h-4 w-4 mr-1.5" />
+                        )}
+                        {copiedId === file.fileId ? "Copied!" : "Copy Link"}
+                      </IsolatedButton>
+                      <IsolatedButton
+                        size="sm"
+                        variant="outline"
+                        onClick={() => handleShare(file)}
+                        colorScheme="littleslice"
+                      >
+                        <Share2 className="h-4 w-4" />
+                      </IsolatedButton>
+                      <IsolatedButton
+                        size="sm"
+                        variant="outline"
+                        asChild
+                        colorScheme="littleslice"
+                      >
+                        <a href={file.shareUrl} target="_blank" rel="noopener noreferrer">
+                          <ExternalLink className="h-4 w-4" />
+                        </a>
+                      </IsolatedButton>
+                    </div>
+                  </motion.div>
+                ))}
               </div>
             </motion.div>
           )}
@@ -804,7 +823,7 @@ export default function LittleSlice() {
 
         {/* Switch to SliceBox */}
         <div className="text-center mb-8">
-          <p className="text-sm mb-3" style={{ color: COLORS.textSecondary }}>
+          <p className="text-sm text-[#6B7280] mb-3">
             Need permanent file hosting?
           </p>
           <IsolatedButton
@@ -820,11 +839,11 @@ export default function LittleSlice() {
       </main>
 
       {/* Footer */}
-      <footer className="border-t py-6" style={{ backgroundColor: COLORS.card, borderColor: COLORS.border }}>
+      <footer className="border-t bg-white py-6" style={{ borderColor: ACCENT_COLOR_LIGHT }}>
         <div className="max-w-3xl mx-auto px-4 text-center">
-          <p className="text-sm" style={{ color: COLORS.textSecondary }}>
+          <p className="text-sm text-[#6B7280]">
             A Product by{" "}
-            <Link to="/slicebox" className="font-medium hover:underline" style={{ color: COLORS.text }}>
+            <Link to="/slicebox" className="font-medium text-[#0B0B0B] hover:underline">
               SliceBox
             </Link>
           </p>
