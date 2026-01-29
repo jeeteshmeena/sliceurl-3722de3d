@@ -1023,6 +1023,10 @@ export type Database = {
       }
     }
     Functions: {
+      generate_slicebox_shortcode: {
+        Args: { target_length?: number }
+        Returns: string
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]

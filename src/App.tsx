@@ -31,6 +31,7 @@ const CreepyURL = lazy(() => import("@/pages/CreepyURL"));
 const SliceBox = lazy(() => import("@/pages/SliceBox"));
 const LittleSlice = lazy(() => import("@/pages/LittleSlice"));
 const SliceBoxView = lazy(() => import("@/pages/SliceBoxView"));
+const SliceShortRedirect = lazy(() => import("@/pages/SliceShortRedirect"));
 
 const Feedback = lazy(() => import("@/pages/Feedback"));
 const FeedbackAdmin = lazy(() => import("@/pages/FeedbackAdmin"));
@@ -156,6 +157,18 @@ const App = () => (
                   <Route path="/littleslice" element={
                     <Suspense fallback={<PageLoader />}>
                       <LittleSlice />
+                    </Suspense>
+                  } />
+                  
+                  {/* New Short Link Routes: /sb/:shortCode and /ls/:shortCode */}
+                  <Route path="/sb/:shortCode" element={
+                    <Suspense fallback={<PageLoader />}>
+                      <SliceShortRedirect />
+                    </Suspense>
+                  } />
+                  <Route path="/ls/:shortCode" element={
+                    <Suspense fallback={<PageLoader />}>
+                      <SliceShortRedirect />
                     </Suspense>
                   } />
                   

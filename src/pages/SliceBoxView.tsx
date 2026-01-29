@@ -2,16 +2,21 @@ import { useEffect, useState } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { 
-  FileText, Image, Video, Music, Archive, File, Download, 
-  Lock, Eye, EyeOff, ArrowLeft, HardDrive, Clock, AlertTriangle
+  Download, Lock, Eye, EyeOff, ArrowLeft, HardDrive, Clock, AlertTriangle
 } from "lucide-react";
-import { IsolatedButton, SLICEBOX_COLORS, LITTLESLICE_COLORS } from "@/components/slicebox/IsolatedButton";
+import { IsolatedButton } from "@/components/slicebox/IsolatedButton";
 import { IsolatedInput } from "@/components/slicebox/IsolatedInput";
+import { FilePreview } from "@/components/slicebox/FilePreview";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
+// Colors
+const SLICEBOX_ACCENT = "#FF3B30"; // Apple Music Red
+const LITTLESLICE_ACCENT = "#FF4D6D"; // Pinkish Red
+
 interface FileMetadata {
   fileId: string;
+  shortCode: string | null;
   originalName: string;
   fileSize: number;
   mimeType: string;
@@ -19,15 +24,7 @@ interface FileMetadata {
   expiresAt: string | null;
   isPasswordProtected: boolean;
   downloadCount: number;
-}
-
-function getFileIcon(mimeType: string) {
-  if (mimeType.startsWith("image/")) return Image;
-  if (mimeType.startsWith("video/")) return Video;
-  if (mimeType.startsWith("audio/")) return Music;
-  if (mimeType === "application/pdf") return FileText;
-  if (mimeType.includes("zip") || mimeType.includes("rar") || mimeType.includes("7z")) return Archive;
-  return File;
+  serviceType: string | null;
 }
 
 function formatFileSize(bytes: number): string {
@@ -66,10 +63,11 @@ export default function SliceBoxView() {
   const [showPassword, setShowPassword] = useState(false);
   const [verifying, setVerifying] = useState(false);
   const [downloading, setDownloading] = useState(false);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
   // Determine if this is a temporary file (LittleSlice) or permanent (SliceBox)
-  const isTemporary = file?.expiresAt !== null;
-  const accentColor = isTemporary ? "#D0E7EF" : "#FFD64D";
+  const isTemporary = file?.expiresAt !== null || file?.serviceType === 'ls';
+  const accentColor = isTemporary ? LITTLESLICE_ACCENT : SLICEBOX_ACCENT;
   const brandName = isTemporary ? "LittleSlice" : "SliceBox";
 
   useEffect(() => {
@@ -82,7 +80,7 @@ export default function SliceBoxView() {
       try {
         const { data, error: fetchError } = await supabase
           .from("slicebox_files")
-          .select("file_id, original_name, file_size, mime_type, storage_path, expires_at, password_hash, download_count, is_deleted")
+          .select("file_id, original_name, file_size, mime_type, storage_path, expires_at, password_hash, download_count, is_deleted, short_code, service_type")
           .eq("file_id", fileId)
           .single();
 
@@ -107,6 +105,7 @@ export default function SliceBoxView() {
 
         setFile({
           fileId: data.file_id,
+          shortCode: data.short_code,
           originalName: data.original_name,
           fileSize: data.file_size,
           mimeType: data.mime_type,
@@ -114,7 +113,19 @@ export default function SliceBoxView() {
           expiresAt: data.expires_at,
           isPasswordProtected: !!data.password_hash,
           downloadCount: data.download_count || 0,
+          serviceType: data.service_type,
         });
+
+        // Generate preview URL for images
+        if (data.mime_type.startsWith("image/") && !data.password_hash) {
+          const { data: signedData } = await supabase.storage
+            .from("slicebox")
+            .createSignedUrl(data.storage_path, 300);
+          if (signedData?.signedUrl) {
+            setPreviewUrl(signedData.signedUrl);
+          }
+        }
+
         setLoading(false);
       } catch (err) {
         console.error("Error fetching file:", err);
@@ -148,7 +159,6 @@ export default function SliceBoxView() {
           return;
         }
 
-        // Download using signed URL from edge function
         window.location.href = response.data.downloadUrl;
         toast.success("Download started!");
         setVerifying(false);
@@ -168,14 +178,12 @@ export default function SliceBoxView() {
       });
 
       if (response.error || !response.data?.success) {
-        // Handle specific error cases with user-friendly messages
         const errorMessage = response.data?.error || "Download failed";
         if (errorMessage.includes("expired")) {
           toast.error("This file has expired");
         } else if (errorMessage.includes("deleted")) {
           toast.error("This file has been deleted");
         } else if (response.data?.requiresPassword) {
-          // This shouldn't happen but handle gracefully
           toast.error("This file requires a password");
         } else {
           toast.error("Failed to download file");
@@ -184,7 +192,6 @@ export default function SliceBoxView() {
         return;
       }
 
-      // Redirect to signed download URL
       window.location.href = response.data.downloadUrl;
       toast.success("Download started!");
     } catch (err) {
@@ -195,14 +202,16 @@ export default function SliceBoxView() {
     }
   };
 
-  const FileIcon = file ? getFileIcon(file.mimeType) : File;
   const expiryText = file ? formatExpiryTime(file.expiresAt) : null;
 
   // Loading state
   if (loading) {
     return (
       <div className="min-h-dvh flex items-center justify-center bg-[#FAFAFA]">
-        <div className="w-8 h-8 border-2 border-[#0B0B0B] border-t-transparent rounded-full animate-spin" />
+        <div 
+          className="w-8 h-8 border-2 border-t-transparent rounded-full animate-spin"
+          style={{ borderColor: SLICEBOX_ACCENT, borderTopColor: "transparent" }}
+        />
       </div>
     );
   }
@@ -214,8 +223,11 @@ export default function SliceBoxView() {
         <header className="sticky top-0 z-50 border-b border-[#E8E8E8] bg-white shadow-sm">
           <div className="max-w-4xl mx-auto h-14 flex items-center justify-between px-4">
             <div className="flex items-center gap-2.5">
-              <div className="h-8 w-8 rounded-lg bg-[#FFD64D] flex items-center justify-center">
-                <HardDrive className="h-4 w-4 text-[#0B0B0B]" />
+              <div 
+                className="h-8 w-8 rounded-lg flex items-center justify-center"
+                style={{ backgroundColor: SLICEBOX_ACCENT }}
+              >
+                <HardDrive className="h-4 w-4 text-white" />
               </div>
               <span className="text-lg font-bold">
                 <span className="text-[#0B0B0B]">Slice</span>
@@ -247,11 +259,11 @@ export default function SliceBoxView() {
   }
 
   return (
-    <div className="min-h-dvh flex flex-col" style={{ backgroundColor: isTemporary ? "#F8FBFC" : "#FAFAFA" }}>
+    <div className="min-h-dvh flex flex-col" style={{ backgroundColor: isTemporary ? "#FFF5F7" : "#FAFAFA" }}>
       {/* Header */}
       <header 
-        className="sticky top-0 z-50 border-b shadow-sm"
-        style={{ backgroundColor: "#FFFFFF", borderColor: isTemporary ? "#E2EEF2" : "#E8E8E8" }}
+        className="sticky top-0 z-50 border-b shadow-sm bg-white"
+        style={{ borderColor: isTemporary ? "#FFE0E6" : "#E8E8E8" }}
       >
         <div className="max-w-4xl mx-auto h-14 flex items-center justify-between px-4">
           <div className="flex items-center gap-2.5">
@@ -260,9 +272,9 @@ export default function SliceBoxView() {
               style={{ backgroundColor: accentColor }}
             >
               {isTemporary ? (
-                <Clock className="h-4 w-4 text-[#0B0B0B]" />
+                <Clock className="h-4 w-4 text-white" />
               ) : (
-                <HardDrive className="h-4 w-4 text-[#0B0B0B]" />
+                <HardDrive className="h-4 w-4 text-white" />
               )}
             </div>
             <span className="text-lg font-bold">
@@ -293,16 +305,20 @@ export default function SliceBoxView() {
           className="w-full max-w-md"
         >
           <div 
-            className="rounded-2xl border shadow-lg overflow-hidden"
-            style={{ backgroundColor: "#FFFFFF", borderColor: isTemporary ? "#E2EEF2" : "#E8E8E8" }}
+            className="rounded-2xl border shadow-lg overflow-hidden bg-white"
+            style={{ borderColor: isTemporary ? "#FFE0E6" : "#E8E8E8" }}
           >
-            {/* File Icon & Info */}
+            {/* File Preview & Info */}
             <div className="p-6 text-center">
-              <div 
-                className="w-20 h-20 rounded-2xl flex items-center justify-center mx-auto mb-4"
-                style={{ backgroundColor: `${accentColor}30` }}
-              >
-                <FileIcon className="h-10 w-10" style={{ color: "#0B0B0B" }} />
+              {/* Large preview */}
+              <div className="flex justify-center mb-4">
+                <FilePreview
+                  mimeType={file.mimeType}
+                  fileName={file.originalName}
+                  previewUrl={previewUrl || undefined}
+                  size="lg"
+                  variant={isTemporary ? "littleslice" : "slicebox"}
+                />
               </div>
               <h1 className="text-lg font-bold text-[#0B0B0B] mb-1 break-all">
                 {file.originalName}
@@ -327,7 +343,10 @@ export default function SliceBoxView() {
               <div className="px-6 pb-4">
                 <div 
                   className="p-4 rounded-xl border"
-                  style={{ backgroundColor: `${accentColor}20`, borderColor: `${accentColor}50` }}
+                  style={{ 
+                    backgroundColor: `${accentColor}10`, 
+                    borderColor: `${accentColor}30` 
+                  }}
                 >
                   <div className="flex items-center gap-2 mb-3">
                     <Lock className="h-4 w-4 text-[#6B7280]" />
@@ -365,12 +384,18 @@ export default function SliceBoxView() {
               >
                 {verifying ? (
                   <>
-                    <div className="h-4 w-4 border-2 border-[#0B0B0B] border-t-transparent rounded-full animate-spin" />
+                    <div 
+                      className="h-4 w-4 border-2 border-t-transparent rounded-full animate-spin"
+                      style={{ borderColor: "white", borderTopColor: "transparent" }}
+                    />
                     Verifying...
                   </>
                 ) : downloading ? (
                   <>
-                    <div className="h-4 w-4 border-2 border-[#0B0B0B] border-t-transparent rounded-full animate-spin" />
+                    <div 
+                      className="h-4 w-4 border-2 border-t-transparent rounded-full animate-spin"
+                      style={{ borderColor: "white", borderTopColor: "transparent" }}
+                    />
                     Starting download...
                   </>
                 ) : (
