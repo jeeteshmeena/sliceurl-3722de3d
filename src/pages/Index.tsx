@@ -113,47 +113,51 @@ const Index = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background flex flex-col">
+    <div className="min-h-dvh bg-background flex flex-col overflow-x-hidden">
       <Header />
 
       <SliceCelebration show={showCelebration} onComplete={() => setShowCelebration(false)} />
 
-      <main className="flex-1 pt-20 pb-16 sm:pt-24 sm:pb-20">
+      <main className="flex-1 flex flex-col" style={{ marginTop: '64px' }}>
         <div className="container px-4 sm:px-6">
           {/* Hero Section */}
           <motion.div
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4 }}
-            className="text-center max-w-2xl mx-auto"
+            className="flex flex-col items-center justify-center text-center max-w-2xl mx-auto pt-6 pb-4"
           >
             {/* SliceBuddy Mascot - Static with slice animation on success */}
-            <div className="flex items-center justify-center mb-4 sm:mb-6 scale-[0.82]">
-              <SliceBuddy size="lg" isSlicing={isSplitting} isActive={isActive} />
+            <div className="flex items-center justify-center mb-3 sm:mb-4">
+              <div className="max-h-[120px] sm:max-h-none">
+                <SliceBuddy size="lg" isSlicing={isSplitting} isActive={isActive} />
+              </div>
             </div>
 
-            {/* Title */}
-            <h1 className={`text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight mb-3 ${
-              isHindi ? "font-hindi-decorative" : ""
-            }`}>
+            {/* Title - Single hero variant */}
+            <h1 
+              className={`font-bold tracking-tight mb-2 ${isHindi ? "font-hindi-decorative" : ""}`}
+              style={{ fontSize: 'clamp(28px, 6vw, 36px)' }}
+            >
               <span className="inline-block">Slice</span>
               <span className="text-muted-foreground">URL</span>
             </h1>
             
-            {/* Dynamic Greeting from Tone System */}
-            <p className={`text-base sm:text-lg text-muted-foreground mb-3 ${
-              isHindi ? "font-hindi-decorative text-lg sm:text-xl" : ""
-            }`}>
-              {greeting}
+            {/* Subtitle */}
+            <p 
+              className={`text-muted-foreground mb-2 ${isHindi ? "font-hindi-decorative" : ""}`}
+              style={{ fontSize: 'clamp(16px, 4vw, 18px)' }}
+            >
+              The smartest way to share links.
             </p>
             
-            {/* Dynamic Hero Description from Tone System */}
-            <p className="text-sm sm:text-base text-muted-foreground mb-8 max-w-md mx-auto">
-              {heroDesc}
+            {/* Description */}
+            <p className="text-muted-foreground mb-4 max-w-md mx-auto" style={{ fontSize: '14px' }}>
+              Create beautiful, trackable short links in seconds.
             </p>
 
             {/* URL Shortener Form */}
-            <form onSubmit={handleShorten} className="max-w-2xl mx-auto">
+            <form onSubmit={handleShorten} className="w-full max-w-[520px] mx-auto my-4">
               <div className="flex flex-col sm:flex-row gap-3 p-2 bg-secondary/50 rounded-2xl border border-border">
                 <Input
                   type="url"
@@ -305,7 +309,7 @@ const Index = () => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.2, duration: 0.3 }}
-            className="mt-16 sm:mt-20 max-w-5xl mx-auto"
+            className="mt-12 sm:mt-16 max-w-5xl mx-auto"
           >
             <div className="text-center mb-8 sm:mb-10">
               <h2 className="text-xl sm:text-2xl font-bold mb-2">
