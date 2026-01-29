@@ -292,34 +292,14 @@ export default function SliceBox() {
   };
 
   const faqItems = [
-    { 
-      q: "What is SliceBox and how does it work?", 
-      a: "SliceBox is our permanent file hosting service integrated into SliceURL. It allows you to upload any file type up to 200MB and instantly generates a unique shareable link. Files are stored securely on our servers and remain accessible indefinitely. Simply drag and drop your files or click to browse, and within seconds you'll have a link ready to share with anyone." 
-    },
-    { 
-      q: "What's the maximum file size I can upload?", 
-      a: "The maximum file size for SliceBox is 200MB per file. This limit ensures fast, reliable uploads and consistent hosting performance. If you need to share larger files (up to 2GB), consider using LittleSlice, our temporary file sharing service designed for bigger files." 
-    },
-    { 
-      q: "How long are my files stored?", 
-      a: "Files uploaded to SliceBox are stored permanently and will remain accessible for as long as you need them. Unlike temporary file sharing services, there's no expiration date—your download links will continue to work indefinitely. This makes SliceBox ideal for resources you want to share long-term, like documentation, portfolios, or media assets." 
-    },
-    { 
-      q: "Is my file data private and secure?", 
-      a: "Yes, SliceBox takes privacy and security seriously. All file transfers are encrypted using HTTPS, and files are stored securely on our infrastructure. Each file gets a unique, random link that's virtually impossible to guess, so only people you share the link with can access your files. We don't index your files or share them with third parties." 
-    },
-    { 
-      q: "Can I track how many times my file was downloaded?", 
-      a: "Yes, SliceBox provides download tracking for all uploaded files. When you visit your file's share page, you can see the total download count. This helps you understand how many people have accessed your shared files, which is useful for tracking document distribution or measuring content engagement." 
-    },
-    { 
-      q: "Does SliceBox support password protection?", 
-      a: "SliceBox files are protected by their unique, unguessable URLs. For files requiring additional security with password protection, we recommend using LittleSlice, which offers optional password protection along with configurable expiration times and support for larger files up to 2GB." 
-    },
-    { 
-      q: "Are there any storage limits on my account?", 
-      a: "Currently, SliceBox doesn't impose strict storage quotas on individual accounts. You can upload multiple files, each up to 200MB, and they'll all be hosted permanently. We reserve the right to implement reasonable limits in the future to ensure fair usage and maintain service quality for all users." 
-    },
+    { q: "What is SliceBox?", a: "Permanent file hosting service to share files with a single shareable link." },
+    { q: "What's the maximum file size?", a: "200MB per file—use LittleSlice for larger files up to 2GB." },
+    { q: "How long are files stored?", a: "Permanently—your links never expire and files stay accessible forever." },
+    { q: "Is my file data secure?", a: "Yes, all transfers are encrypted and files get unique, unguessable URLs." },
+    { q: "Can I password protect files?", a: "Use LittleSlice for password protection and expiration options." },
+    { q: "Can I upload multiple files at once?", a: "Yes, drag and drop or select multiple files for bulk upload." },
+    { q: "What file types are supported?", a: "All file types—documents, images, videos, audio, archives, and more." },
+    { q: "Can I delete my files?", a: "Yes, you can delete any file from your account or via the delete link." },
   ];
 
   const showResults = uploadedFiles.length > 0;
