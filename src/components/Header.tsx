@@ -112,11 +112,11 @@ export function Header() {
   const isOnDashboard = location.pathname === "/dashboard";
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-[1000] bg-background border-b border-border/40 safe-top" style={{ height: '64px' }}>
+    <header className="fixed top-0 left-0 right-0 z-[1000] bg-background border-b border-border/40 safe-top max-w-[100vw] overflow-x-hidden" style={{ height: '64px' }}>
       <SliceLine />
-      <div className="max-w-[1280px] mx-auto h-full flex items-center justify-between px-4 flex-nowrap">
+      <div className="max-w-[1280px] mx-auto h-full flex items-center justify-between flex-nowrap">
         {/* Left Section - Brand */}
-        <div className="flex items-center gap-3 shrink-0">
+        <div className="flex items-center gap-3 shrink-0 ml-2 sm:ml-4">
           <Link to="/" className="shrink-0 hover:opacity-80 transition-opacity">
             <div className="flex items-center gap-2">
               <img
@@ -135,7 +135,7 @@ export function Header() {
         </div>
 
         {/* Right Section - Clean icon layout with consistent spacing */}
-        <div className="flex items-center gap-2 shrink-0">
+        <div className="flex items-center gap-3 shrink-0 mr-2 sm:mr-4 flex-nowrap">
           {/* Theme Toggle - Clean icon, no pill background */}
           <Button
             variant="ghost"
@@ -236,7 +236,7 @@ export function Header() {
               )}
               
               {/* Separator - only visible on desktop */}
-              <span className="w-px h-5 bg-border/60 mx-0.5 hidden sm:block" />
+              <span className="w-px h-5 bg-border/60 hidden sm:block" />
               
               {/* User Dropdown */}
               <DropdownMenu>
@@ -332,28 +332,25 @@ export function Header() {
         </div>
       </div>
 
-      {/* Mobile Menu Panel - Slides down below header */}
-      {!user && (
-        <>
-          {/* Backdrop overlay - closes menu on tap */}
+      {/* Mobile Menu Panel - Solid background, no blur */}
+      {!user && mobileMenuOpen && (
+        <div 
+          className="fixed left-0 right-0 z-[999] sm:hidden"
+          style={{ top: '64px' }}
+        >
+          {/* Solid backdrop - closes menu on tap */}
           <div 
-            className={`fixed inset-0 z-40 bg-foreground/20 backdrop-blur-[2px] transition-opacity duration-200 sm:hidden ${
-              mobileMenuOpen ? "opacity-100" : "opacity-0 pointer-events-none"
-            }`}
+            className="fixed inset-0 bg-foreground/30"
             onClick={() => setMobileMenuOpen(false)}
             aria-hidden="true"
+            style={{ top: '64px' }}
           />
           
-          {/* Menu panel - fixed below header */}
-          <div 
-            className={`fixed left-0 right-0 z-40 bg-background border-b border-border shadow-lg sm:hidden transition-all duration-200 ease-out ${
-              mobileMenuOpen 
-                ? "translate-y-0 opacity-100" 
-                : "-translate-y-full opacity-0 pointer-events-none"
-            }`}
-            style={{ top: "calc(3.5rem + 1px)" }} /* 3.5rem = h-14 header height + 1px for SliceLine */
-          >
-            <div className="p-4 flex flex-col gap-3 safe-left safe-right">
+          {/* Menu container with solid background */}
+          <div className="relative mx-4 mt-3">
+            <div 
+              className="bg-background border border-border rounded-2xl p-4 shadow-lg flex flex-col gap-3"
+            >
               <Button
                 variant="outline"
                 onClick={() => {
@@ -375,7 +372,7 @@ export function Header() {
               </Button>
             </div>
           </div>
-        </>
+        </div>
       )}
 
       <ProfileModal open={profileOpen} onOpenChange={setProfileOpen} />
