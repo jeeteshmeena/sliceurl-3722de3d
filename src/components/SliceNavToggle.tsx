@@ -25,10 +25,10 @@ export function SliceNavToggle() {
         "relative inline-flex h-8 w-[140px] shrink-0 cursor-pointer items-center rounded-full p-1",
         // Transition
         "transition-colors duration-[250ms] ease-in-out",
-        // Background: SliceBox = yellow tint, LittleSlice = blue tint
+        // Background: Apple Music gradient style
         isLittleSlice 
-          ? "bg-[#D0E7EF]" 
-          : "bg-[#FFE580]",
+          ? "bg-gradient-to-r from-[#FF2D55] to-[#C644FC]" 
+          : "bg-gradient-to-r from-[#FF2D55] to-[#FF6B6B]",
         // Focus styles
         "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
       )}
@@ -44,7 +44,7 @@ export function SliceNavToggle() {
             "text-[10px] font-semibold transition-opacity duration-[250ms] z-10",
             !isLittleSlice 
               ? "opacity-0" 
-              : "opacity-70 text-[#0B0B0B]"
+              : "opacity-80 text-white"
           )}
         >
           SliceBox
@@ -55,7 +55,7 @@ export function SliceNavToggle() {
             "text-[10px] font-semibold transition-opacity duration-[250ms] z-10",
             isLittleSlice 
               ? "opacity-0" 
-              : "opacity-70 text-[#0B0B0B]"
+              : "opacity-80 text-white"
           )}
         >
           LittleSlice

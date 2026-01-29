@@ -2,11 +2,11 @@ import { useState, useRef, useCallback, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
-  Upload, Link as LinkIcon, Copy, Check, FileText, Image, Video, Music, 
-  Archive, File, ChevronDown, ChevronUp,
+  Upload, Link as LinkIcon, Copy, Check, ChevronDown, ChevronUp,
   ExternalLink, Share2, HardDrive, Clock, Gauge
 } from "lucide-react";
 import { IsolatedButton, SLICEBOX_COLORS } from "@/components/slicebox/IsolatedButton";
+import { FilePreview, GRADIENT_COLORS } from "@/components/slicebox/FilePreview";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -18,12 +18,25 @@ import { SliceNavToggle } from "@/components/SliceNavToggle";
 // SliceBox: Permanent file hosting - 200MB limit, no expiry
 const MAX_FILE_SIZE = 200 * 1024 * 1024; // 200MB
 
+// Apple Music inspired colors
+const COLORS = {
+  primary: "#FF2D55",
+  primaryLight: "rgba(255, 45, 85, 0.1)",
+  gradient: "linear-gradient(135deg, #FF2D55 0%, #FF6B6B 100%)",
+  text: "#0B0B0B",
+  textSecondary: "#6B7280",
+  background: "#FAFAFA",
+  card: "#FFFFFF",
+  border: "#E8E8E8",
+};
+
 interface UploadedFile {
   fileId: string;
   originalName: string;
   fileSize: number;
   mimeType: string;
   shareUrl: string;
+  file?: File;
 }
 
 interface FileUploadState {
@@ -51,15 +64,6 @@ const EXECUTABLE_MIME_TYPES = [
 function isExecutableFile(file: File): boolean {
   const ext = file.name.split('.').pop()?.toLowerCase() || '';
   return EXECUTABLE_EXTENSIONS.includes(ext) || EXECUTABLE_MIME_TYPES.includes(file.type);
-}
-
-function getFileIcon(mimeType: string) {
-  if (mimeType.startsWith("image/")) return Image;
-  if (mimeType.startsWith("video/")) return Video;
-  if (mimeType.startsWith("audio/")) return Music;
-  if (mimeType === "application/pdf") return FileText;
-  if (mimeType.includes("zip") || mimeType.includes("rar") || mimeType.includes("7z")) return Archive;
-  return File;
 }
 
 function formatFileSize(bytes: number): string {
@@ -158,6 +162,7 @@ export default function SliceBox() {
               fileSize: file.size,
               mimeType: file.type || "application/octet-stream",
               shareUrl,
+              file, // Keep file reference for preview
             });
           } catch (err) {
             await supabase.storage.from("slicebox").remove([storagePath]);
@@ -346,8 +351,11 @@ export default function SliceBox() {
         <div className="max-w-5xl mx-auto h-14 flex items-center justify-between px-4 sm:px-6">
           {/* Left: Brand */}
           <div className="flex items-center gap-2.5">
-            <div className="h-9 w-9 rounded-lg bg-[#FFD64D] flex items-center justify-center">
-              <HardDrive className="h-4 w-4 text-[#0B0B0B]" />
+            <div 
+              className="h-9 w-9 rounded-lg flex items-center justify-center"
+              style={{ background: COLORS.gradient }}
+            >
+              <HardDrive className="h-4 w-4 text-white" />
             </div>
             <span className="text-lg sm:text-xl font-bold tracking-tight">
               <span className="text-[#0B0B0B]">Slice</span>
@@ -399,12 +407,18 @@ export default function SliceBox() {
             className={cn(
               "rounded-2xl p-8 sm:p-12 text-center cursor-pointer transition-all duration-200 border-2 bg-white shadow-sm",
               isDragging 
-                ? "border-[#FFD64D] scale-[1.01] shadow-lg" 
-                : "border-[#E8E8E8] hover:border-[#FFD64D]/50 hover:shadow-md"
+                ? "scale-[1.01] shadow-lg" 
+                : "hover:shadow-md"
             )}
+            style={{
+              borderColor: isDragging ? COLORS.primary : COLORS.border,
+            }}
           >
-            <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-[#FFD64D] flex items-center justify-center mx-auto mb-5">
-              <Upload className="h-8 w-8 sm:h-10 sm:w-10 text-[#0B0B0B]" />
+            <div 
+              className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl flex items-center justify-center mx-auto mb-5"
+              style={{ background: COLORS.gradient }}
+            >
+              <Upload className="h-8 w-8 sm:h-10 sm:w-10 text-white" />
             </div>
             <p className="font-semibold text-lg sm:text-xl text-[#0B0B0B] mb-1">
               Drop files here
@@ -412,7 +426,10 @@ export default function SliceBox() {
             <p className="text-sm text-[#6B7280] mb-4">
               or click to browse
             </p>
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[#FFD64D] text-[#0B0B0B] text-sm font-medium">
+            <div 
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-white text-sm font-medium"
+              style={{ background: COLORS.gradient }}
+            >
               <HardDrive className="h-4 w-4" />
               Max 200MB · Any file type · Bulk upload
             </div>
@@ -452,7 +469,6 @@ export default function SliceBox() {
               </div>
               <div className="space-y-2">
                 {fileUploads.map((upload) => {
-                  const FileIcon = getFileIcon(upload.file.type);
                   return (
                     <motion.div
                       key={upload.id}
@@ -463,9 +479,13 @@ export default function SliceBox() {
                       className="p-3 bg-white rounded-xl border border-[#E8E8E8]"
                     >
                       <div className="flex items-center gap-3">
-                        <div className="h-10 w-10 rounded-lg bg-[#F5F5F5] flex items-center justify-center shrink-0">
-                          <FileIcon className="h-5 w-5 text-[#6B7280]" />
-                        </div>
+                        <FilePreview
+                          file={upload.file}
+                          mimeType={upload.file.type}
+                          fileName={upload.file.name}
+                          size="sm"
+                          variant="slicebox"
+                        />
                         <div className="flex-1 min-w-0">
                           <p className="text-sm font-medium text-[#0B0B0B] truncate">
                             {upload.file.name}
@@ -505,7 +525,8 @@ export default function SliceBox() {
                           </div>
                           <div className="h-1.5 bg-[#E8E8E8] rounded-full overflow-hidden">
                             <motion.div 
-                              className="h-full bg-[#FFD64D] rounded-full"
+                              className="h-full rounded-full"
+                              style={{ background: COLORS.gradient }}
                               initial={{ width: 0 }}
                               animate={{ width: `${upload.progress}%` }}
                               transition={{ duration: 0.3 }}
@@ -532,7 +553,6 @@ export default function SliceBox() {
               <h3 className="font-semibold text-[#0B0B0B] mb-3">Your Files</h3>
               <div className="space-y-3">
                 {uploadedFiles.map((file) => {
-                  const FileIcon = getFileIcon(file.mimeType);
                   return (
                     <motion.div
                       key={file.fileId}
@@ -541,9 +561,13 @@ export default function SliceBox() {
                       className="p-4 bg-white rounded-xl border border-[#E8E8E8] shadow-sm"
                     >
                       <div className="flex items-start gap-3">
-                        <div className="h-12 w-12 rounded-xl bg-[#FFD64D]/20 flex items-center justify-center shrink-0">
-                          <FileIcon className="h-6 w-6 text-[#0B0B0B]" />
-                        </div>
+                        <FilePreview
+                          file={file.file}
+                          mimeType={file.mimeType}
+                          fileName={file.originalName}
+                          size="md"
+                          variant="slicebox"
+                        />
                         <div className="flex-1 min-w-0">
                           <p className="font-medium text-[#0B0B0B] truncate mb-1">
                             {file.originalName}
