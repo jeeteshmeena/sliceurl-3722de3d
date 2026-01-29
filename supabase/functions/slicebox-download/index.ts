@@ -12,12 +12,12 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const { fileId, shortCode } = await req.json();
-    console.log("[slicebox-download] Generating download URL for:", { fileId, shortCode });
+    const { fileId } = await req.json();
+    console.log("[slicebox-download] Generating download URL for file:", fileId);
 
-    if (!fileId && !shortCode) {
+    if (!fileId) {
       return new Response(
-        JSON.stringify({ success: false, error: "Missing fileId or shortCode" }),
+        JSON.stringify({ success: false, error: "Missing fileId" }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
@@ -27,18 +27,12 @@ Deno.serve(async (req) => {
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    // Fetch file metadata - support both fileId and shortCode lookups
-    let query = supabase
+    // Fetch file metadata
+    const { data: file, error: fetchError } = await supabase
       .from("slicebox_files")
-      .select("file_id, short_code, service_type, storage_path, original_name, file_size, mime_type, expires_at, is_deleted, password_hash, download_count");
-    
-    if (shortCode) {
-      query = query.eq("short_code", shortCode);
-    } else {
-      query = query.eq("file_id", fileId);
-    }
-    
-    const { data: file, error: fetchError } = await query.single();
+      .select("file_id, storage_path, original_name, file_size, mime_type, expires_at, is_deleted, password_hash, download_count")
+      .eq("file_id", fileId)
+      .single();
 
     if (fetchError || !file) {
       console.error("[slicebox-download] File not found:", fetchError);
@@ -95,7 +89,7 @@ Deno.serve(async (req) => {
     await supabase
       .from("slicebox_files")
       .update({ download_count: (file.download_count || 0) + 1 })
-      .eq("file_id", file.file_id);
+      .eq("file_id", fileId);
 
     console.log("[slicebox-download] Download URL generated successfully");
 
@@ -106,8 +100,6 @@ Deno.serve(async (req) => {
         fileName: file.original_name,
         fileSize: file.file_size,
         mimeType: file.mime_type,
-        shortCode: file.short_code,
-        serviceType: file.service_type,
       }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );

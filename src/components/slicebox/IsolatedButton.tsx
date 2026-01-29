@@ -13,33 +13,24 @@ interface IsolatedButtonProps extends React.ButtonHTMLAttributes<HTMLButtonEleme
 }
 
 // Hardcoded color palettes (NO theme inheritance)
-// Apple Music inspired red/pink gradient theme
 const SLICEBOX_COLORS = {
-  primary: "#FF2D55",
-  primaryHover: "#E6294D",
-  primaryGradient: "linear-gradient(135deg, #FF2D55 0%, #FF6B6B 100%)",
-  text: "#FFFFFF",
-  textDark: "#0B0B0B",
+  primary: "#FFD64D",
+  primaryHover: "#FFCC00",
+  text: "#0B0B0B",
   textSecondary: "#6B7280",
   background: "#FFFFFF",
-  backgroundDark: "#1C1C1E",
   backgroundHover: "#F5F5F5",
   border: "#E8E8E8",
-  accent: "#FF6B6B",
 };
 
 const LITTLESLICE_COLORS = {
-  primary: "#FF2D55",
-  primaryHover: "#E6294D",
-  primaryGradient: "linear-gradient(135deg, #FF2D55 0%, #C644FC 100%)",
-  text: "#FFFFFF",
-  textDark: "#0B0B0B",
+  primary: "#D0E7EF",
+  primaryHover: "#A8D4E6",
+  text: "#0B0B0B",
   textSecondary: "#6B7280",
   background: "#FFFFFF",
-  backgroundDark: "#1C1C1E",
-  backgroundHover: "#FFF5F7",
-  border: "#FFE5EA",
-  accent: "#C644FC",
+  backgroundHover: "#F0F8FA",
+  border: "#E2EEF2",
 };
 
 const IsolatedButton = React.forwardRef<HTMLButtonElement, IsolatedButtonProps>(
@@ -60,32 +51,31 @@ const IsolatedButton = React.forwardRef<HTMLButtonElement, IsolatedButtonProps>(
       switch (variant) {
         case "primary":
           return {
-            background: colors.primaryGradient,
+            backgroundColor: colors.primary,
             color: colors.text,
             border: "none",
-            boxShadow: `0 4px 14px 0 ${colors.primary}40`,
           };
         case "secondary":
           return {
             backgroundColor: colors.background,
-            color: colors.textDark,
+            color: colors.text,
             border: `1px solid ${colors.border}`,
           };
         case "outline":
           return {
             backgroundColor: "transparent",
-            color: colors.textDark,
+            color: colors.text,
             border: `1px solid ${colors.border}`,
           };
         case "ghost":
           return {
             backgroundColor: "transparent",
-            color: colors.textDark,
+            color: colors.text,
             border: "none",
           };
         default:
           return {
-            background: colors.primaryGradient,
+            backgroundColor: colors.primary,
             color: colors.text,
           };
       }

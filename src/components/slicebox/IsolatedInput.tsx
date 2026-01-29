@@ -3,7 +3,7 @@ import { cn } from "@/lib/utils";
 import { SLICEBOX_COLORS, LITTLESLICE_COLORS } from "./IsolatedButton";
 
 // Theme-isolated input for SliceBox and LittleSlice
-// Uses Apple Music inspired colors
+// Does NOT inherit from global theme - uses hardcoded colors
 
 interface IsolatedInputProps extends React.InputHTMLAttributes<HTMLInputElement> {
   colorScheme?: "slicebox" | "littleslice";
@@ -25,11 +25,13 @@ const IsolatedInput = React.forwardRef<HTMLInputElement, IsolatedInputProps>(
         )}
         style={{
           backgroundColor: colors.background,
-          color: colors.textDark,
+          color: colors.text,
           borderWidth: "1px",
           borderStyle: "solid",
           borderColor: colors.border,
-          // Focus ring color - Apple Music pink
+          // Placeholder color via CSS variable
+          "--placeholder-color": colors.textSecondary,
+          // Focus ring color
           "--tw-ring-color": colors.primary,
           "--tw-ring-offset-color": colors.background,
           ...style,

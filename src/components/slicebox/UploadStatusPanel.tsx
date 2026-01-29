@@ -49,10 +49,8 @@ export function UploadStatusPanel({ uploads, onClose, isOpen, variant = "slicebo
     ? Math.round(activeUploads.reduce((sum, u) => sum + u.progress, 0) / activeUploads.length)
     : 0;
 
-  const accentColor = variant === "slicebox" 
-    ? "linear-gradient(135deg, #FF2D55 0%, #FF6B6B 100%)" 
-    : "linear-gradient(135deg, #FF2D55 0%, #C644FC 100%)";
-  const accentSolid = "#FF2D55";
+  const accentColor = variant === "slicebox" ? "#FFD64D" : "#D0E7EF";
+  const accentColorDark = variant === "slicebox" ? "#E5C044" : "#A8D4E6";
 
   if (activeUploads.length === 0 && !isOpen) return null;
 
@@ -77,12 +75,8 @@ export function UploadStatusPanel({ uploads, onClose, isOpen, variant = "slicebo
               {/* Header */}
               <div 
                 className="px-4 py-3 flex items-center justify-between"
-                style={{ background: accentColor }}
+                style={{ backgroundColor: accentColor }}
               >
-                <div className="flex items-center gap-2">
-                  <Gauge className="h-4 w-4 text-white" />
-                  <span className="font-semibold text-sm text-white">Upload Status</span>
-                </div>
                 <div className="flex items-center gap-2">
                   <Gauge className="h-4 w-4 text-[#0B0B0B]" />
                   <span className="font-semibold text-sm text-[#0B0B0B]">Upload Status</span>
@@ -108,7 +102,7 @@ export function UploadStatusPanel({ uploads, onClose, isOpen, variant = "slicebo
                   <div className="h-2 bg-[#F0F0F0] rounded-full overflow-hidden">
                     <motion.div
                       className="h-full rounded-full"
-                      style={{ background: accentColor }}
+                      style={{ backgroundColor: accentColorDark }}
                       initial={{ width: 0 }}
                       animate={{ width: `${avgProgress}%` }}
                       transition={{ duration: 0.3 }}
@@ -147,7 +141,7 @@ export function UploadStatusPanel({ uploads, onClose, isOpen, variant = "slicebo
                       <div className="h-1 bg-[#E8E8E8] rounded-full overflow-hidden mt-1.5">
                         <div 
                           className="h-full rounded-full transition-all duration-300"
-                          style={{ width: `${upload.progress}%`, background: accentColor }}
+                          style={{ width: `${upload.progress}%`, backgroundColor: accentColor }}
                         />
                       </div>
                     </div>
@@ -179,12 +173,12 @@ export function UploadStatusPanel({ uploads, onClose, isOpen, variant = "slicebo
               {/* Header */}
               <div className="px-4 py-2 flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <Gauge className="h-4 w-4" style={{ color: accentSolid }} />
+                  <Gauge className="h-4 w-4" style={{ color: accentColorDark }} />
                   <span className="font-semibold text-sm text-[#0B0B0B]">
                     Uploading {activeUploads.length} file{activeUploads.length > 1 ? "s" : ""}
                   </span>
                 </div>
-                <span className="text-sm font-bold" style={{ color: accentSolid }}>
+                <span className="text-sm font-bold" style={{ color: accentColorDark }}>
                   {avgProgress}%
                 </span>
               </div>
@@ -194,7 +188,7 @@ export function UploadStatusPanel({ uploads, onClose, isOpen, variant = "slicebo
                 <div className="h-2 bg-[#F0F0F0] rounded-full overflow-hidden mb-2">
                   <motion.div
                     className="h-full rounded-full"
-                    style={{ background: accentColor }}
+                    style={{ backgroundColor: accentColor }}
                     animate={{ width: `${avgProgress}%` }}
                     transition={{ duration: 0.3 }}
                   />
