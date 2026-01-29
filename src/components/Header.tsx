@@ -7,7 +7,8 @@ import { useAdminRole } from "@/hooks/useAdminRole";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Avatar, AvatarImage } from "@/components/ui/avatar";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -248,6 +249,9 @@ export function Header() {
                         alt={displayName || "User"} 
                         className="object-cover"
                       />
+                      <AvatarFallback className="bg-muted">
+                        <Skeleton className="h-8 w-8 rounded-full" />
+                      </AvatarFallback>
                     </Avatar>
                   </Button>
                 </DropdownMenuTrigger>
