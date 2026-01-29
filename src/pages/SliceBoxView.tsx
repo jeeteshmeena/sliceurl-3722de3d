@@ -2,13 +2,19 @@ import { useEffect, useState } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { 
-  FileText, Image, Video, Music, Archive, File, Download, 
-  Lock, Eye, EyeOff, ArrowLeft, HardDrive, Clock, AlertTriangle
+  Download, Lock, Eye, EyeOff, ArrowLeft, HardDrive, Clock, AlertTriangle
 } from "lucide-react";
 import { IsolatedButton, SLICEBOX_COLORS, LITTLESLICE_COLORS } from "@/components/slicebox/IsolatedButton";
 import { IsolatedInput } from "@/components/slicebox/IsolatedInput";
+import { FilePreview } from "@/components/slicebox/FilePreview";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+
+// Apple Music inspired gradients
+const GRADIENTS = {
+  slicebox: "linear-gradient(135deg, #FF2D55 0%, #FF6B6B 100%)",
+  littleslice: "linear-gradient(135deg, #FF2D55 0%, #C644FC 100%)",
+};
 
 interface FileMetadata {
   fileId: string;
@@ -19,15 +25,6 @@ interface FileMetadata {
   expiresAt: string | null;
   isPasswordProtected: boolean;
   downloadCount: number;
-}
-
-function getFileIcon(mimeType: string) {
-  if (mimeType.startsWith("image/")) return Image;
-  if (mimeType.startsWith("video/")) return Video;
-  if (mimeType.startsWith("audio/")) return Music;
-  if (mimeType === "application/pdf") return FileText;
-  if (mimeType.includes("zip") || mimeType.includes("rar") || mimeType.includes("7z")) return Archive;
-  return File;
 }
 
 function formatFileSize(bytes: number): string {
@@ -69,7 +66,7 @@ export default function SliceBoxView() {
 
   // Determine if this is a temporary file (LittleSlice) or permanent (SliceBox)
   const isTemporary = file?.expiresAt !== null;
-  const accentColor = isTemporary ? "#D0E7EF" : "#FFD64D";
+  const gradient = isTemporary ? GRADIENTS.littleslice : GRADIENTS.slicebox;
   const brandName = isTemporary ? "LittleSlice" : "SliceBox";
 
   useEffect(() => {
@@ -195,7 +192,6 @@ export default function SliceBoxView() {
     }
   };
 
-  const FileIcon = file ? getFileIcon(file.mimeType) : File;
   const expiryText = file ? formatExpiryTime(file.expiresAt) : null;
 
   // Loading state
@@ -214,8 +210,11 @@ export default function SliceBoxView() {
         <header className="sticky top-0 z-50 border-b border-[#E8E8E8] bg-white shadow-sm">
           <div className="max-w-4xl mx-auto h-14 flex items-center justify-between px-4">
             <div className="flex items-center gap-2.5">
-              <div className="h-8 w-8 rounded-lg bg-[#FFD64D] flex items-center justify-center">
-                <HardDrive className="h-4 w-4 text-[#0B0B0B]" />
+              <div 
+                className="h-8 w-8 rounded-lg flex items-center justify-center"
+                style={{ background: GRADIENTS.slicebox }}
+              >
+                <HardDrive className="h-4 w-4 text-white" />
               </div>
               <span className="text-lg font-bold">
                 <span className="text-[#0B0B0B]">Slice</span>
@@ -257,12 +256,12 @@ export default function SliceBoxView() {
           <div className="flex items-center gap-2.5">
             <div 
               className="h-8 w-8 rounded-lg flex items-center justify-center"
-              style={{ backgroundColor: accentColor }}
+              style={{ background: gradient }}
             >
               {isTemporary ? (
-                <Clock className="h-4 w-4 text-[#0B0B0B]" />
+                <Clock className="h-4 w-4 text-white" />
               ) : (
-                <HardDrive className="h-4 w-4 text-[#0B0B0B]" />
+                <HardDrive className="h-4 w-4 text-white" />
               )}
             </div>
             <span className="text-lg font-bold">
@@ -296,13 +295,15 @@ export default function SliceBoxView() {
             className="rounded-2xl border shadow-lg overflow-hidden"
             style={{ backgroundColor: "#FFFFFF", borderColor: isTemporary ? "#E2EEF2" : "#E8E8E8" }}
           >
-            {/* File Icon & Info */}
+            {/* File Preview */}
             <div className="p-6 text-center">
-              <div 
-                className="w-20 h-20 rounded-2xl flex items-center justify-center mx-auto mb-4"
-                style={{ backgroundColor: `${accentColor}30` }}
-              >
-                <FileIcon className="h-10 w-10" style={{ color: "#0B0B0B" }} />
+              <div className="flex items-center justify-center mb-4">
+                <FilePreview
+                  mimeType={file.mimeType}
+                  fileName={file.originalName}
+                  size="lg"
+                  variant={isTemporary ? "littleslice" : "slicebox"}
+                />
               </div>
               <h1 className="text-lg font-bold text-[#0B0B0B] mb-1 break-all">
                 {file.originalName}
@@ -327,7 +328,7 @@ export default function SliceBoxView() {
               <div className="px-6 pb-4">
                 <div 
                   className="p-4 rounded-xl border"
-                  style={{ backgroundColor: `${accentColor}20`, borderColor: `${accentColor}50` }}
+                  style={{ backgroundColor: "rgba(255, 45, 85, 0.1)", borderColor: "rgba(255, 45, 85, 0.3)" }}
                 >
                   <div className="flex items-center gap-2 mb-3">
                     <Lock className="h-4 w-4 text-[#6B7280]" />

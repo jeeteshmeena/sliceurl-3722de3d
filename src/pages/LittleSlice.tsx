@@ -2,11 +2,12 @@ import { useState, useRef, useCallback } from "react";
 import { Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
-  Upload, Link as LinkIcon, Copy, Check, FileText, Image, Video, Music, 
-  Archive, File, ExternalLink, Share2, Clock, Lock, Eye, EyeOff, Gauge
+  Upload, Link as LinkIcon, Copy, Check,
+  ExternalLink, Share2, Clock, Lock, Eye, EyeOff, Gauge
 } from "lucide-react";
 import { IsolatedButton, LITTLESLICE_COLORS } from "@/components/slicebox/IsolatedButton";
 import { IsolatedInput } from "@/components/slicebox/IsolatedInput";
+import { FilePreview } from "@/components/slicebox/FilePreview";
 import { Label } from "@/components/ui/label";
 import {
   Select,
@@ -26,15 +27,16 @@ import { SliceNavToggle } from "@/components/SliceNavToggle";
 // LittleSlice: Temporary file sharing - 2GB limit, optional expiry (default 1 day)
 const MAX_FILE_SIZE = 2 * 1024 * 1024 * 1024; // 2GB
 
-// Pastel blue color palette
+// Apple Music inspired colors with purple gradient
 const COLORS = {
-  primary: "#D0E7EF",
-  primaryDark: "#A8D4E6",
-  background: "#F8FBFC",
+  primary: "#FF2D55",
+  primaryDark: "#C644FC",
+  gradient: "linear-gradient(135deg, #FF2D55 0%, #C644FC 100%)",
+  background: "#FAFAFA",
   card: "#FFFFFF",
   text: "#0B0B0B",
   textSecondary: "#6B7280",
-  border: "#E2EEF2",
+  border: "#FFE5EA",
 };
 
 type ExpiryOption = "1hour" | "1day" | "7days" | "30days" | "never";
@@ -47,6 +49,7 @@ interface UploadedFile {
   shareUrl: string;
   expiresAt: string | null;
   passwordProtected: boolean;
+  file?: File;
 }
 
 interface FileUploadState {
@@ -73,15 +76,6 @@ const EXECUTABLE_MIME_TYPES = [
 function isExecutableFile(file: File): boolean {
   const ext = file.name.split('.').pop()?.toLowerCase() || '';
   return EXECUTABLE_EXTENSIONS.includes(ext) || EXECUTABLE_MIME_TYPES.includes(file.type);
-}
-
-function getFileIcon(mimeType: string) {
-  if (mimeType.startsWith("image/")) return Image;
-  if (mimeType.startsWith("video/")) return Video;
-  if (mimeType.startsWith("audio/")) return Music;
-  if (mimeType === "application/pdf") return FileText;
-  if (mimeType.includes("zip") || mimeType.includes("rar") || mimeType.includes("7z")) return Archive;
-  return File;
 }
 
 function formatFileSize(bytes: number): string {
@@ -267,6 +261,7 @@ export default function LittleSlice() {
               shareUrl,
               expiresAt,
               passwordProtected: !!passwordHash,
+              file, // Keep file reference for preview
             });
           } catch (err) {
             await supabase.storage.from("slicebox").remove([storagePath]);
@@ -457,9 +452,9 @@ export default function LittleSlice() {
           <div className="flex items-center gap-2.5">
             <div 
               className="h-9 w-9 rounded-lg flex items-center justify-center"
-              style={{ backgroundColor: COLORS.primary }}
+              style={{ background: COLORS.gradient }}
             >
-              <Clock className="h-4 w-4" style={{ color: COLORS.text }} />
+              <Clock className="h-4 w-4 text-white" />
             </div>
             <span className="text-lg sm:text-xl font-bold tracking-tight">
               <span style={{ color: COLORS.text }}>Little</span>
@@ -572,9 +567,9 @@ export default function LittleSlice() {
           >
             <div 
               className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4"
-              style={{ backgroundColor: COLORS.primary }}
+              style={{ background: COLORS.gradient }}
             >
-              <Upload className="h-8 w-8" style={{ color: COLORS.text }} />
+              <Upload className="h-8 w-8 text-white" />
             </div>
             <p className="font-semibold text-lg mb-1" style={{ color: COLORS.text }}>
               Drop files here
@@ -583,8 +578,8 @@ export default function LittleSlice() {
               or click to browse
             </p>
             <div 
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium"
-              style={{ backgroundColor: COLORS.primary, color: COLORS.text }}
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-white text-sm font-medium"
+              style={{ background: COLORS.gradient }}
             >
               Max 2GB · Expires in {formatExpiryLabel(expiryOption)}
               {password && " · 🔒 Protected"}
@@ -625,7 +620,6 @@ export default function LittleSlice() {
               </div>
               <div className="space-y-2">
                 {fileUploads.map((upload) => {
-                  const FileIcon = getFileIcon(upload.file.type);
                   return (
                     <motion.div
                       key={upload.id}
@@ -637,12 +631,13 @@ export default function LittleSlice() {
                       style={{ backgroundColor: COLORS.card, borderColor: COLORS.border }}
                     >
                       <div className="flex items-center gap-3">
-                        <div 
-                          className="h-10 w-10 rounded-lg flex items-center justify-center shrink-0"
-                          style={{ backgroundColor: `${COLORS.primary}50` }}
-                        >
-                          <FileIcon className="h-5 w-5" style={{ color: COLORS.textSecondary }} />
-                        </div>
+                        <FilePreview
+                          file={upload.file}
+                          mimeType={upload.file.type}
+                          fileName={upload.file.name}
+                          size="sm"
+                          variant="littleslice"
+                        />
                         <div className="flex-1 min-w-0">
                           <p className="text-sm font-medium truncate" style={{ color: COLORS.text }}>
                             {upload.file.name}
@@ -683,7 +678,7 @@ export default function LittleSlice() {
                           <div className="h-1.5 rounded-full overflow-hidden" style={{ backgroundColor: COLORS.border }}>
                             <motion.div 
                               className="h-full rounded-full"
-                              style={{ backgroundColor: COLORS.primaryDark }}
+                              style={{ background: COLORS.gradient }}
                               initial={{ width: 0 }}
                               animate={{ width: `${upload.progress}%` }}
                               transition={{ duration: 0.3 }}
@@ -710,7 +705,6 @@ export default function LittleSlice() {
               <h3 className="font-semibold mb-3" style={{ color: COLORS.text }}>Your Files</h3>
               <div className="space-y-3">
                 {uploadedFiles.map((file) => {
-                  const FileIcon = getFileIcon(file.mimeType);
                   return (
                     <motion.div
                       key={file.fileId}
@@ -720,12 +714,13 @@ export default function LittleSlice() {
                       style={{ backgroundColor: COLORS.card, borderColor: COLORS.border }}
                     >
                       <div className="flex items-start gap-3">
-                        <div 
-                          className="h-12 w-12 rounded-xl flex items-center justify-center shrink-0"
-                          style={{ backgroundColor: `${COLORS.primary}40` }}
-                        >
-                          <FileIcon className="h-6 w-6" style={{ color: COLORS.text }} />
-                        </div>
+                        <FilePreview
+                          file={file.file}
+                          mimeType={file.mimeType}
+                          fileName={file.originalName}
+                          size="md"
+                          variant="littleslice"
+                        />
                         <div className="flex-1 min-w-0">
                           <p className="font-medium truncate mb-1" style={{ color: COLORS.text }}>
                             {file.originalName}
