@@ -18,6 +18,8 @@ const GRADIENTS = {
 
 interface FileMetadata {
   fileId: string;
+  shortCode: string | null;
+  serviceType: string;
   originalName: string;
   fileSize: number;
   mimeType: string;
@@ -79,7 +81,7 @@ export default function SliceBoxView() {
       try {
         const { data, error: fetchError } = await supabase
           .from("slicebox_files")
-          .select("file_id, original_name, file_size, mime_type, storage_path, expires_at, password_hash, download_count, is_deleted")
+          .select("file_id, short_code, service_type, original_name, file_size, mime_type, storage_path, expires_at, password_hash, download_count, is_deleted")
           .eq("file_id", fileId)
           .single();
 
@@ -104,6 +106,8 @@ export default function SliceBoxView() {
 
         setFile({
           fileId: data.file_id,
+          shortCode: data.short_code,
+          serviceType: data.service_type || "sb",
           originalName: data.original_name,
           fileSize: data.file_size,
           mimeType: data.mime_type,

@@ -31,6 +31,8 @@ const CreepyURL = lazy(() => import("@/pages/CreepyURL"));
 const SliceBox = lazy(() => import("@/pages/SliceBox"));
 const LittleSlice = lazy(() => import("@/pages/LittleSlice"));
 const SliceBoxView = lazy(() => import("@/pages/SliceBoxView"));
+const ShortFileView = lazy(() => import("@/pages/ShortFileView"));
+const LegacySliceBoxRedirect = lazy(() => import("@/pages/LegacySliceBoxRedirect"));
 
 const Feedback = lazy(() => import("@/pages/Feedback"));
 const FeedbackAdmin = lazy(() => import("@/pages/FeedbackAdmin"));
@@ -146,6 +148,20 @@ const App = () => (
                       <SliceBox />
                     </Suspense>
                   } />
+                  
+                  {/* New short link routes: /sb/{shortCode} and /ls/{shortCode} */}
+                  <Route path="/sb/:shortCode" element={
+                    <Suspense fallback={<PageLoader />}>
+                      <ShortFileView />
+                    </Suspense>
+                  } />
+                  <Route path="/ls/:shortCode" element={
+                    <Suspense fallback={<PageLoader />}>
+                      <ShortFileView />
+                    </Suspense>
+                  } />
+                  
+                  {/* Full file view page (internal) */}
                   <Route path="/slicebox/:fileId" element={
                     <Suspense fallback={<PageLoader />}>
                       <SliceBoxView />
