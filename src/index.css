@@ -193,6 +193,8 @@
     min-height: -webkit-fill-available;
     /* Fluid base font size */
     font-size: clamp(14px, 0.875rem + 0.2vw, 16px);
+    /* Prevent horizontal overflow for cross-browser compatibility */
+    overflow-x: hidden;
   }
   
   /* Selection styling */

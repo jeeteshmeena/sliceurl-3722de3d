@@ -112,11 +112,11 @@ export function Header() {
   const isOnDashboard = location.pathname === "/dashboard";
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-xl border-b border-border/40 safe-top">
+    <header className="fixed top-0 left-0 right-0 z-[1000] bg-background border-b border-border/40 safe-top" style={{ height: '64px' }}>
       <SliceLine />
-      <div className="max-w-[1280px] mx-auto h-14 flex items-center justify-between px-4 sm:px-6 lg:px-8 safe-left safe-right">
+      <div className="max-w-[1280px] mx-auto h-full flex items-center justify-between px-4 flex-nowrap">
         {/* Left Section - Brand */}
-        <div className="flex items-center gap-3 sm:gap-4 ml-2 sm:ml-4 lg:ml-6">
+        <div className="flex items-center gap-3 shrink-0">
           <Link to="/" className="shrink-0 hover:opacity-80 transition-opacity">
             <div className="flex items-center gap-2">
               <img
@@ -135,7 +135,7 @@ export function Header() {
         </div>
 
         {/* Right Section - Clean icon layout with consistent spacing */}
-        <div className="flex items-center gap-2 sm:gap-2.5 mr-2 sm:mr-4 lg:mr-6">
+        <div className="flex items-center gap-2 shrink-0">
           {/* Theme Toggle - Clean icon, no pill background */}
           <Button
             variant="ghost"
