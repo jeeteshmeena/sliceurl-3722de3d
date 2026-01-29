@@ -10,7 +10,6 @@ import { LanguageProvider } from "@/lib/i18n";
 import { PopupManagerProvider } from "@/hooks/usePopupManager";
 import { LanguageSuggestion } from "@/components/LanguageSuggestion";
 import { PWAInstallPrompt } from "@/components/PWAInstallPrompt";
-import { CookieConsent } from "@/components/CookieConsent";
 import Index from "@/pages/Index";
 import NotFound from "@/pages/NotFound";
 import Auth from "@/pages/Auth";
@@ -58,7 +57,6 @@ const App = () => (
                 <Toaster />
                 <LanguageSuggestion />
                 <PWAInstallPrompt />
-                <CookieConsent />
                 <BrowserRouter>
                 <Routes>
                   {/* Public routes */}
