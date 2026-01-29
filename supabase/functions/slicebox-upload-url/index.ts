@@ -9,6 +9,45 @@ const corsHeaders = {
 const SLICEBOX_MAX_SIZE = 200 * 1024 * 1024; // 200MB
 const LITTLESLICE_MAX_SIZE = 2 * 1024 * 1024 * 1024; // 2GB
 
+const SHORT_CODE_CHARS = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+
+function generateShortCode(length: number = 4): string {
+  let result = "";
+  for (let i = 0; i < length; i++) {
+    result += SHORT_CODE_CHARS.charAt(Math.floor(Math.random() * SHORT_CODE_CHARS.length));
+  }
+  return result;
+}
+
+async function getUniqueShortCode(supabase: any, maxAttempts: number = 10): Promise<string> {
+  // Try 4-character codes first
+  for (let i = 0; i < maxAttempts; i++) {
+    const code = generateShortCode(4);
+    const { data } = await supabase
+      .from("slicebox_files")
+      .select("id")
+      .eq("short_code", code)
+      .single();
+    
+    if (!data) return code;
+  }
+  
+  // If 4-char codes are colliding, use 5 characters
+  for (let i = 0; i < maxAttempts; i++) {
+    const code = generateShortCode(5);
+    const { data } = await supabase
+      .from("slicebox_files")
+      .select("id")
+      .eq("short_code", code)
+      .single();
+    
+    if (!data) return code;
+  }
+  
+  // Fallback to 6 characters (practically no collisions)
+  return generateShortCode(6);
+}
+
 function getMimeTypeExtension(mimeType: string): string {
   const mimeMap: Record<string, string> = {
     "image/jpeg": ".jpg",
@@ -32,8 +71,11 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const { url, expiresAt } = await req.json();
-    console.log("[slicebox-upload-url] Starting upload from URL:", url, "Expiry:", expiresAt);
+    const { url, expiresAt, serviceType = "sb" } = await req.json();
+    console.log("[slicebox-upload-url] Starting upload from URL:", url, "Expiry:", expiresAt, "Service:", serviceType);
+
+    // Validate service type
+    const validServiceType = serviceType === "ls" ? "ls" : "sb";
 
     // Validate URL
     let parsedUrl: URL;
@@ -117,17 +159,20 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Generate IDs
-    const fileId = crypto.randomUUID().split("-")[0] + Date.now().toString(36);
-    const deleteToken = crypto.randomUUID();
-    const storagePath = `uploads/${fileId}/${filename}`;
-
-    console.log("[slicebox-upload-url] Uploading to storage:", storagePath);
-
     // Initialize Supabase client
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
+
+    // Generate IDs
+    const fileId = crypto.randomUUID().split("-")[0] + Date.now().toString(36);
+    const deleteToken = crypto.randomUUID();
+    const storagePath = `uploads/${fileId}/${filename}`;
+    
+    // Generate unique short code
+    const shortCode = await getUniqueShortCode(supabase);
+
+    console.log("[slicebox-upload-url] Uploading to storage:", storagePath, "ShortCode:", shortCode);
 
     // Upload to storage
     const { error: uploadError } = await supabase.storage
@@ -145,7 +190,7 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Insert metadata
+    // Insert metadata with short_code and service_type
     const { error: dbError } = await supabase.from("slicebox_files").insert({
       file_id: fileId,
       original_name: filename,
@@ -155,6 +200,8 @@ Deno.serve(async (req) => {
       user_id: null,
       delete_token: deleteToken,
       expires_at: expiresAt || null,
+      short_code: shortCode,
+      service_type: validServiceType,
     });
 
     if (dbError) {
@@ -167,12 +214,14 @@ Deno.serve(async (req) => {
       );
     }
 
-    console.log("[slicebox-upload-url] Upload complete. FileId:", fileId);
+    console.log("[slicebox-upload-url] Upload complete. FileId:", fileId, "ShortCode:", shortCode);
 
     return new Response(
       JSON.stringify({
         success: true,
         fileId,
+        shortCode,
+        serviceType: validServiceType,
         originalName: filename,
         fileSize,
         mimeType,

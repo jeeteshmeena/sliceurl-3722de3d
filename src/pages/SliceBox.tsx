@@ -32,6 +32,7 @@ const COLORS = {
 
 interface UploadedFile {
   fileId: string;
+  shortCode: string;
   originalName: string;
   fileSize: number;
   mimeType: string;
@@ -100,6 +101,46 @@ export default function SliceBox() {
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [showStatusPanel, setShowStatusPanel] = useState(false);
 
+  // Generate short code client-side with collision retry
+  const generateShortCode = useCallback(async (length: number = 4, maxAttempts: number = 10): Promise<string> => {
+    const chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+    
+    const generate = (len: number) => {
+      let result = "";
+      for (let i = 0; i < len; i++) {
+        result += chars.charAt(Math.floor(Math.random() * chars.length));
+      }
+      return result;
+    };
+
+    // Try 4-character codes
+    for (let i = 0; i < maxAttempts; i++) {
+      const code = generate(length);
+      const { data } = await supabase
+        .from("slicebox_files")
+        .select("id")
+        .eq("short_code", code)
+        .maybeSingle();
+      
+      if (!data) return code;
+    }
+    
+    // Fallback to 5-character codes
+    for (let i = 0; i < maxAttempts; i++) {
+      const code = generate(5);
+      const { data } = await supabase
+        .from("slicebox_files")
+        .select("id")
+        .eq("short_code", code)
+        .maybeSingle();
+      
+      if (!data) return code;
+    }
+    
+    // Ultimate fallback to 6 characters
+    return generate(6);
+  }, []);
+
   const uploadSingleFile = useCallback(async (
     file: File, 
     uploadId: string,
@@ -108,6 +149,9 @@ export default function SliceBox() {
     const fileId = crypto.randomUUID().split("-")[0] + Date.now().toString(36);
     const storagePath = `uploads/${fileId}/${file.name}`;
     const deleteToken = crypto.randomUUID();
+    
+    // Generate unique short code
+    const shortCode = await generateShortCode();
 
     const { data: session } = await supabase.auth.getSession();
     const authToken = session?.session?.access_token;
@@ -141,7 +185,7 @@ export default function SliceBox() {
       xhr.onload = async () => {
         if (xhr.status >= 200 && xhr.status < 300) {
           try {
-            // Insert metadata - NO expiry for SliceBox (permanent hosting)
+            // Insert metadata with short_code and service_type
             const { error: dbError } = await supabase.from("slicebox_files").insert({
               file_id: fileId,
               original_name: file.name,
@@ -151,13 +195,17 @@ export default function SliceBox() {
               user_id: user?.id || null,
               delete_token: deleteToken,
               expires_at: null, // PERMANENT - no expiry
+              short_code: shortCode,
+              service_type: "sb", // SliceBox
             });
 
             if (dbError) throw dbError;
 
-            const shareUrl = `${window.location.origin}/slicebox/${fileId}`;
+            // Use new short link format: /sb/{shortCode}
+            const shareUrl = `${window.location.origin}/sb/${shortCode}`;
             resolve({
               fileId,
+              shortCode,
               originalName: file.name,
               fileSize: file.size,
               mimeType: file.type || "application/octet-stream",
@@ -181,7 +229,7 @@ export default function SliceBox() {
       xhr.setRequestHeader("x-upsert", "false");
       xhr.send(file);
     });
-  }, [user]);
+  }, [user, generateShortCode]);
 
   const handleMultipleFileUpload = useCallback(async (files: FileList | File[]) => {
     const fileArray = Array.from(files);
