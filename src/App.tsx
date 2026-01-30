@@ -30,7 +30,8 @@ const About = lazy(() => import("@/pages/About"));
 const CreepyURL = lazy(() => import("@/pages/CreepyURL"));
 const SliceBox = lazy(() => import("@/pages/SliceBox"));
 const LittleSlice = lazy(() => import("@/pages/LittleSlice"));
-const SliceBoxView = lazy(() => import("@/pages/SliceBoxView"));
+const ShortFileView = lazy(() => import("@/pages/ShortFileView"));
+const LegacySliceBoxRedirect = lazy(() => import("@/pages/LegacySliceBoxRedirect"));
 
 const Feedback = lazy(() => import("@/pages/Feedback"));
 const FeedbackAdmin = lazy(() => import("@/pages/FeedbackAdmin"));
@@ -140,22 +141,34 @@ const App = () => (
                     </Suspense>
                   } />
                   
-                  {/* SliceBox Routes */}
+                  {/* SliceBox & LittleSlice Upload Pages */}
                   <Route path="/slicebox" element={
                     <Suspense fallback={<PageLoader />}>
                       <SliceBox />
                     </Suspense>
                   } />
-                  <Route path="/slicebox/:fileId" element={
-                    <Suspense fallback={<PageLoader />}>
-                      <SliceBoxView />
-                    </Suspense>
-                  } />
-                  
-                  {/* LittleSlice Route */}
                   <Route path="/littleslice" element={
                     <Suspense fallback={<PageLoader />}>
                       <LittleSlice />
+                    </Suspense>
+                  } />
+                  
+                  {/* Short File View Routes - New Format */}
+                  <Route path="/sb/:shortCode" element={
+                    <Suspense fallback={<PageLoader />}>
+                      <ShortFileView expectedServiceType="sb" />
+                    </Suspense>
+                  } />
+                  <Route path="/ls/:shortCode" element={
+                    <Suspense fallback={<PageLoader />}>
+                      <ShortFileView expectedServiceType="ls" />
+                    </Suspense>
+                  } />
+                  
+                  {/* Legacy SliceBox URL Redirect */}
+                  <Route path="/slicebox/:fileId" element={
+                    <Suspense fallback={<PageLoader />}>
+                      <LegacySliceBoxRedirect />
                     </Suspense>
                   } />
                   

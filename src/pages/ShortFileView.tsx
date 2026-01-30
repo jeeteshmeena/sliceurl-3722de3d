@@ -5,13 +5,14 @@ import {
   FileText, Image, Video, Music, Archive, File, Download, 
   Lock, Eye, EyeOff, ArrowLeft, HardDrive, Clock, AlertTriangle
 } from "lucide-react";
-import { IsolatedButton, SLICEBOX_COLORS, LITTLESLICE_COLORS } from "@/components/slicebox/IsolatedButton";
+import { IsolatedButton } from "@/components/slicebox/IsolatedButton";
 import { IsolatedInput } from "@/components/slicebox/IsolatedInput";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
 interface FileMetadata {
   fileId: string;
+  shortCode: string;
   originalName: string;
   fileSize: number;
   mimeType: string;
@@ -19,6 +20,7 @@ interface FileMetadata {
   expiresAt: string | null;
   isPasswordProtected: boolean;
   downloadCount: number;
+  serviceType: string;
 }
 
 function getFileIcon(mimeType: string) {
@@ -55,8 +57,13 @@ function formatExpiryTime(isoString: string | null): string | null {
   return `Expires in ${diffMins} minute${diffMins > 1 ? "s" : ""}`;
 }
 
-export default function SliceBoxView() {
-  const { fileId } = useParams<{ fileId: string }>();
+// Props to specify which service type to expect
+interface ShortFileViewProps {
+  expectedServiceType?: "sb" | "ls";
+}
+
+export default function ShortFileView({ expectedServiceType }: ShortFileViewProps) {
+  const { shortCode } = useParams<{ shortCode: string }>();
   const navigate = useNavigate();
 
   const [loading, setLoading] = useState(true);
@@ -68,22 +75,24 @@ export default function SliceBoxView() {
   const [downloading, setDownloading] = useState(false);
 
   // Determine if this is a temporary file (LittleSlice) or permanent (SliceBox)
-  const isTemporary = file?.expiresAt !== null;
+  const isTemporary = file?.serviceType === "ls" || (file?.expiresAt !== null && file?.serviceType !== "sb");
   const accentColor = isTemporary ? "#D0E7EF" : "#FFD64D";
   const brandName = isTemporary ? "LittleSlice" : "SliceBox";
 
   useEffect(() => {
     async function fetchFileMetadata() {
-      if (!fileId) {
+      if (!shortCode) {
         navigate("/slicebox");
         return;
       }
 
       try {
+        // Look up by short_code
         const { data, error: fetchError } = await supabase
           .from("slicebox_files")
-          .select("file_id, original_name, file_size, mime_type, storage_path, expires_at, password_hash, download_count, is_deleted")
-          .eq("file_id", fileId)
+          .select("file_id, short_code, original_name, file_size, mime_type, storage_path, expires_at, password_hash, download_count, is_deleted, service_type")
+          .eq("short_code", shortCode)
+          .eq("is_deleted", false)
           .single();
 
         if (fetchError || !data) {
@@ -92,9 +101,11 @@ export default function SliceBoxView() {
           return;
         }
 
-        if (data.is_deleted) {
-          setError("This file has been deleted");
-          setLoading(false);
+        // Verify service type matches if expected
+        if (expectedServiceType && data.service_type !== expectedServiceType) {
+          // Redirect to correct URL
+          const correctPath = data.service_type === "ls" ? `/ls/${shortCode}` : `/sb/${shortCode}`;
+          navigate(correctPath, { replace: true });
           return;
         }
 
@@ -107,6 +118,7 @@ export default function SliceBoxView() {
 
         setFile({
           fileId: data.file_id,
+          shortCode: data.short_code || shortCode,
           originalName: data.original_name,
           fileSize: data.file_size,
           mimeType: data.mime_type,
@@ -114,6 +126,7 @@ export default function SliceBoxView() {
           expiresAt: data.expires_at,
           isPasswordProtected: !!data.password_hash,
           downloadCount: data.download_count || 0,
+          serviceType: data.service_type || "sb",
         });
         setLoading(false);
       } catch (err) {
@@ -124,7 +137,7 @@ export default function SliceBoxView() {
     }
 
     fetchFileMetadata();
-  }, [fileId, navigate]);
+  }, [shortCode, navigate, expectedServiceType]);
 
   const handleDownload = async () => {
     if (!file) return;
@@ -148,7 +161,6 @@ export default function SliceBoxView() {
           return;
         }
 
-        // Download using signed URL from edge function
         window.location.href = response.data.downloadUrl;
         toast.success("Download started!");
         setVerifying(false);
@@ -168,15 +180,11 @@ export default function SliceBoxView() {
       });
 
       if (response.error || !response.data?.success) {
-        // Handle specific error cases with user-friendly messages
         const errorMessage = response.data?.error || "Download failed";
         if (errorMessage.includes("expired")) {
           toast.error("This file has expired");
         } else if (errorMessage.includes("deleted")) {
           toast.error("This file has been deleted");
-        } else if (response.data?.requiresPassword) {
-          // This shouldn't happen but handle gracefully
-          toast.error("This file requires a password");
         } else {
           toast.error("Failed to download file");
         }
@@ -184,7 +192,6 @@ export default function SliceBoxView() {
         return;
       }
 
-      // Redirect to signed download URL
       window.location.href = response.data.downloadUrl;
       toast.success("Download started!");
     } catch (err) {

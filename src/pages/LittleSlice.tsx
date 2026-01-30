@@ -41,6 +41,7 @@ type ExpiryOption = "1hour" | "1day" | "7days" | "30days" | "never";
 
 interface UploadedFile {
   fileId: string;
+  shortCode: string;
   originalName: string;
   fileSize: number;
   mimeType: string;
@@ -243,9 +244,22 @@ export default function LittleSlice() {
       xhr.onload = async () => {
         if (xhr.status >= 200 && xhr.status < 300) {
           try {
+            // Generate short code using database function
+            const { data: shortCodeData, error: shortCodeError } = await supabase
+              .rpc('generate_slicebox_shortcode', { target_length: 4 });
+
+            if (shortCodeError) {
+              console.error('Short code generation failed:', shortCodeError);
+              throw shortCodeError;
+            }
+
+            const shortCode = shortCodeData || fileId.substring(0, 4);
+
             // Insert metadata with optional expiry and optional password for LittleSlice
             const { error: dbError } = await supabase.from("slicebox_files").insert({
               file_id: fileId,
+              short_code: shortCode,
+              service_type: "ls",
               original_name: file.name,
               file_size: file.size,
               mime_type: file.type || "application/octet-stream",
@@ -258,9 +272,11 @@ export default function LittleSlice() {
 
             if (dbError) throw dbError;
 
-            const shareUrl = `${window.location.origin}/slicebox/${fileId}`;
+            // Use new short URL format: /ls/{shortCode}
+            const shareUrl = `${window.location.origin}/ls/${shortCode}`;
             resolve({
               fileId,
+              shortCode,
               originalName: file.name,
               fileSize: file.size,
               mimeType: file.type || "application/octet-stream",
