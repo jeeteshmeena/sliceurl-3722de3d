@@ -638,8 +638,6 @@ export type Database = {
           mime_type: string
           original_name: string
           password_hash: string | null
-          service_type: string | null
-          short_code: string | null
           storage_path: string
           user_id: string | null
         }
@@ -657,8 +655,6 @@ export type Database = {
           mime_type: string
           original_name: string
           password_hash?: string | null
-          service_type?: string | null
-          short_code?: string | null
           storage_path: string
           user_id?: string | null
         }
@@ -676,8 +672,6 @@ export type Database = {
           mime_type?: string
           original_name?: string
           password_hash?: string | null
-          service_type?: string | null
-          short_code?: string | null
           storage_path?: string
           user_id?: string | null
         }
@@ -1023,10 +1017,6 @@ export type Database = {
       }
     }
     Functions: {
-      generate_slicebox_shortcode: {
-        Args: { target_length?: number }
-        Returns: string
-      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]

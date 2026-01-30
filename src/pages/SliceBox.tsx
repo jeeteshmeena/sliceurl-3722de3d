@@ -2,11 +2,11 @@ import { useState, useRef, useCallback, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
-  Upload, Link as LinkIcon, Copy, Check, ChevronDown, ChevronUp,
+  Upload, Link as LinkIcon, Copy, Check, FileText, Image, Video, Music, 
+  Archive, File, ChevronDown, ChevronUp,
   ExternalLink, Share2, HardDrive, Clock, Gauge
 } from "lucide-react";
 import { IsolatedButton, SLICEBOX_COLORS } from "@/components/slicebox/IsolatedButton";
-import { FilePreview } from "@/components/slicebox/FilePreview";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -18,17 +18,12 @@ import { SliceNavToggle } from "@/components/SliceNavToggle";
 // SliceBox: Permanent file hosting - 200MB limit, no expiry
 const MAX_FILE_SIZE = 200 * 1024 * 1024; // 200MB
 
-// Apple Music Red accent color
-const ACCENT_COLOR = "#FF3B30";
-
 interface UploadedFile {
   fileId: string;
-  shortCode: string;
   originalName: string;
   fileSize: number;
   mimeType: string;
   shareUrl: string;
-  file?: File; // Keep reference for preview
 }
 
 interface FileUploadState {
@@ -38,8 +33,8 @@ interface FileUploadState {
   status: "pending" | "uploading" | "complete" | "error";
   result?: UploadedFile;
   error?: string;
-  speed: number;
-  remainingTime: number;
+  speed: number; // bytes per second
+  remainingTime: number; // seconds
   uploadedBytes: number;
   startTime: number;
 }
@@ -56,6 +51,15 @@ const EXECUTABLE_MIME_TYPES = [
 function isExecutableFile(file: File): boolean {
   const ext = file.name.split('.').pop()?.toLowerCase() || '';
   return EXECUTABLE_EXTENSIONS.includes(ext) || EXECUTABLE_MIME_TYPES.includes(file.type);
+}
+
+function getFileIcon(mimeType: string) {
+  if (mimeType.startsWith("image/")) return Image;
+  if (mimeType.startsWith("video/")) return Video;
+  if (mimeType.startsWith("audio/")) return Music;
+  if (mimeType === "application/pdf") return FileText;
+  if (mimeType.includes("zip") || mimeType.includes("rar") || mimeType.includes("7z")) return Archive;
+  return File;
 }
 
 function formatFileSize(bytes: number): string {
@@ -81,16 +85,6 @@ function formatTime(seconds: number): string {
   return `${Math.floor(seconds / 3600)}h ${Math.floor((seconds % 3600) / 60)}m`;
 }
 
-// Generate short code with collision handling
-function generateShortCode(length = 4): string {
-  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-  let result = '';
-  for (let i = 0; i < length; i++) {
-    result += chars.charAt(Math.floor(Math.random() * chars.length));
-  }
-  return result;
-}
-
 export default function SliceBox() {
   const { user } = useAuth();
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -110,9 +104,6 @@ export default function SliceBox() {
     const fileId = crypto.randomUUID().split("-")[0] + Date.now().toString(36);
     const storagePath = `uploads/${fileId}/${file.name}`;
     const deleteToken = crypto.randomUUID();
-    
-    // Generate short code - start with 4 chars, will retry with longer if collision
-    let shortCode = generateShortCode(4);
 
     const { data: session } = await supabase.auth.getSession();
     const authToken = session?.session?.access_token;
@@ -128,9 +119,10 @@ export default function SliceBox() {
       xhr.upload.onprogress = (e) => {
         if (e.lengthComputable) {
           const now = Date.now();
-          const timeDelta = (now - lastTime) / 1000;
+          const timeDelta = (now - lastTime) / 1000; // seconds
           const bytesDelta = e.loaded - lastLoaded;
           
+          // Calculate speed (smoothed)
           const instantSpeed = timeDelta > 0 ? bytesDelta / timeDelta : 0;
           const remainingBytes = e.total - e.loaded;
           const remainingTime = instantSpeed > 0 ? remainingBytes / instantSpeed : 0;
@@ -145,47 +137,27 @@ export default function SliceBox() {
       xhr.onload = async () => {
         if (xhr.status >= 200 && xhr.status < 300) {
           try {
-            // Try to insert with generated short code, retry with longer code if collision
-            let inserted = false;
-            let attempts = 0;
-            while (!inserted && attempts < 5) {
-              const { error: dbError } = await supabase.from("slicebox_files").insert({
-                file_id: fileId,
-                original_name: file.name,
-                file_size: file.size,
-                mime_type: file.type || "application/octet-stream",
-                storage_path: storagePath,
-                user_id: user?.id || null,
-                delete_token: deleteToken,
-                expires_at: null, // PERMANENT - no expiry
-                short_code: shortCode,
-                service_type: 'sb', // SliceBox
-              });
+            // Insert metadata - NO expiry for SliceBox (permanent hosting)
+            const { error: dbError } = await supabase.from("slicebox_files").insert({
+              file_id: fileId,
+              original_name: file.name,
+              file_size: file.size,
+              mime_type: file.type || "application/octet-stream",
+              storage_path: storagePath,
+              user_id: user?.id || null,
+              delete_token: deleteToken,
+              expires_at: null, // PERMANENT - no expiry
+            });
 
-              if (dbError) {
-                if (dbError.code === '23505') { // Unique constraint violation
-                  shortCode = generateShortCode(5 + attempts);
-                  attempts++;
-                } else {
-                  throw dbError;
-                }
-              } else {
-                inserted = true;
-              }
-            }
+            if (dbError) throw dbError;
 
-            if (!inserted) throw new Error("Failed to generate unique short code");
-
-            // Use new short link format
-            const shareUrl = `${window.location.origin}/sb/${shortCode}`;
+            const shareUrl = `${window.location.origin}/slicebox/${fileId}`;
             resolve({
               fileId,
-              shortCode,
               originalName: file.name,
               fileSize: file.size,
               mimeType: file.type || "application/octet-stream",
               shareUrl,
-              file, // Keep reference for preview
             });
           } catch (err) {
             await supabase.storage.from("slicebox").remove([storagePath]);
@@ -354,7 +326,6 @@ export default function SliceBox() {
 
   const showResults = uploadedFiles.length > 0;
   const hasActiveUploads = fileUploads.some(u => u.status === "uploading" || u.status === "pending");
-  const hasUploadsInProgress = fileUploads.length > 0;
 
   // Status panel data
   const uploadStats = fileUploads
@@ -370,16 +341,13 @@ export default function SliceBox() {
 
   return (
     <div className="min-h-dvh flex flex-col bg-[#FAFAFA]">
-      {/* Header */}
+      {/* Header - LEFT: Logo + Name | RIGHT: Toggle */}
       <header className="sticky top-0 z-50 border-b border-[#E8E8E8] bg-white shadow-sm">
         <div className="max-w-5xl mx-auto h-14 flex items-center justify-between px-4 sm:px-6">
           {/* Left: Brand */}
           <div className="flex items-center gap-2.5">
-            <div 
-              className="h-9 w-9 rounded-lg flex items-center justify-center"
-              style={{ backgroundColor: ACCENT_COLOR }}
-            >
-              <HardDrive className="h-4 w-4 text-white" />
+            <div className="h-9 w-9 rounded-lg bg-[#FFD64D] flex items-center justify-center">
+              <HardDrive className="h-4 w-4 text-[#0B0B0B]" />
             </div>
             <span className="text-lg sm:text-xl font-bold tracking-tight">
               <span className="text-[#0B0B0B]">Slice</span>
@@ -417,7 +385,7 @@ export default function SliceBox() {
           </p>
         </div>
 
-        {/* Upload Zone - Contains uploads inside */}
+        {/* Upload Zone */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -427,144 +395,131 @@ export default function SliceBox() {
             onDragOver={handleDragOver}
             onDragLeave={handleDragLeave}
             onDrop={handleDrop}
-            onClick={() => !hasUploadsInProgress && fileInputRef.current?.click()}
+            onClick={() => fileInputRef.current?.click()}
             className={cn(
-              "rounded-2xl text-center transition-all duration-200 border-2 bg-white shadow-sm overflow-hidden",
+              "rounded-2xl p-8 sm:p-12 text-center cursor-pointer transition-all duration-200 border-2 bg-white shadow-sm",
               isDragging 
-                ? "border-[#FF3B30] scale-[1.01] shadow-lg" 
-                : "border-[#E8E8E8] hover:border-[#FF3B30]/50 hover:shadow-md",
-              hasUploadsInProgress ? "cursor-default" : "cursor-pointer"
+                ? "border-[#FFD64D] scale-[1.01] shadow-lg" 
+                : "border-[#E8E8E8] hover:border-[#FFD64D]/50 hover:shadow-md"
             )}
           >
-            {/* Drop zone header - always visible */}
-            <div className="p-8 sm:p-12" onClick={(e) => hasUploadsInProgress && e.stopPropagation()}>
-              <div 
-                className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl flex items-center justify-center mx-auto mb-5"
-                style={{ backgroundColor: `${ACCENT_COLOR}12` }}
-              >
-                <Upload className="h-8 w-8 sm:h-10 sm:w-10" style={{ color: ACCENT_COLOR }} />
-              </div>
-              <p className="font-semibold text-lg sm:text-xl text-[#0B0B0B] mb-1">
-                {hasUploadsInProgress ? "Upload in progress" : "Drop files here"}
-              </p>
-              <p className="text-sm text-[#6B7280] mb-4">
-                {hasUploadsInProgress ? "Files are being uploaded" : "or click to browse"}
-              </p>
-              <div 
-                className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium"
-                style={{ backgroundColor: ACCENT_COLOR, color: "white" }}
-              >
-                <HardDrive className="h-4 w-4" />
-                Max 200MB · Any file type · Bulk upload
-              </div>
-              <input
-                ref={fileInputRef}
-                type="file"
-                multiple
-                className="hidden"
-                onChange={(e) => e.target.files && handleMultipleFileUpload(e.target.files)}
-              />
+            <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-[#FFD64D] flex items-center justify-center mx-auto mb-5">
+              <Upload className="h-8 w-8 sm:h-10 sm:w-10 text-[#0B0B0B]" />
             </div>
-
-            {/* Active Uploads - Inside the drop zone */}
-            <AnimatePresence mode="popLayout">
-              {fileUploads.length > 0 && (
-                <motion.div
-                  initial={{ opacity: 0, height: 0 }}
-                  animate={{ opacity: 1, height: "auto" }}
-                  exit={{ opacity: 0, height: 0 }}
-                  className="border-t border-[#E8E8E8]"
-                >
-                  <div className="p-4">
-                    <div className="flex items-center justify-between mb-3">
-                      <h3 className="font-semibold text-[#0B0B0B] text-sm">Uploading Files</h3>
-                      {!hasActiveUploads && (
-                        <IsolatedButton 
-                          variant="ghost" 
-                          size="sm" 
-                          onClick={(e) => { e.stopPropagation(); clearCompleted(); }}
-                          colorScheme="slicebox"
-                          className="text-xs"
-                          style={{ color: SLICEBOX_COLORS.textSecondary }}
-                        >
-                          Clear
-                        </IsolatedButton>
-                      )}
-                    </div>
-                    <div className="space-y-2 max-h-64 overflow-y-auto">
-                      {fileUploads.map((upload) => (
-                        <motion.div
-                          key={upload.id}
-                          layout
-                          initial={{ opacity: 0, y: -10 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          exit={{ opacity: 0, x: -20 }}
-                          className="p-3 bg-[#F8F8F8] rounded-xl"
-                          onClick={(e) => e.stopPropagation()}
-                        >
-                          <div className="flex items-center gap-3">
-                            <FilePreview 
-                              file={upload.file} 
-                              size="sm" 
-                              variant="slicebox"
-                            />
-                            <div className="flex-1 min-w-0">
-                              <p className="text-sm font-medium text-[#0B0B0B] truncate">
-                                {upload.file.name}
-                              </p>
-                              <div className="flex items-center gap-2 text-xs text-[#6B7280]">
-                                <span>{formatFileSize(upload.file.size)}</span>
-                                {upload.status === "uploading" && upload.speed > 0 && (
-                                  <>
-                                    <span>·</span>
-                                    <span className="flex items-center gap-1">
-                                      <Gauge className="h-3 w-3" />
-                                      {formatSpeed(upload.speed)}
-                                    </span>
-                                    <span>·</span>
-                                    <span className="flex items-center gap-1">
-                                      <Clock className="h-3 w-3" />
-                                      {formatTime(upload.remainingTime)}
-                                    </span>
-                                  </>
-                                )}
-                              </div>
-                            </div>
-                            <div className="shrink-0">
-                              {upload.status === "complete" && (
-                                <Check className="h-5 w-5 text-green-600" />
-                              )}
-                              {upload.status === "error" && (
-                                <span className="text-xs text-red-600">Failed</span>
-                              )}
-                            </div>
-                          </div>
-                          {upload.status === "uploading" && (
-                            <div className="mt-2">
-                              <div className="flex justify-between text-xs text-[#6B7280] mb-1">
-                                <span>{upload.progress}%</span>
-                                <span>{formatFileSize(upload.uploadedBytes)} / {formatFileSize(upload.file.size)}</span>
-                              </div>
-                              <div className="h-1.5 bg-[#E8E8E8] rounded-full overflow-hidden">
-                                <motion.div 
-                                  className="h-full rounded-full"
-                                  style={{ backgroundColor: ACCENT_COLOR }}
-                                  initial={{ width: 0 }}
-                                  animate={{ width: `${upload.progress}%` }}
-                                  transition={{ duration: 0.3 }}
-                                />
-                              </div>
-                            </div>
-                          )}
-                        </motion.div>
-                      ))}
-                    </div>
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
+            <p className="font-semibold text-lg sm:text-xl text-[#0B0B0B] mb-1">
+              Drop files here
+            </p>
+            <p className="text-sm text-[#6B7280] mb-4">
+              or click to browse
+            </p>
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[#FFD64D] text-[#0B0B0B] text-sm font-medium">
+              <HardDrive className="h-4 w-4" />
+              Max 200MB · Any file type · Bulk upload
+            </div>
+            <input
+              ref={fileInputRef}
+              type="file"
+              multiple
+              className="hidden"
+              onChange={(e) => e.target.files && handleMultipleFileUpload(e.target.files)}
+            />
           </div>
         </motion.div>
+
+        {/* Active Uploads */}
+        <AnimatePresence mode="popLayout">
+          {fileUploads.length > 0 && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: "auto" }}
+              exit={{ opacity: 0, height: 0 }}
+              className="mb-8"
+            >
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="font-semibold text-[#0B0B0B]">Uploads</h3>
+                {!hasActiveUploads && (
+                  <IsolatedButton 
+                    variant="ghost" 
+                    size="sm" 
+                    onClick={clearCompleted}
+                    colorScheme="slicebox"
+                    className="text-xs"
+                    style={{ color: SLICEBOX_COLORS.textSecondary }}
+                  >
+                    Clear
+                  </IsolatedButton>
+                )}
+              </div>
+              <div className="space-y-2">
+                {fileUploads.map((upload) => {
+                  const FileIcon = getFileIcon(upload.file.type);
+                  return (
+                    <motion.div
+                      key={upload.id}
+                      layout
+                      initial={{ opacity: 0, y: -10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, x: -20 }}
+                      className="p-3 bg-white rounded-xl border border-[#E8E8E8]"
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="h-10 w-10 rounded-lg bg-[#F5F5F5] flex items-center justify-center shrink-0">
+                          <FileIcon className="h-5 w-5 text-[#6B7280]" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium text-[#0B0B0B] truncate">
+                            {upload.file.name}
+                          </p>
+                          <div className="flex items-center gap-2 text-xs text-[#6B7280]">
+                            <span>{formatFileSize(upload.file.size)}</span>
+                            {upload.status === "uploading" && upload.speed > 0 && (
+                              <>
+                                <span>·</span>
+                                <span className="flex items-center gap-1">
+                                  <Gauge className="h-3 w-3" />
+                                  {formatSpeed(upload.speed)}
+                                </span>
+                                <span>·</span>
+                                <span className="flex items-center gap-1">
+                                  <Clock className="h-3 w-3" />
+                                  {formatTime(upload.remainingTime)}
+                                </span>
+                              </>
+                            )}
+                          </div>
+                        </div>
+                        <div className="shrink-0">
+                          {upload.status === "complete" && (
+                            <Check className="h-5 w-5 text-green-600" />
+                          )}
+                          {upload.status === "error" && (
+                            <span className="text-xs text-red-600">Failed</span>
+                          )}
+                        </div>
+                      </div>
+                      {upload.status === "uploading" && (
+                        <div className="mt-2">
+                          <div className="flex justify-between text-xs text-[#6B7280] mb-1">
+                            <span>{upload.progress}%</span>
+                            <span>{formatFileSize(upload.uploadedBytes)} / {formatFileSize(upload.file.size)}</span>
+                          </div>
+                          <div className="h-1.5 bg-[#E8E8E8] rounded-full overflow-hidden">
+                            <motion.div 
+                              className="h-full bg-[#FFD64D] rounded-full"
+                              initial={{ width: 0 }}
+                              animate={{ width: `${upload.progress}%` }}
+                              transition={{ duration: 0.3 }}
+                            />
+                          </div>
+                        </div>
+                      )}
+                    </motion.div>
+                  );
+                })}
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {/* Uploaded Files Results */}
         <AnimatePresence>
@@ -576,71 +531,70 @@ export default function SliceBox() {
             >
               <h3 className="font-semibold text-[#0B0B0B] mb-3">Your Files</h3>
               <div className="space-y-3">
-                {uploadedFiles.map((file) => (
-                  <motion.div
-                    key={file.fileId}
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="p-4 bg-white rounded-xl border border-[#E8E8E8] shadow-sm"
-                  >
-                    <div className="flex items-start gap-3">
-                      <FilePreview 
-                        file={file.file} 
-                        mimeType={file.mimeType}
-                        fileName={file.originalName}
-                        size="md" 
-                        variant="slicebox"
-                      />
-                      <div className="flex-1 min-w-0">
-                        <p className="font-medium text-[#0B0B0B] truncate mb-1">
-                          {file.originalName}
-                        </p>
-                        <p className="text-xs text-[#6B7280] mb-2">
-                          {formatFileSize(file.fileSize)} · Permanent link
-                        </p>
-                        <div className="flex items-center gap-2 p-2 bg-[#F5F5F5] rounded-lg">
-                          <LinkIcon className="h-3.5 w-3.5 text-[#6B7280] shrink-0" />
-                          <span className="text-xs text-[#0B0B0B] truncate flex-1 font-mono">
-                            {file.shareUrl}
-                          </span>
+                {uploadedFiles.map((file) => {
+                  const FileIcon = getFileIcon(file.mimeType);
+                  return (
+                    <motion.div
+                      key={file.fileId}
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="p-4 bg-white rounded-xl border border-[#E8E8E8] shadow-sm"
+                    >
+                      <div className="flex items-start gap-3">
+                        <div className="h-12 w-12 rounded-xl bg-[#FFD64D]/20 flex items-center justify-center shrink-0">
+                          <FileIcon className="h-6 w-6 text-[#0B0B0B]" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="font-medium text-[#0B0B0B] truncate mb-1">
+                            {file.originalName}
+                          </p>
+                          <p className="text-xs text-[#6B7280] mb-2">
+                            {formatFileSize(file.fileSize)} · Permanent link
+                          </p>
+                          <div className="flex items-center gap-2 p-2 bg-[#F5F5F5] rounded-lg">
+                            <LinkIcon className="h-3.5 w-3.5 text-[#6B7280] shrink-0" />
+                            <span className="text-xs text-[#0B0B0B] truncate flex-1 font-mono">
+                              {file.shareUrl}
+                            </span>
+                          </div>
                         </div>
                       </div>
-                    </div>
-                    <div className="flex items-center gap-2 mt-3 pt-3 border-t border-[#E8E8E8]">
-                      <IsolatedButton
-                        size="sm"
-                        onClick={() => handleCopy(file.shareUrl, file.fileId)}
-                        colorScheme="slicebox"
-                        className="flex-1 shadow-none"
-                      >
-                        {copiedId === file.fileId ? (
-                          <Check className="h-4 w-4 mr-1.5" />
-                        ) : (
-                          <Copy className="h-4 w-4 mr-1.5" />
-                        )}
-                        {copiedId === file.fileId ? "Copied!" : "Copy Link"}
-                      </IsolatedButton>
-                      <IsolatedButton
-                        size="sm"
-                        variant="outline"
-                        onClick={() => handleShare(file)}
-                        colorScheme="slicebox"
-                      >
-                        <Share2 className="h-4 w-4" />
-                      </IsolatedButton>
-                      <IsolatedButton
-                        size="sm"
-                        variant="outline"
-                        asChild
-                        colorScheme="slicebox"
-                      >
-                        <a href={file.shareUrl} target="_blank" rel="noopener noreferrer">
-                          <ExternalLink className="h-4 w-4" />
-                        </a>
-                      </IsolatedButton>
-                    </div>
-                  </motion.div>
-                ))}
+                      <div className="flex items-center gap-2 mt-3 pt-3 border-t border-[#E8E8E8]">
+                        <IsolatedButton
+                          size="sm"
+                          onClick={() => handleCopy(file.shareUrl, file.fileId)}
+                          colorScheme="slicebox"
+                          className="flex-1 shadow-none"
+                        >
+                          {copiedId === file.fileId ? (
+                            <Check className="h-4 w-4 mr-1.5" />
+                          ) : (
+                            <Copy className="h-4 w-4 mr-1.5" />
+                          )}
+                          {copiedId === file.fileId ? "Copied!" : "Copy Link"}
+                        </IsolatedButton>
+                        <IsolatedButton
+                          size="sm"
+                          variant="outline"
+                          onClick={() => handleShare(file)}
+                          colorScheme="slicebox"
+                        >
+                          <Share2 className="h-4 w-4" />
+                        </IsolatedButton>
+                        <IsolatedButton
+                          size="sm"
+                          variant="outline"
+                          asChild
+                          colorScheme="slicebox"
+                        >
+                          <a href={file.shareUrl} target="_blank" rel="noopener noreferrer">
+                            <ExternalLink className="h-4 w-4" />
+                          </a>
+                        </IsolatedButton>
+                      </div>
+                    </motion.div>
+                  );
+                })}
               </div>
             </motion.div>
           )}

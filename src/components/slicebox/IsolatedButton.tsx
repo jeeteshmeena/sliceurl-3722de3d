@@ -13,28 +13,24 @@ interface IsolatedButtonProps extends React.ButtonHTMLAttributes<HTMLButtonEleme
 }
 
 // Hardcoded color palettes (NO theme inheritance)
-// SliceBox uses Apple Music Red (replacing yellow)
 const SLICEBOX_COLORS = {
-  primary: "#FF3B30", // Apple Music Red
-  primaryHover: "#E6352B",
-  text: "#FFFFFF", // White text on red background
-  textOnLight: "#0B0B0B", // Black text on light backgrounds
+  primary: "#FFD64D",
+  primaryHover: "#FFCC00",
+  text: "#0B0B0B",
   textSecondary: "#6B7280",
   background: "#FFFFFF",
   backgroundHover: "#F5F5F5",
   border: "#E8E8E8",
 };
 
-// LittleSlice uses Pinkish Red
 const LITTLESLICE_COLORS = {
-  primary: "#FF4D6D", // Pinkish Red
-  primaryHover: "#E6455F",
-  text: "#FFFFFF", // White text on red background
-  textOnLight: "#0B0B0B",
+  primary: "#D0E7EF",
+  primaryHover: "#A8D4E6",
+  text: "#0B0B0B",
   textSecondary: "#6B7280",
   background: "#FFFFFF",
-  backgroundHover: "#FFF0F3",
-  border: "#FFE0E6",
+  backgroundHover: "#F0F8FA",
+  border: "#E2EEF2",
 };
 
 const IsolatedButton = React.forwardRef<HTMLButtonElement, IsolatedButtonProps>(

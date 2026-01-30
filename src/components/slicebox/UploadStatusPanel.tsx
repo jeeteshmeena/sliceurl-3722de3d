@@ -49,8 +49,8 @@ export function UploadStatusPanel({ uploads, onClose, isOpen, variant = "slicebo
     ? Math.round(activeUploads.reduce((sum, u) => sum + u.progress, 0) / activeUploads.length)
     : 0;
 
-  const accentColor = variant === "slicebox" ? "#FF3B30" : "#FF4D6D";
-  const accentColorDark = variant === "slicebox" ? "#E6352B" : "#E6455F";
+  const accentColor = variant === "slicebox" ? "#FFD64D" : "#D0E7EF";
+  const accentColorDark = variant === "slicebox" ? "#E5C044" : "#A8D4E6";
 
   if (activeUploads.length === 0 && !isOpen) return null;
 
