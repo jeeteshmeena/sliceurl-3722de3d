@@ -2,12 +2,11 @@ import { useState, useRef, useCallback } from "react";
 import { Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
-  Upload, Link as LinkIcon, Copy, Check, ExternalLink, Share2, 
-  Clock, Lock, Eye, EyeOff, Gauge
+  Upload, Link as LinkIcon, Copy, Check, FileText, Image, Video, Music, 
+  Archive, File, ExternalLink, Share2, Clock, Lock, Eye, EyeOff, Gauge
 } from "lucide-react";
 import { IsolatedButton, LITTLESLICE_COLORS } from "@/components/slicebox/IsolatedButton";
 import { IsolatedInput } from "@/components/slicebox/IsolatedInput";
-import { FilePreview } from "@/components/slicebox/FilePreview";
 import { Label } from "@/components/ui/label";
 import {
   Select,
@@ -77,7 +76,14 @@ function isExecutableFile(file: File): boolean {
   return EXECUTABLE_EXTENSIONS.includes(ext) || EXECUTABLE_MIME_TYPES.includes(file.type);
 }
 
-// File icon function removed - using FilePreview component instead
+function getFileIcon(mimeType: string) {
+  if (mimeType.startsWith("image/")) return Image;
+  if (mimeType.startsWith("video/")) return Video;
+  if (mimeType.startsWith("audio/")) return Music;
+  if (mimeType === "application/pdf") return FileText;
+  if (mimeType.includes("zip") || mimeType.includes("rar") || mimeType.includes("7z")) return Archive;
+  return File;
+}
 
 function formatFileSize(bytes: number): string {
   if (bytes === 0) return "0 B";
@@ -634,22 +640,25 @@ export default function LittleSlice() {
                 )}
               </div>
               <div className="space-y-2">
-                {fileUploads.map((upload) => (
+                {fileUploads.map((upload) => {
+                  const FileIcon = getFileIcon(upload.file.type);
+                  return (
                     <motion.div
                       key={upload.id}
                       layout
                       initial={{ opacity: 0, y: -10 }}
                       animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0, x: -20 }}
-                      className="p-3 rounded-xl border shadow-sm"
+                      className="p-3 rounded-xl border"
                       style={{ backgroundColor: COLORS.card, borderColor: COLORS.border }}
                     >
                       <div className="flex items-center gap-3">
-                        <FilePreview 
-                          file={upload.file}
-                          size="sm"
-                          variant="littleslice"
-                        />
+                        <div 
+                          className="h-10 w-10 rounded-lg flex items-center justify-center shrink-0"
+                          style={{ backgroundColor: `${COLORS.primary}50` }}
+                        >
+                          <FileIcon className="h-5 w-5" style={{ color: COLORS.textSecondary }} />
+                        </div>
                         <div className="flex-1 min-w-0">
                           <p className="text-sm font-medium truncate" style={{ color: COLORS.text }}>
                             {upload.file.name}
@@ -699,7 +708,8 @@ export default function LittleSlice() {
                         </div>
                       )}
                     </motion.div>
-                ))}
+                  );
+                })}
               </div>
             </motion.div>
           )}
@@ -715,22 +725,23 @@ export default function LittleSlice() {
             >
               <h3 className="font-semibold mb-3" style={{ color: COLORS.text }}>Your Files</h3>
               <div className="space-y-3">
-                {uploadedFiles.map((file) => (
+                {uploadedFiles.map((file) => {
+                  const FileIcon = getFileIcon(file.mimeType);
+                  return (
                     <motion.div
                       key={file.fileId}
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
-                      className="p-4 rounded-2xl border shadow-md"
+                      className="p-4 rounded-xl border shadow-sm"
                       style={{ backgroundColor: COLORS.card, borderColor: COLORS.border }}
                     >
-                      <div className="flex items-start gap-4">
-                        <FilePreview 
-                          mimeType={file.mimeType}
-                          fileName={file.originalName}
-                          isPasswordProtected={file.passwordProtected}
-                          size="md"
-                          variant="littleslice"
-                        />
+                      <div className="flex items-start gap-3">
+                        <div 
+                          className="h-12 w-12 rounded-xl flex items-center justify-center shrink-0"
+                          style={{ backgroundColor: `${COLORS.primary}40` }}
+                        >
+                          <FileIcon className="h-6 w-6" style={{ color: COLORS.text }} />
+                        </div>
                         <div className="flex-1 min-w-0">
                           <p className="font-medium truncate mb-1" style={{ color: COLORS.text }}>
                             {file.originalName}
@@ -800,7 +811,8 @@ export default function LittleSlice() {
                         </IsolatedButton>
                       </div>
                     </motion.div>
-                ))}
+                  );
+                })}
               </div>
             </motion.div>
           )}
