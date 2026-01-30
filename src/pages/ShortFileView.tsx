@@ -2,11 +2,12 @@ import { useEffect, useState } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { 
-  FileText, Image, Video, Music, Archive, File, Download, 
-  Lock, Eye, EyeOff, ArrowLeft, HardDrive, Clock, AlertTriangle
+  Download, Lock, Eye, EyeOff, Clock, AlertTriangle, HardDrive
 } from "lucide-react";
 import { IsolatedButton } from "@/components/slicebox/IsolatedButton";
 import { IsolatedInput } from "@/components/slicebox/IsolatedInput";
+import { FilePreview } from "@/components/slicebox/FilePreview";
+import { Skeleton } from "@/components/ui/skeleton";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -21,15 +22,6 @@ interface FileMetadata {
   isPasswordProtected: boolean;
   downloadCount: number;
   serviceType: string;
-}
-
-function getFileIcon(mimeType: string) {
-  if (mimeType.startsWith("image/")) return Image;
-  if (mimeType.startsWith("video/")) return Video;
-  if (mimeType.startsWith("audio/")) return Music;
-  if (mimeType === "application/pdf") return FileText;
-  if (mimeType.includes("zip") || mimeType.includes("rar") || mimeType.includes("7z")) return Archive;
-  return File;
 }
 
 function formatFileSize(bytes: number): string {
@@ -57,7 +49,6 @@ function formatExpiryTime(isoString: string | null): string | null {
   return `Expires in ${diffMins} minute${diffMins > 1 ? "s" : ""}`;
 }
 
-// Props to specify which service type to expect
 interface ShortFileViewProps {
   expectedServiceType?: "sb" | "ls";
 }
@@ -73,11 +64,36 @@ export default function ShortFileView({ expectedServiceType }: ShortFileViewProp
   const [showPassword, setShowPassword] = useState(false);
   const [verifying, setVerifying] = useState(false);
   const [downloading, setDownloading] = useState(false);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [passwordVerified, setPasswordVerified] = useState(false);
 
-  // Determine if this is a temporary file (LittleSlice) or permanent (SliceBox)
   const isTemporary = file?.serviceType === "ls" || (file?.expiresAt !== null && file?.serviceType !== "sb");
   const accentColor = isTemporary ? "#D0E7EF" : "#FFD64D";
   const brandName = isTemporary ? "LittleSlice" : "SliceBox";
+
+  // Generate preview URL for non-password files
+  useEffect(() => {
+    async function generatePreviewUrl() {
+      if (!file || file.isPasswordProtected && !passwordVerified) return;
+      
+      const category = getFileCategory(file.mimeType, file.originalName);
+      if (category === "image" || category === "video") {
+        try {
+          const { data } = await supabase.storage
+            .from("slicebox")
+            .createSignedUrl(file.storagePath, 300);
+          
+          if (data?.signedUrl) {
+            setPreviewUrl(data.signedUrl);
+          }
+        } catch (err) {
+          console.error("Failed to generate preview URL:", err);
+        }
+      }
+    }
+    
+    generatePreviewUrl();
+  }, [file, passwordVerified]);
 
   useEffect(() => {
     async function fetchFileMetadata() {
@@ -87,7 +103,6 @@ export default function ShortFileView({ expectedServiceType }: ShortFileViewProp
       }
 
       try {
-        // Look up by short_code
         const { data, error: fetchError } = await supabase
           .from("slicebox_files")
           .select("file_id, short_code, original_name, file_size, mime_type, storage_path, expires_at, password_hash, download_count, is_deleted, service_type")
@@ -101,15 +116,12 @@ export default function ShortFileView({ expectedServiceType }: ShortFileViewProp
           return;
         }
 
-        // Verify service type matches if expected
         if (expectedServiceType && data.service_type !== expectedServiceType) {
-          // Redirect to correct URL
           const correctPath = data.service_type === "ls" ? `/ls/${shortCode}` : `/sb/${shortCode}`;
           navigate(correctPath, { replace: true });
           return;
         }
 
-        // Check expiry
         if (data.expires_at && new Date(data.expires_at) < new Date()) {
           setError("This file has expired");
           setLoading(false);
@@ -142,8 +154,7 @@ export default function ShortFileView({ expectedServiceType }: ShortFileViewProp
   const handleDownload = async () => {
     if (!file) return;
 
-    // If password protected, verify first via edge function
-    if (file.isPasswordProtected) {
+    if (file.isPasswordProtected && !passwordVerified) {
       if (!password) {
         toast.error("Please enter the password");
         return;
@@ -161,6 +172,7 @@ export default function ShortFileView({ expectedServiceType }: ShortFileViewProp
           return;
         }
 
+        setPasswordVerified(true);
         window.location.href = response.data.downloadUrl;
         toast.success("Download started!");
         setVerifying(false);
@@ -172,7 +184,6 @@ export default function ShortFileView({ expectedServiceType }: ShortFileViewProp
       return;
     }
 
-    // No password - use download edge function for signed URL
     setDownloading(true);
     try {
       const response = await supabase.functions.invoke("slicebox-download", {
@@ -202,14 +213,21 @@ export default function ShortFileView({ expectedServiceType }: ShortFileViewProp
     }
   };
 
-  const FileIcon = file ? getFileIcon(file.mimeType) : File;
   const expiryText = file ? formatExpiryTime(file.expiresAt) : null;
 
-  // Loading state
+  // Loading state with skeleton
   if (loading) {
     return (
       <div className="min-h-dvh flex items-center justify-center bg-[#FAFAFA]">
-        <div className="w-8 h-8 border-2 border-[#0B0B0B] border-t-transparent rounded-full animate-spin" />
+        <div className="w-full max-w-md px-4">
+          <div className="bg-white rounded-3xl border border-[#E8E8E8] shadow-xl p-8">
+            <div className="flex flex-col items-center">
+              <Skeleton className="w-32 h-32 rounded-2xl mb-6" />
+              <Skeleton className="h-6 w-48 mb-2" />
+              <Skeleton className="h-4 w-24" />
+            </div>
+          </div>
+        </div>
       </div>
     );
   }
@@ -217,124 +235,103 @@ export default function ShortFileView({ expectedServiceType }: ShortFileViewProp
   // Error state
   if (error || !file) {
     return (
-      <div className="min-h-dvh flex flex-col bg-[#FAFAFA]">
-        <header className="sticky top-0 z-50 border-b border-[#E8E8E8] bg-white shadow-sm">
-          <div className="max-w-4xl mx-auto h-14 flex items-center justify-between px-4">
-            <div className="flex items-center gap-2.5">
-              <div className="h-8 w-8 rounded-lg bg-[#FFD64D] flex items-center justify-center">
-                <HardDrive className="h-4 w-4 text-[#0B0B0B]" />
-              </div>
-              <span className="text-lg font-bold">
-                <span className="text-[#0B0B0B]">Slice</span>
-                <span className="text-[#6B7280]">Box</span>
-              </span>
-            </div>
-            <IsolatedButton variant="ghost" size="sm" asChild colorScheme="slicebox">
-              <Link to="/" className="gap-2">
-                <ArrowLeft className="h-4 w-4" />
-                Back to SliceURL
-              </Link>
-            </IsolatedButton>
-          </div>
-        </header>
-        <main className="flex-1 flex items-center justify-center p-4">
-          <div className="text-center">
-            <div className="w-16 h-16 rounded-2xl bg-red-100 flex items-center justify-center mx-auto mb-4">
-              <AlertTriangle className="h-8 w-8 text-red-600" />
+      <div className="min-h-dvh flex items-center justify-center bg-[#FAFAFA] p-4">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="w-full max-w-md"
+        >
+          <div className="bg-white rounded-3xl border border-[#E8E8E8] shadow-xl p-8 text-center">
+            <div className="w-20 h-20 rounded-2xl bg-red-50 flex items-center justify-center mx-auto mb-6">
+              <AlertTriangle className="h-10 w-10 text-red-500" />
             </div>
             <h1 className="text-xl font-bold text-[#0B0B0B] mb-2">{error || "File not found"}</h1>
-            <p className="text-[#6B7280] mb-6">This file may have been deleted or the link is invalid.</p>
-            <IsolatedButton asChild colorScheme="slicebox">
+            <p className="text-[#6B7280] mb-8">This file may have been deleted or the link is invalid.</p>
+            <IsolatedButton asChild colorScheme="slicebox" className="w-full h-12">
               <Link to="/slicebox">Go to SliceBox</Link>
             </IsolatedButton>
           </div>
-        </main>
+          
+          {/* Footer */}
+          <p className="text-center text-xs text-[#9CA3AF] mt-8">
+            Powered by SliceURL
+          </p>
+        </motion.div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-dvh flex flex-col" style={{ backgroundColor: isTemporary ? "#F8FBFC" : "#FAFAFA" }}>
-      {/* Header */}
-      <header 
-        className="sticky top-0 z-50 border-b shadow-sm"
-        style={{ backgroundColor: "#FFFFFF", borderColor: isTemporary ? "#E2EEF2" : "#E8E8E8" }}
-      >
-        <div className="max-w-4xl mx-auto h-14 flex items-center justify-between px-4">
-          <div className="flex items-center gap-2.5">
-            <div 
-              className="h-8 w-8 rounded-lg flex items-center justify-center"
-              style={{ backgroundColor: accentColor }}
-            >
-              {isTemporary ? (
-                <Clock className="h-4 w-4 text-[#0B0B0B]" />
-              ) : (
-                <HardDrive className="h-4 w-4 text-[#0B0B0B]" />
-              )}
-            </div>
-            <span className="text-lg font-bold">
-              <span className="text-[#0B0B0B]">{isTemporary ? "Little" : "Slice"}</span>
-              <span className="text-[#6B7280]">{isTemporary ? "Slice" : "Box"}</span>
-            </span>
-          </div>
-          <IsolatedButton 
-            variant="ghost" 
-            size="sm" 
-            asChild 
-            colorScheme={isTemporary ? "littleslice" : "slicebox"}
-            className="gap-2 font-medium"
-          >
-            <Link to="/">
-              <ArrowLeft className="h-4 w-4" />
-              <span>Back to SliceURL</span>
-            </Link>
-          </IsolatedButton>
-        </div>
-      </header>
-
+    <div 
+      className="min-h-dvh flex flex-col"
+      style={{ backgroundColor: isTemporary ? "#F8FBFC" : "#FAFAFA" }}
+    >
+      {/* No header - clean fullscreen view */}
+      
       {/* Main Content */}
-      <main className="flex-1 flex items-center justify-center p-4">
+      <main className="flex-1 flex items-center justify-center p-4 sm:p-6">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           className="w-full max-w-md"
         >
+          {/* Main Card */}
           <div 
-            className="rounded-2xl border shadow-lg overflow-hidden"
-            style={{ backgroundColor: "#FFFFFF", borderColor: isTemporary ? "#E2EEF2" : "#E8E8E8" }}
+            className="rounded-3xl border shadow-xl overflow-hidden"
+            style={{ 
+              backgroundColor: "#FFFFFF", 
+              borderColor: isTemporary ? "#E2EEF2" : "#E8E8E8" 
+            }}
           >
-            {/* File Icon & Info */}
-            <div className="p-6 text-center">
-              <div 
-                className="w-20 h-20 rounded-2xl flex items-center justify-center mx-auto mb-4"
-                style={{ backgroundColor: `${accentColor}30` }}
-              >
-                <FileIcon className="h-10 w-10" style={{ color: "#0B0B0B" }} />
+            {/* Large Preview */}
+            <div className="p-8 pb-6 flex flex-col items-center">
+              <div className="mb-6">
+                <FilePreview
+                  mimeType={file.mimeType}
+                  fileName={file.originalName}
+                  storagePath={file.storagePath}
+                  signedUrl={previewUrl || undefined}
+                  isPasswordProtected={file.isPasswordProtected && !passwordVerified}
+                  size="xl"
+                  variant={isTemporary ? "littleslice" : "slicebox"}
+                />
               </div>
-              <h1 className="text-lg font-bold text-[#0B0B0B] mb-1 break-all">
+              
+              {/* File Info */}
+              <h1 className="text-lg font-bold text-[#0B0B0B] text-center mb-2 break-all px-4">
                 {file.originalName}
               </h1>
-              <p className="text-sm text-[#6B7280]">
-                {formatFileSize(file.fileSize)}
-                {file.downloadCount > 0 && ` · ${file.downloadCount} downloads`}
-              </p>
+              <div className="flex items-center gap-3 text-sm text-[#6B7280]">
+                <span>{formatFileSize(file.fileSize)}</span>
+                {file.downloadCount > 0 && (
+                  <>
+                    <span className="w-1 h-1 rounded-full bg-[#D1D5DB]" />
+                    <span>{file.downloadCount} download{file.downloadCount !== 1 ? "s" : ""}</span>
+                  </>
+                )}
+              </div>
+              
+              {/* Expiry Badge (LittleSlice only) */}
               {expiryText && (
-                <p 
-                  className="text-xs mt-2 font-medium"
-                  style={{ color: expiryText === "Expired" ? "#DC2626" : "#6B7280" }}
+                <div 
+                  className="mt-4 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium"
+                  style={{ 
+                    backgroundColor: expiryText === "Expired" ? "#FEE2E2" : `${accentColor}40`,
+                    color: expiryText === "Expired" ? "#DC2626" : "#0B0B0B"
+                  }}
                 >
-                  <Clock className="h-3 w-3 inline mr-1" />
+                  <Clock className="h-3 w-3" />
                   {expiryText}
-                </p>
+                </div>
               )}
             </div>
 
             {/* Password Input (if protected) */}
-            {file.isPasswordProtected && (
-              <div className="px-6 pb-4">
+            {file.isPasswordProtected && !passwordVerified && (
+              <div className="px-6 pb-2">
                 <div 
-                  className="p-4 rounded-xl border"
-                  style={{ backgroundColor: `${accentColor}20`, borderColor: `${accentColor}50` }}
+                  className="p-4 rounded-2xl border"
+                  style={{ backgroundColor: `${accentColor}15`, borderColor: `${accentColor}40` }}
                 >
                   <div className="flex items-center gap-2 mb-3">
                     <Lock className="h-4 w-4 text-[#6B7280]" />
@@ -346,14 +343,14 @@ export default function ShortFileView({ expectedServiceType }: ShortFileViewProp
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       placeholder="Enter password"
-                      className="pr-10 h-11"
+                      className="pr-10 h-12 rounded-xl"
                       colorScheme={isTemporary ? "littleslice" : "slicebox"}
                       onKeyDown={(e) => e.key === "Enter" && handleDownload()}
                     />
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-[#6B7280]"
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-[#6B7280] hover:text-[#0B0B0B] transition-colors"
                     >
                       {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                     </button>
@@ -363,21 +360,21 @@ export default function ShortFileView({ expectedServiceType }: ShortFileViewProp
             )}
 
             {/* Download Button */}
-            <div className="p-6 pt-0">
+            <div className="p-6 pt-4">
               <IsolatedButton
                 onClick={handleDownload}
                 disabled={verifying || downloading}
                 colorScheme={isTemporary ? "littleslice" : "slicebox"}
-                className="w-full h-12 text-base font-semibold gap-2"
+                className="w-full h-14 text-base font-semibold gap-2 rounded-xl shadow-lg"
               >
                 {verifying ? (
                   <>
-                    <div className="h-4 w-4 border-2 border-[#0B0B0B] border-t-transparent rounded-full animate-spin" />
+                    <div className="h-5 w-5 border-2 border-[#0B0B0B] border-t-transparent rounded-full animate-spin" />
                     Verifying...
                   </>
                 ) : downloading ? (
                   <>
-                    <div className="h-4 w-4 border-2 border-[#0B0B0B] border-t-transparent rounded-full animate-spin" />
+                    <div className="h-5 w-5 border-2 border-[#0B0B0B] border-t-transparent rounded-full animate-spin" />
                     Starting download...
                   </>
                 ) : (
@@ -390,12 +387,40 @@ export default function ShortFileView({ expectedServiceType }: ShortFileViewProp
             </div>
           </div>
 
-          {/* Footer */}
-          <p className="text-center text-xs text-[#6B7280] mt-6">
-            {isTemporary ? "A Product by SliceBox" : "Powered by SliceURL"}
-          </p>
+          {/* Footer Branding */}
+          <div className="mt-8 text-center">
+            <Link 
+              to={isTemporary ? "/littleslice" : "/slicebox"}
+              className="inline-flex items-center gap-2 text-xs text-[#9CA3AF] hover:text-[#6B7280] transition-colors"
+            >
+              <div 
+                className="w-4 h-4 rounded flex items-center justify-center"
+                style={{ backgroundColor: `${accentColor}50` }}
+              >
+                {isTemporary ? (
+                  <Clock className="h-2.5 w-2.5 text-[#0B0B0B]" />
+                ) : (
+                  <HardDrive className="h-2.5 w-2.5 text-[#0B0B0B]" />
+                )}
+              </div>
+              A product by {brandName}
+            </Link>
+          </div>
         </motion.div>
       </main>
     </div>
   );
+}
+
+// Helper function to get file category
+function getFileCategory(mimeType: string, fileName?: string): string {
+  if (mimeType.startsWith("image/")) return "image";
+  if (mimeType.startsWith("video/")) return "video";
+  if (mimeType.startsWith("audio/")) return "audio";
+  if (mimeType === "application/pdf") return "pdf";
+  
+  const ext = fileName?.split('.').pop()?.toLowerCase();
+  if (ext === "apk") return "apk";
+  
+  return "file";
 }
