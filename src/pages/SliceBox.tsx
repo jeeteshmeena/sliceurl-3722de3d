@@ -2,11 +2,11 @@ import { useState, useRef, useCallback, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
-  Upload, Link as LinkIcon, Copy, Check, FileText, Image, Video, Music, 
-  Archive, File, ChevronDown, ChevronUp,
+  Upload, Link as LinkIcon, Copy, Check, ChevronDown, ChevronUp,
   ExternalLink, Share2, HardDrive, Clock, Gauge
 } from "lucide-react";
 import { IsolatedButton, SLICEBOX_COLORS } from "@/components/slicebox/IsolatedButton";
+import { FilePreview } from "@/components/slicebox/FilePreview";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -54,14 +54,7 @@ function isExecutableFile(file: File): boolean {
   return EXECUTABLE_EXTENSIONS.includes(ext) || EXECUTABLE_MIME_TYPES.includes(file.type);
 }
 
-function getFileIcon(mimeType: string) {
-  if (mimeType.startsWith("image/")) return Image;
-  if (mimeType.startsWith("video/")) return Video;
-  if (mimeType.startsWith("audio/")) return Music;
-  if (mimeType === "application/pdf") return FileText;
-  if (mimeType.includes("zip") || mimeType.includes("rar") || mimeType.includes("7z")) return Archive;
-  return File;
-}
+// File icon function removed - using FilePreview component instead
 
 function formatFileSize(bytes: number): string {
   if (bytes === 0) return "0 B";
@@ -467,21 +460,21 @@ export default function SliceBox() {
                 )}
               </div>
               <div className="space-y-2">
-                {fileUploads.map((upload) => {
-                  const FileIcon = getFileIcon(upload.file.type);
-                  return (
+                {fileUploads.map((upload) => (
                     <motion.div
                       key={upload.id}
                       layout
                       initial={{ opacity: 0, y: -10 }}
                       animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0, x: -20 }}
-                      className="p-3 bg-white rounded-xl border border-[#E8E8E8]"
+                      className="p-3 bg-white rounded-xl border border-[#E8E8E8] shadow-sm"
                     >
                       <div className="flex items-center gap-3">
-                        <div className="h-10 w-10 rounded-lg bg-[#F5F5F5] flex items-center justify-center shrink-0">
-                          <FileIcon className="h-5 w-5 text-[#6B7280]" />
-                        </div>
+                        <FilePreview 
+                          file={upload.file}
+                          size="sm"
+                          variant="slicebox"
+                        />
                         <div className="flex-1 min-w-0">
                           <p className="text-sm font-medium text-[#0B0B0B] truncate">
                             {upload.file.name}
@@ -530,8 +523,7 @@ export default function SliceBox() {
                         </div>
                       )}
                     </motion.div>
-                  );
-                })}
+                  ))}
               </div>
             </motion.div>
           )}
@@ -547,19 +539,20 @@ export default function SliceBox() {
             >
               <h3 className="font-semibold text-[#0B0B0B] mb-3">Your Files</h3>
               <div className="space-y-3">
-                {uploadedFiles.map((file) => {
-                  const FileIcon = getFileIcon(file.mimeType);
-                  return (
+                {uploadedFiles.map((file) => (
                     <motion.div
                       key={file.fileId}
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
-                      className="p-4 bg-white rounded-xl border border-[#E8E8E8] shadow-sm"
+                      className="p-4 bg-white rounded-2xl border border-[#E8E8E8] shadow-md"
                     >
-                      <div className="flex items-start gap-3">
-                        <div className="h-12 w-12 rounded-xl bg-[#FFD64D]/20 flex items-center justify-center shrink-0">
-                          <FileIcon className="h-6 w-6 text-[#0B0B0B]" />
-                        </div>
+                      <div className="flex items-start gap-4">
+                        <FilePreview 
+                          mimeType={file.mimeType}
+                          fileName={file.originalName}
+                          size="md"
+                          variant="slicebox"
+                        />
                         <div className="flex-1 min-w-0">
                           <p className="font-medium text-[#0B0B0B] truncate mb-1">
                             {file.originalName}
@@ -609,8 +602,7 @@ export default function SliceBox() {
                         </IsolatedButton>
                       </div>
                     </motion.div>
-                  );
-                })}
+                ))}
               </div>
             </motion.div>
           )}
