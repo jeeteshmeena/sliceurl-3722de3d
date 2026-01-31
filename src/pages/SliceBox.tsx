@@ -1,10 +1,10 @@
 import { useState, useRef, useCallback, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
   Upload, Link as LinkIcon, Copy, Check, FileText, Image, Video, Music, 
   Archive, File, ChevronDown, ChevronUp,
-  ExternalLink, Share2, HardDrive, Clock, Gauge
+  ExternalLink, Share2, HardDrive, Clock, Gauge, Store
 } from "lucide-react";
 import { IsolatedButton, SLICEBOX_COLORS } from "@/components/slicebox/IsolatedButton";
 import { toast } from "sonner";
@@ -54,6 +54,11 @@ function isExecutableFile(file: File): boolean {
   return EXECUTABLE_EXTENSIONS.includes(ext) || EXECUTABLE_MIME_TYPES.includes(file.type);
 }
 
+function isApkFile(fileName: string, mimeType: string): boolean {
+  return fileName.toLowerCase().endsWith('.apk') || 
+    mimeType === 'application/vnd.android.package-archive';
+}
+
 function getFileIcon(mimeType: string) {
   if (mimeType.startsWith("image/")) return Image;
   if (mimeType.startsWith("video/")) return Video;
@@ -88,6 +93,7 @@ function formatTime(seconds: number): string {
 
 export default function SliceBox() {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const fileInputRef = useRef<HTMLInputElement>(null);
   
   const [isDragging, setIsDragging] = useState(false);
@@ -96,6 +102,16 @@ export default function SliceBox() {
   const [expandedFaq, setExpandedFaq] = useState<number | null>(null);
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [showStatusPanel, setShowStatusPanel] = useState(false);
+
+  const handleCreateAppPage = (file: UploadedFile) => {
+    navigate("/app/create", {
+      state: {
+        fileId: file.fileId,
+        fileName: file.originalName,
+        fileSize: file.fileSize,
+      }
+    });
+  };
 
   const uploadSingleFile = useCallback(async (
     file: File, 
@@ -549,6 +565,7 @@ export default function SliceBox() {
               <div className="space-y-3">
                 {uploadedFiles.map((file) => {
                   const FileIcon = getFileIcon(file.mimeType);
+                  const showCreateAppButton = isApkFile(file.originalName, file.mimeType) && user;
                   return (
                     <motion.div
                       key={file.fileId}
@@ -575,7 +592,28 @@ export default function SliceBox() {
                           </div>
                         </div>
                       </div>
-                      <div className="flex items-center gap-2 mt-3 pt-3 border-t border-[#E8E8E8]">
+                      
+                      {/* Create App Store Page Button - Only for APK files */}
+                      {showCreateAppButton && (
+                        <div className="mt-3 pt-3 border-t border-[#E8E8E8]">
+                          <IsolatedButton
+                            size="sm"
+                            onClick={() => handleCreateAppPage(file)}
+                            colorScheme="slicebox"
+                            className="w-full"
+                            style={{
+                              backgroundColor: "#0B0B0B",
+                              color: "#FFFFFF",
+                              border: "1px solid #333333",
+                            }}
+                          >
+                            <Store className="h-4 w-4 mr-1.5" />
+                            Create App Store Page
+                          </IsolatedButton>
+                        </div>
+                      )}
+                      
+                      <div className={`flex items-center gap-2 mt-3 ${!showCreateAppButton ? 'pt-3 border-t border-[#E8E8E8]' : ''}`}>
                         <IsolatedButton
                           size="sm"
                           onClick={() => handleCopy(file.shareUrl, file.fileId)}

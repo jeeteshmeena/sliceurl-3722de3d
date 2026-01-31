@@ -1,9 +1,9 @@
 import { useState, useRef, useCallback } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
   Upload, Link as LinkIcon, Copy, Check, FileText, Image, Video, Music, 
-  Archive, File, ExternalLink, Share2, Clock, Lock, Eye, EyeOff, Gauge
+  Archive, File, ExternalLink, Share2, Clock, Lock, Eye, EyeOff, Gauge, Store
 } from "lucide-react";
 import { IsolatedButton, LITTLESLICE_COLORS } from "@/components/slicebox/IsolatedButton";
 import { IsolatedInput } from "@/components/slicebox/IsolatedInput";
@@ -74,6 +74,11 @@ const EXECUTABLE_MIME_TYPES = [
 function isExecutableFile(file: File): boolean {
   const ext = file.name.split('.').pop()?.toLowerCase() || '';
   return EXECUTABLE_EXTENSIONS.includes(ext) || EXECUTABLE_MIME_TYPES.includes(file.type);
+}
+
+function isApkFile(fileName: string, mimeType: string): boolean {
+  return fileName.toLowerCase().endsWith('.apk') || 
+    mimeType === 'application/vnd.android.package-archive';
 }
 
 function getFileIcon(mimeType: string) {
@@ -187,6 +192,7 @@ async function hashPassword(password: string): Promise<string> {
 
 export default function LittleSlice() {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const fileInputRef = useRef<HTMLInputElement>(null);
   
   const [isDragging, setIsDragging] = useState(false);
@@ -199,6 +205,16 @@ export default function LittleSlice() {
   const [expiryOption, setExpiryOption] = useState<ExpiryOption>("1day");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+
+  const handleCreateAppPage = (file: UploadedFile) => {
+    navigate("/app/create", {
+      state: {
+        fileId: file.fileId,
+        fileName: file.originalName,
+        fileSize: file.fileSize,
+      }
+    });
+  };
 
   const uploadSingleFile = useCallback(async (
     file: File, 
@@ -727,6 +743,7 @@ export default function LittleSlice() {
               <div className="space-y-3">
                 {uploadedFiles.map((file) => {
                   const FileIcon = getFileIcon(file.mimeType);
+                  const showCreateAppButton = isApkFile(file.originalName, file.mimeType) && user;
                   return (
                     <motion.div
                       key={file.fileId}
@@ -774,8 +791,32 @@ export default function LittleSlice() {
                           </div>
                         </div>
                       </div>
+                      
+                      {/* Create App Store Page Button - Only for APK files */}
+                      {showCreateAppButton && (
+                        <div 
+                          className="mt-3 pt-3 border-t"
+                          style={{ borderColor: COLORS.border }}
+                        >
+                          <IsolatedButton
+                            size="sm"
+                            onClick={() => handleCreateAppPage(file)}
+                            colorScheme="littleslice"
+                            className="w-full"
+                            style={{
+                              backgroundColor: "#0B0B0B",
+                              color: "#FFFFFF",
+                              border: "1px solid #333333",
+                            }}
+                          >
+                            <Store className="h-4 w-4 mr-1.5" />
+                            Create App Store Page
+                          </IsolatedButton>
+                        </div>
+                      )}
+                      
                       <div 
-                        className="flex items-center gap-2 mt-3 pt-3 border-t"
+                        className={`flex items-center gap-2 mt-3 ${!showCreateAppButton ? 'pt-3 border-t' : ''}`}
                         style={{ borderColor: COLORS.border }}
                       >
                         <IsolatedButton
