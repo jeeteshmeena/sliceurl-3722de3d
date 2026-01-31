@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
@@ -203,11 +203,20 @@ export default function LittleSlice() {
   const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([]);
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [showStatusPanel, setShowStatusPanel] = useState(false);
+  const [isDesktop, setIsDesktop] = useState(false);
   
   // LittleSlice specific options
   const [expiryOption, setExpiryOption] = useState<ExpiryOption>("1day");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+
+  // Track if desktop for upload status panel visibility
+  useEffect(() => {
+    const checkDesktop = () => setIsDesktop(window.innerWidth >= 1024);
+    checkDesktop();
+    window.addEventListener('resize', checkDesktop);
+    return () => window.removeEventListener('resize', checkDesktop);
+  }, []);
 
   const handleCreateAppPage = (file: UploadedFile) => {
     if (!user) {
@@ -518,13 +527,15 @@ export default function LittleSlice() {
         </div>
       </header>
 
-      {/* Upload Status Panel */}
-      <UploadStatusPanel
-        uploads={uploadStats}
-        isOpen={showStatusPanel && hasActiveUploads}
-        onClose={() => setShowStatusPanel(false)}
-        variant="littleslice"
-      />
+      {/* Upload Status Panel - Desktop only (>= 1024px) */}
+      {isDesktop && (
+        <UploadStatusPanel
+          uploads={uploadStats}
+          isOpen={showStatusPanel && hasActiveUploads}
+          onClose={() => setShowStatusPanel(false)}
+          variant="littleslice"
+        />
+      )}
 
       {/* Main Content */}
       <main className="flex-1 max-w-2xl mx-auto w-full px-4 sm:px-6 py-8 sm:py-12">
