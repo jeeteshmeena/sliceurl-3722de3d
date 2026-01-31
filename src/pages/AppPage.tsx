@@ -1,12 +1,20 @@
 import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
 import { 
-  Star, Download, ChevronRight, ArrowLeft, 
-  Calendar, Package, User, Tag, MessageSquare
+  Star, Download, ArrowLeft, 
+  Package, User, Lock, AlertTriangle
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Separator } from "@/components/ui/separator";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -43,9 +51,13 @@ interface AppListing {
 }
 
 interface FileInfo {
+  file_id: string;
   file_size: number;
   storage_path: string;
   original_name: string;
+  password_hash: string | null;
+  is_deleted: boolean | null;
+  expires_at: string | null;
 }
 
 interface Review {
@@ -65,6 +77,12 @@ export default function AppPage() {
   const [reviews, setReviews] = useState<Review[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isDownloading, setIsDownloading] = useState(false);
+  const [fileUnavailable, setFileUnavailable] = useState<string | null>(null);
+  
+  // Password dialog
+  const [showPasswordDialog, setShowPasswordDialog] = useState(false);
+  const [password, setPassword] = useState("");
+  const [isVerifyingPassword, setIsVerifyingPassword] = useState(false);
   
   // Review form state
   const [reviewRating, setReviewRating] = useState(5);
@@ -95,11 +113,17 @@ export default function AppPage() {
       // Load file info
       const { data: fileData, error: fileError } = await supabase
         .from("slicebox_files")
-        .select("file_size, storage_path, original_name")
+        .select("file_id, file_size, storage_path, original_name, password_hash, is_deleted, expires_at")
         .eq("id", appData.file_id)
         .single();
 
-      if (!fileError && fileData) {
+      if (fileError) {
+        setFileUnavailable("File not found");
+      } else if (fileData.is_deleted) {
+        setFileUnavailable("This file has been deleted");
+      } else if (fileData.expires_at && new Date(fileData.expires_at) < new Date()) {
+        setFileUnavailable("This file has expired");
+      } else {
         setFileInfo(fileData);
       }
 
@@ -125,35 +149,48 @@ export default function AppPage() {
   const handleDownload = async () => {
     if (!fileInfo || !app) return;
 
+    // Check if password protected
+    if (fileInfo.password_hash) {
+      setShowPasswordDialog(true);
+      return;
+    }
+
+    await initiateDownload();
+  };
+
+  const initiateDownload = async (passwordForDownload?: string) => {
+    if (!fileInfo) return;
+
     setIsDownloading(true);
     try {
-      const { data, error } = await supabase.storage
-        .from("slicebox")
-        .download(fileInfo.storage_path);
+      // Use the edge function to get a signed download URL
+      const { data, error } = await supabase.functions.invoke("slicebox-download", {
+        body: { fileId: fileInfo.file_id },
+      });
 
       if (error) throw error;
+      
+      if (!data.success) {
+        if (data.requiresPassword && !passwordForDownload) {
+          setShowPasswordDialog(true);
+          setIsDownloading(false);
+          return;
+        }
+        throw new Error(data.error || "Download failed");
+      }
 
-      // Create download link
-      const url = URL.createObjectURL(data);
+      // Trigger download with the signed URL
       const a = document.createElement("a");
-      a.href = url;
-      a.download = fileInfo.original_name;
+      a.href = data.downloadUrl;
+      a.download = data.fileName;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
-      URL.revokeObjectURL(url);
 
-      // Increment download count
-      await supabase
-        .from("app_listings")
-        .update({ total_downloads: (app.total_downloads || 0) + 1 })
-        .eq("id", app.id);
-
-      // Also increment slicebox download count
-      await supabase
-        .from("slicebox_files")
-        .update({ download_count: 1 }) // Trigger increment
-        .eq("id", app.file_id);
+      // Update local download count
+      if (app) {
+        setApp(prev => prev ? { ...prev, total_downloads: (prev.total_downloads || 0) + 1 } : null);
+      }
 
       toast.success("Download started!");
     } catch (err) {
@@ -164,8 +201,66 @@ export default function AppPage() {
     }
   };
 
+  const handlePasswordSubmit = async () => {
+    if (!fileInfo || !password) return;
+
+    setIsVerifyingPassword(true);
+    try {
+      // Verify password
+      const { data, error } = await supabase.functions.invoke("slicebox-verify-password", {
+        body: { 
+          fileId: fileInfo.file_id,
+          password,
+        },
+      });
+
+      if (error) throw error;
+      
+      if (!data.success) {
+        toast.error(data.error || "Invalid password");
+        return;
+      }
+
+      // Password correct - get download URL
+      setShowPasswordDialog(false);
+      setPassword("");
+
+      // Now download with password verified
+      const downloadResponse = await fetch(data.downloadUrl);
+      if (!downloadResponse.ok) throw new Error("Download failed");
+      
+      const blob = await downloadResponse.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = fileInfo.original_name;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+
+      // Update local download count
+      if (app) {
+        setApp(prev => prev ? { ...prev, total_downloads: (prev.total_downloads || 0) + 1 } : null);
+      }
+
+      toast.success("Download started!");
+    } catch (err) {
+      console.error("Password verification failed:", err);
+      toast.error("Failed to verify password");
+    } finally {
+      setIsVerifyingPassword(false);
+    }
+  };
+
   const handleSubmitReview = async () => {
     if (!app) return;
+
+    // Only require login for reviews with text
+    if (reviewText.trim() && !user) {
+      toast.error("Please sign in to write a review");
+      return;
+    }
 
     setIsSubmittingReview(true);
     try {
@@ -281,7 +376,7 @@ export default function AppPage() {
         }}
       >
         <div className="max-w-4xl mx-auto h-12 flex items-center gap-3 px-4">
-          <Link to="/slicebox" className="p-2 -ml-2">
+          <Link to="/" className="p-2 -ml-2">
             <ArrowLeft className="h-5 w-5" style={{ color: SLICEAPPS_COLORS.text }} />
           </Link>
           <span 
@@ -302,6 +397,7 @@ export default function AppPage() {
               src={app.promo_banner_url} 
               alt="Promo" 
               className="w-full h-48 object-cover"
+              loading="lazy"
             />
           </div>
         )}
@@ -314,7 +410,7 @@ export default function AppPage() {
             style={{ backgroundColor: SLICEAPPS_COLORS.card }}
           >
             {app.icon_url ? (
-              <img src={app.icon_url} alt={app.app_name} className="w-full h-full object-cover" />
+              <img src={app.icon_url} alt={app.app_name} className="w-full h-full object-cover" loading="lazy" />
             ) : (
               <div className="w-full h-full flex items-center justify-center">
                 <Package className="h-10 w-10" style={{ color: SLICEAPPS_COLORS.textSecondary }} />
@@ -349,18 +445,35 @@ export default function AppPage() {
           </div>
         </div>
 
+        {/* File Unavailable Warning */}
+        {fileUnavailable && (
+          <div 
+            className="flex items-center gap-3 p-4 rounded-xl mb-6"
+            style={{ 
+              backgroundColor: SLICEAPPS_COLORS.card,
+              borderColor: SLICEAPPS_COLORS.border,
+            }}
+          >
+            <AlertTriangle className="h-5 w-5 flex-shrink-0" style={{ color: "#ef4444" }} />
+            <p className="text-sm" style={{ color: SLICEAPPS_COLORS.textSecondary }}>
+              {fileUnavailable}
+            </p>
+          </div>
+        )}
+
         {/* Download Button */}
         <Button
           onClick={handleDownload}
-          disabled={isDownloading || !fileInfo}
+          disabled={isDownloading || !fileInfo || !!fileUnavailable}
           className="w-full h-14 text-base font-medium border mb-6"
           style={{
-            backgroundColor: SLICEAPPS_COLORS.text,
-            color: SLICEAPPS_COLORS.bg,
+            backgroundColor: fileUnavailable ? SLICEAPPS_COLORS.card : SLICEAPPS_COLORS.text,
+            color: fileUnavailable ? SLICEAPPS_COLORS.textSecondary : SLICEAPPS_COLORS.bg,
           }}
         >
+          {fileInfo?.password_hash && <Lock className="h-5 w-5 mr-2" />}
           <Download className="h-5 w-5 mr-2" />
-          {isDownloading ? "Downloading..." : "Download APK"}
+          {isDownloading ? "Downloading..." : "Download"}
         </Button>
 
         {/* Stats Row */}
@@ -420,6 +533,7 @@ export default function AppPage() {
                   alt={`Screenshot ${index + 1}`}
                   className="w-36 h-64 object-cover rounded-xl flex-shrink-0 cursor-pointer"
                   onClick={() => setSelectedScreenshot(index)}
+                  loading="lazy"
                 />
               ))}
             </div>
@@ -611,7 +725,7 @@ export default function AppPage() {
             <Textarea
               value={reviewText}
               onChange={(e) => setReviewText(e.target.value)}
-              placeholder="Share your thoughts about this app..."
+              placeholder={user ? "Share your thoughts about this app..." : "Sign in to write a review, or just rate it!"}
               rows={3}
               className="border resize-none mb-3"
               style={{
@@ -695,6 +809,68 @@ export default function AppPage() {
           />
         </div>
       )}
+
+      {/* Password Dialog */}
+      <Dialog open={showPasswordDialog} onOpenChange={setShowPasswordDialog}>
+        <DialogContent
+          style={{
+            backgroundColor: SLICEAPPS_COLORS.card,
+            borderColor: SLICEAPPS_COLORS.border,
+          }}
+        >
+          <DialogHeader>
+            <DialogTitle style={{ color: SLICEAPPS_COLORS.text }}>
+              Password Required
+            </DialogTitle>
+            <DialogDescription style={{ color: SLICEAPPS_COLORS.textSecondary }}>
+              This file is password protected. Please enter the password to download.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <Input
+              type="password"
+              placeholder="Enter password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && handlePasswordSubmit()}
+              className="border"
+              style={{
+                backgroundColor: SLICEAPPS_COLORS.bg,
+                borderColor: SLICEAPPS_COLORS.border,
+                color: SLICEAPPS_COLORS.text,
+              }}
+            />
+            <div className="flex gap-3">
+              <Button
+                onClick={() => {
+                  setShowPasswordDialog(false);
+                  setPassword("");
+                }}
+                variant="outline"
+                className="flex-1 border"
+                style={{
+                  backgroundColor: "transparent",
+                  borderColor: SLICEAPPS_COLORS.border,
+                  color: SLICEAPPS_COLORS.text,
+                }}
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={handlePasswordSubmit}
+                disabled={isVerifyingPassword || !password}
+                className="flex-1"
+                style={{
+                  backgroundColor: SLICEAPPS_COLORS.text,
+                  color: SLICEAPPS_COLORS.bg,
+                }}
+              >
+                {isVerifyingPassword ? "Verifying..." : "Download"}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
