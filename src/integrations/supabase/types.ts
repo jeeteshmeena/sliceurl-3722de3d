@@ -100,6 +100,7 @@ export type Database = {
           rating_count: number | null
           release_date: string | null
           screenshots: string[] | null
+          short_code: string | null
           short_description: string | null
           total_downloads: number | null
           updated_at: string
@@ -123,6 +124,7 @@ export type Database = {
           rating_count?: number | null
           release_date?: string | null
           screenshots?: string[] | null
+          short_code?: string | null
           short_description?: string | null
           total_downloads?: number | null
           updated_at?: string
@@ -146,6 +148,7 @@ export type Database = {
           rating_count?: number | null
           release_date?: string | null
           screenshots?: string[] | null
+          short_code?: string | null
           short_description?: string | null
           total_downloads?: number | null
           updated_at?: string
@@ -1138,6 +1141,11 @@ export type Database = {
       }
     }
     Functions: {
+      generate_app_shortcode: {
+        Args: { target_length?: number }
+        Returns: string
+      }
+      generate_app_slug: { Args: { app_name: string }; Returns: string }
       generate_slicebox_shortcode: {
         Args: { target_length?: number }
         Returns: string

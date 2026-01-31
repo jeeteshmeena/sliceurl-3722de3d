@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link, useNavigate } from "react-router-dom";
 import { 
-  Star, Download, ArrowLeft, 
+  Star, Download,
   Package, User, Lock, AlertTriangle
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -18,6 +18,7 @@ import {
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import sliceAppsLogo from "@/assets/sliceurl-logo-new.png";
 
 const SLICEAPPS_COLORS = {
   bg: "#000000",
@@ -32,6 +33,7 @@ const SLICEAPPS_COLORS = {
 
 interface AppListing {
   id: string;
+  short_code: string | null;
   app_name: string;
   developer_name: string | null;
   category: string | null;
@@ -58,6 +60,7 @@ interface FileInfo {
   password_hash: string | null;
   is_deleted: boolean | null;
   expires_at: string | null;
+  download_count: number | null;
 }
 
 interface Review {
@@ -71,6 +74,7 @@ interface Review {
 export default function AppPage() {
   const { id } = useParams<{ id: string }>();
   const { user } = useAuth();
+  const navigate = useNavigate();
   
   const [app, setApp] = useState<AppListing | null>(null);
   const [fileInfo, setFileInfo] = useState<FileInfo | null>(null);
@@ -100,12 +104,20 @@ export default function AppPage() {
     if (!id) return;
 
     try {
-      // Load app listing
-      const { data: appData, error: appError } = await supabase
+      // Check if id is a UUID or short_code
+      const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id);
+      
+      let query = supabase
         .from("app_listings")
-        .select("*")
-        .eq("id", id)
-        .single();
+        .select("*");
+      
+      if (isUuid) {
+        query = query.eq("id", id);
+      } else {
+        query = query.eq("short_code", id);
+      }
+      
+      const { data: appData, error: appError } = await query.single();
 
       if (appError) throw appError;
       setApp(appData);
@@ -113,7 +125,7 @@ export default function AppPage() {
       // Load file info
       const { data: fileData, error: fileError } = await supabase
         .from("slicebox_files")
-        .select("file_id, file_size, storage_path, original_name, password_hash, is_deleted, expires_at")
+        .select("file_id, file_size, storage_path, original_name, password_hash, is_deleted, expires_at, download_count")
         .eq("id", appData.file_id)
         .single();
 
@@ -131,7 +143,7 @@ export default function AppPage() {
       const { data: reviewsData } = await supabase
         .from("app_reviews")
         .select("*")
-        .eq("app_id", id)
+        .eq("app_id", appData.id)
         .order("created_at", { ascending: false })
         .limit(10);
 
@@ -179,7 +191,7 @@ export default function AppPage() {
         throw new Error(data.error || "Download failed");
       }
 
-      // Trigger download with the signed URL
+      // Trigger streaming download with the signed URL
       const a = document.createElement("a");
       a.href = data.downloadUrl;
       a.download = data.fileName;
@@ -187,10 +199,8 @@ export default function AppPage() {
       a.click();
       document.body.removeChild(a);
 
-      // Update local download count
-      if (app) {
-        setApp(prev => prev ? { ...prev, total_downloads: (prev.total_downloads || 0) + 1 } : null);
-      }
+      // Update local download count from actual file downloads
+      setFileInfo(prev => prev ? { ...prev, download_count: (prev.download_count || 0) + 1 } : null);
 
       toast.success("Download started!");
     } catch (err) {
@@ -225,24 +235,16 @@ export default function AppPage() {
       setShowPasswordDialog(false);
       setPassword("");
 
-      // Now download with password verified
-      const downloadResponse = await fetch(data.downloadUrl);
-      if (!downloadResponse.ok) throw new Error("Download failed");
-      
-      const blob = await downloadResponse.blob();
-      const url = URL.createObjectURL(blob);
+      // Trigger streaming download with the signed URL
       const a = document.createElement("a");
-      a.href = url;
+      a.href = data.downloadUrl;
       a.download = fileInfo.original_name;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
-      URL.revokeObjectURL(url);
 
       // Update local download count
-      if (app) {
-        setApp(prev => prev ? { ...prev, total_downloads: (prev.total_downloads || 0) + 1 } : null);
-      }
+      setFileInfo(prev => prev ? { ...prev, download_count: (prev.download_count || 0) + 1 } : null);
 
       toast.success("Download started!");
     } catch (err) {
@@ -361,13 +363,15 @@ export default function AppPage() {
 
   const ratingDist = getRatingDistribution();
   const maxRatingCount = Math.max(...ratingDist, 1);
+  // Use actual file download count for consistency
+  const actualDownloads = fileInfo?.download_count || 0;
 
   return (
     <div 
       className="min-h-dvh"
       style={{ backgroundColor: SLICEAPPS_COLORS.bg }}
     >
-      {/* Header */}
+      {/* Header - Sticky with logo lockup */}
       <header 
         className="sticky top-0 z-50 border-b"
         style={{ 
@@ -375,16 +379,25 @@ export default function AppPage() {
           borderColor: SLICEAPPS_COLORS.border,
         }}
       >
-        <div className="max-w-4xl mx-auto h-12 flex items-center gap-3 px-4">
-          <Link to="/" className="p-2 -ml-2">
-            <ArrowLeft className="h-5 w-5" style={{ color: SLICEAPPS_COLORS.text }} />
+        <div className="max-w-4xl mx-auto h-14 flex items-center px-4">
+          <Link to="/" className="flex items-center gap-3">
+            <div 
+              className="w-9 h-9 rounded-full overflow-hidden flex items-center justify-center"
+              style={{ backgroundColor: SLICEAPPS_COLORS.card }}
+            >
+              <img 
+                src={sliceAppsLogo} 
+                alt="SliceAPPs" 
+                className="w-7 h-7 object-contain"
+              />
+            </div>
+            <span 
+              className="font-semibold text-lg tracking-tight"
+              style={{ color: SLICEAPPS_COLORS.text }}
+            >
+              SliceAPPs
+            </span>
           </Link>
-          <span 
-            className="text-sm font-medium"
-            style={{ color: SLICEAPPS_COLORS.textSecondary }}
-          >
-            SliceAPPs
-          </span>
         </div>
       </header>
 
@@ -402,7 +415,7 @@ export default function AppPage() {
           </div>
         )}
 
-        {/* App Header */}
+        {/* App Header - Clean layout */}
         <div className="flex gap-4 mb-6">
           {/* Icon */}
           <div 
@@ -454,18 +467,18 @@ export default function AppPage() {
               borderColor: SLICEAPPS_COLORS.border,
             }}
           >
-            <AlertTriangle className="h-5 w-5 flex-shrink-0" style={{ color: "#ef4444" }} />
+            <AlertTriangle className="h-5 w-5 flex-shrink-0" style={{ color: "#888888" }} />
             <p className="text-sm" style={{ color: SLICEAPPS_COLORS.textSecondary }}>
               {fileUnavailable}
             </p>
           </div>
         )}
 
-        {/* Download Button */}
+        {/* Download Button - Large, rounded, high contrast */}
         <Button
           onClick={handleDownload}
           disabled={isDownloading || !fileInfo || !!fileUnavailable}
-          className="w-full h-14 text-base font-medium border mb-6"
+          className="w-full h-14 text-base font-semibold rounded-xl mb-6"
           style={{
             backgroundColor: fileUnavailable ? SLICEAPPS_COLORS.card : SLICEAPPS_COLORS.text,
             color: fileUnavailable ? SLICEAPPS_COLORS.textSecondary : SLICEAPPS_COLORS.bg,
@@ -476,12 +489,12 @@ export default function AppPage() {
           {isDownloading ? "Downloading..." : "Download"}
         </Button>
 
-        {/* Stats Row */}
+        {/* Stats Row - Clean, no clutter */}
         <div 
-          className="grid grid-cols-5 gap-2 p-4 rounded-xl mb-6"
+          className="flex items-center justify-between p-4 rounded-xl mb-6"
           style={{ backgroundColor: SLICEAPPS_COLORS.card }}
         >
-          <div className="text-center">
+          <div className="text-center flex-1">
             <div className="flex items-center justify-center gap-1 mb-1">
               <Star className="h-4 w-4 fill-current" style={{ color: SLICEAPPS_COLORS.text }} />
               <span className="font-semibold" style={{ color: SLICEAPPS_COLORS.text }}>
@@ -490,25 +503,37 @@ export default function AppPage() {
             </div>
             <p className="text-xs" style={{ color: SLICEAPPS_COLORS.textSecondary }}>Rating</p>
           </div>
-          <div className="text-center">
+          
+          <div className="w-px h-8" style={{ backgroundColor: SLICEAPPS_COLORS.border }} />
+          
+          <div className="text-center flex-1">
             <div className="font-semibold mb-1" style={{ color: SLICEAPPS_COLORS.text }}>
               {app.rating_count || 0}
             </div>
             <p className="text-xs" style={{ color: SLICEAPPS_COLORS.textSecondary }}>Reviews</p>
           </div>
-          <div className="text-center">
+          
+          <div className="w-px h-8" style={{ backgroundColor: SLICEAPPS_COLORS.border }} />
+          
+          <div className="text-center flex-1">
             <div className="font-semibold mb-1" style={{ color: SLICEAPPS_COLORS.text }}>
-              {formatDownloads(app.total_downloads)}
+              {formatDownloads(actualDownloads)}
             </div>
             <p className="text-xs" style={{ color: SLICEAPPS_COLORS.textSecondary }}>Downloads</p>
           </div>
-          <div className="text-center">
+          
+          <div className="w-px h-8" style={{ backgroundColor: SLICEAPPS_COLORS.border }} />
+          
+          <div className="text-center flex-1">
             <div className="font-semibold mb-1" style={{ color: SLICEAPPS_COLORS.text }}>
               {fileInfo ? formatFileSize(fileInfo.file_size) : "—"}
             </div>
             <p className="text-xs" style={{ color: SLICEAPPS_COLORS.textSecondary }}>Size</p>
           </div>
-          <div className="text-center">
+          
+          <div className="w-px h-8" style={{ backgroundColor: SLICEAPPS_COLORS.border }} />
+          
+          <div className="text-center flex-1">
             <div className="font-semibold mb-1" style={{ color: SLICEAPPS_COLORS.text }}>
               {app.version_name || "1.0"}
             </div>
@@ -516,11 +541,11 @@ export default function AppPage() {
           </div>
         </div>
 
-        {/* Screenshots */}
+        {/* Screenshots - Horizontal scroll gallery */}
         {app.screenshots && app.screenshots.length > 0 && (
           <div className="mb-6">
             <h2 
-              className="font-semibold mb-3"
+              className="font-semibold mb-3 text-lg"
               style={{ color: SLICEAPPS_COLORS.text }}
             >
               Screenshots
@@ -531,7 +556,8 @@ export default function AppPage() {
                   key={index}
                   src={url}
                   alt={`Screenshot ${index + 1}`}
-                  className="w-36 h-64 object-cover rounded-xl flex-shrink-0 cursor-pointer"
+                  className="w-36 h-64 object-cover rounded-xl flex-shrink-0 cursor-pointer border"
+                  style={{ borderColor: SLICEAPPS_COLORS.border }}
                   onClick={() => setSelectedScreenshot(index)}
                   loading="lazy"
                 />
@@ -540,65 +566,34 @@ export default function AppPage() {
           </div>
         )}
 
-        {/* About */}
-        {(app.short_description || app.full_description) && (
+        {/* About - Expandable section */}
+        {app.full_description && (
           <div 
-            className="p-4 rounded-xl mb-6"
+            className="p-5 rounded-xl mb-6"
             style={{ backgroundColor: SLICEAPPS_COLORS.card }}
           >
             <h2 
-              className="font-semibold mb-3"
+              className="font-semibold mb-3 text-lg"
               style={{ color: SLICEAPPS_COLORS.text }}
             >
               About this app
             </h2>
-            {app.short_description && (
-              <p 
-                className="text-sm mb-3"
-                style={{ color: SLICEAPPS_COLORS.text }}
-              >
-                {app.short_description}
-              </p>
-            )}
-            {app.full_description && (
-              <p 
-                className="text-sm whitespace-pre-wrap"
-                style={{ color: SLICEAPPS_COLORS.textSecondary }}
-              >
-                {app.full_description}
-              </p>
-            )}
-          </div>
-        )}
-
-        {/* What's New */}
-        {app.whats_new && (
-          <div 
-            className="p-4 rounded-xl mb-6"
-            style={{ backgroundColor: SLICEAPPS_COLORS.card }}
-          >
-            <h2 
-              className="font-semibold mb-3"
-              style={{ color: SLICEAPPS_COLORS.text }}
-            >
-              What's New
-            </h2>
             <p 
-              className="text-sm whitespace-pre-wrap"
+              className="text-sm whitespace-pre-wrap leading-relaxed"
               style={{ color: SLICEAPPS_COLORS.textSecondary }}
             >
-              {app.whats_new}
+              {app.full_description}
             </p>
           </div>
         )}
 
         {/* Additional Info */}
         <div 
-          className="p-4 rounded-xl mb-6"
+          className="p-5 rounded-xl mb-6"
           style={{ backgroundColor: SLICEAPPS_COLORS.card }}
         >
           <h2 
-            className="font-semibold mb-4"
+            className="font-semibold mb-4 text-lg"
             style={{ color: SLICEAPPS_COLORS.text }}
           >
             Additional Information
@@ -641,11 +636,11 @@ export default function AppPage() {
 
         {/* Ratings & Reviews */}
         <div 
-          className="p-4 rounded-xl mb-6"
+          className="p-5 rounded-xl mb-6"
           style={{ backgroundColor: SLICEAPPS_COLORS.card }}
         >
           <h2 
-            className="font-semibold mb-4"
+            className="font-semibold mb-4 text-lg"
             style={{ color: SLICEAPPS_COLORS.text }}
           >
             Ratings & Reviews
@@ -737,7 +732,7 @@ export default function AppPage() {
             <Button
               onClick={handleSubmitReview}
               disabled={isSubmittingReview}
-              className="border"
+              className="rounded-lg"
               style={{
                 backgroundColor: SLICEAPPS_COLORS.text,
                 color: SLICEAPPS_COLORS.bg,
