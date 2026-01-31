@@ -1,17 +1,20 @@
 import { useState, useEffect } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { 
   Download, Star, ChevronDown, ChevronUp, ExternalLink, 
-  Package, Info, Clock, Shield, ArrowLeft, Loader2, Lock
+  Package, Info, Clock, Shield, ArrowLeft, Loader2, Lock, Edit
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import { StarRating } from "@/components/sliceapps/StarRating";
 import { ReviewSection } from "@/components/sliceapps/ReviewSection";
 import { ScreenshotCarousel } from "@/components/sliceapps/ScreenshotCarousel";
+import { EditAppListingForm } from "@/components/sliceapps/EditAppListingForm";
 import { AppListing, AppReview } from "@/components/sliceapps/types";
 import { formatDistanceToNow } from "date-fns";
 
@@ -32,6 +35,7 @@ function formatDownloads(count: number): string {
 export default function AppPreview() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { user } = useAuth();
   
   const [loading, setLoading] = useState(true);
   const [app, setApp] = useState<AppListing | null>(null);
@@ -43,6 +47,9 @@ export default function AppPreview() {
   const [requiresPassword, setRequiresPassword] = useState(false);
   const [password, setPassword] = useState("");
   const [passwordError, setPasswordError] = useState(false);
+  const [showEditForm, setShowEditForm] = useState(false);
+  
+  const isOwner = user && app && user.id === app.owner_id;
 
   const fetchData = async () => {
     if (!id) return;
@@ -193,8 +200,39 @@ export default function AppPreview() {
               <p className="text-xs text-[#6B6B6B]">by SliceURL</p>
             </div>
           </div>
+          
+          {/* Edit Button for Owner */}
+          {isOwner && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowEditForm(true)}
+              className="border-[#3A3A3A] text-[#A0A0A0] hover:text-[#F5F5F0] hover:bg-[#2A2A2A]"
+            >
+              <Edit className="h-4 w-4 mr-2" />
+              Edit
+            </Button>
+          )}
         </div>
       </header>
+
+      {/* Edit Form Modal */}
+      <AnimatePresence>
+        {showEditForm && app && (
+          <Dialog open={showEditForm} onOpenChange={setShowEditForm}>
+            <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto bg-[#0F0F0F] border-[#2A2A2A] p-0">
+              <EditAppListingForm
+                listing={app}
+                onSuccess={() => {
+                  setShowEditForm(false);
+                  fetchData();
+                }}
+                onCancel={() => setShowEditForm(false)}
+              />
+            </DialogContent>
+          </Dialog>
+        )}
+      </AnimatePresence>
 
       <main className="max-w-4xl mx-auto px-4 py-6 space-y-8">
         {/* App Header */}
