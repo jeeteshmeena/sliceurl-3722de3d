@@ -32,6 +32,8 @@ const SliceBox = lazy(() => import("@/pages/SliceBox"));
 const LittleSlice = lazy(() => import("@/pages/LittleSlice"));
 const ShortFileView = lazy(() => import("@/pages/ShortFileView"));
 const LegacySliceBoxRedirect = lazy(() => import("@/pages/LegacySliceBoxRedirect"));
+const CreateAppListing = lazy(() => import("@/pages/CreateAppListing"));
+const AppPage = lazy(() => import("@/pages/AppPage"));
 
 const Feedback = lazy(() => import("@/pages/Feedback"));
 const FeedbackAdmin = lazy(() => import("@/pages/FeedbackAdmin"));
@@ -172,7 +174,19 @@ const App = () => (
                     </Suspense>
                   } />
                   
-                  
+                  {/* SliceAPPs Routes */}
+                  <Route path="/app/create" element={
+                    <AuthGuard>
+                      <Suspense fallback={<PageLoader />}>
+                        <CreateAppListing />
+                      </Suspense>
+                    </AuthGuard>
+                  } />
+                  <Route path="/app/:id" element={
+                    <Suspense fallback={<PageLoader />}>
+                      <AppPage />
+                    </Suspense>
+                  } />
                   {/* Feedback Routes */}
                   <Route path="/feedback" element={
                     <AuthGuard>
