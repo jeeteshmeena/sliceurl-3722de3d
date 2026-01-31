@@ -1,7 +1,7 @@
 import { useState, useMemo } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Link2, Plus, Search, Copy, ExternalLink, Pin, Trash2, QrCode, Lock, Edit, CheckSquare, BarChart3, Palette, Scissors, Sparkles } from "lucide-react";
+import { Plus, Search, Copy, ExternalLink, Pin, Trash2, QrCode, Lock, Edit, CheckSquare, BarChart3, Palette, Scissors } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -13,6 +13,8 @@ import { useLanguage } from "@/lib/i18n";
 import { triggerHaptic } from "@/lib/haptics";
 import { getShortUrl } from "@/lib/domain";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { CreateLinkDialog } from "@/components/CreateLinkDialog";
 import { EditLinkDialog } from "@/components/EditLinkDialog";
 import { ShareMenu } from "@/components/ShareMenu";
@@ -452,16 +454,44 @@ const Dashboard = () => {
                           <Edit className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                         </Button>
                         
-                        {/* Delete Button - hidden on mobile, accessible via edit */}
-                        <Button 
-                          variant="ghost" 
-                          size="icon-sm" 
-                          onClick={() => handleDeleteLink(link.id)}
-                          className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10 hidden sm:flex"
-                          title="Delete"
-                        >
-                          <Trash2 className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-                        </Button>
+                        {/* Delete Button with Confirmation */}
+                        <AlertDialog>
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <AlertDialogTrigger asChild>
+                                  <Button 
+                                    variant="ghost" 
+                                    size="icon-sm" 
+                                    className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10"
+                                  >
+                                    <Trash2 className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                                  </Button>
+                                </AlertDialogTrigger>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p>Delete link</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>Delete this link?</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                This action cannot be undone.
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Cancel</AlertDialogCancel>
+                              <AlertDialogAction 
+                                onClick={() => handleDeleteLink(link.id)}
+                                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                              >
+                                Delete
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
                         
                         {/* Analytics Button */}
                         <Button 
