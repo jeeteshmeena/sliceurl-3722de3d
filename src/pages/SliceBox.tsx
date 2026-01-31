@@ -13,6 +13,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { triggerHaptic } from "@/lib/haptics";
 import { cn } from "@/lib/utils";
 import { UploadStatusPanel } from "@/components/slicebox/UploadStatusPanel";
+import { CreateAppListingButton } from "@/components/sliceapps/CreateAppListingButton";
 import { SliceNavToggle } from "@/components/SliceNavToggle";
 
 // SliceBox: Permanent file hosting - 200MB limit, no expiry
@@ -575,6 +576,19 @@ export default function SliceBox() {
                           </div>
                         </div>
                       </div>
+                      
+                      {/* Create App Listing button for APK files */}
+                      {file.mimeType === "application/vnd.android.package-archive" || file.originalName.toLowerCase().endsWith(".apk") ? (
+                        <div className="mt-3 pt-3 border-t border-[#E8E8E8]">
+                          <CreateAppListingButton
+                            fileId={file.fileId}
+                            fileName={file.originalName}
+                            fileSize={file.fileSize}
+                            colorScheme="slicebox"
+                          />
+                        </div>
+                      ) : null}
+                      
                       <div className="flex items-center gap-2 mt-3 pt-3 border-t border-[#E8E8E8]">
                         <IsolatedButton
                           size="sm"

@@ -22,6 +22,7 @@ import { triggerHaptic } from "@/lib/haptics";
 import { cn } from "@/lib/utils";
 import { UploadStatusPanel } from "@/components/slicebox/UploadStatusPanel";
 import { SliceNavToggle } from "@/components/SliceNavToggle";
+import { CreateAppListingButton } from "@/components/sliceapps/CreateAppListingButton";
 
 // LittleSlice: Temporary file sharing - 2GB limit, optional expiry (default 1 day)
 const MAX_FILE_SIZE = 2 * 1024 * 1024 * 1024; // 2GB
@@ -774,6 +775,19 @@ export default function LittleSlice() {
                           </div>
                         </div>
                       </div>
+                      
+                      {/* Create App Listing button for APK files */}
+                      {file.mimeType === "application/vnd.android.package-archive" || file.originalName.toLowerCase().endsWith(".apk") ? (
+                        <div className="mt-3 pt-3 border-t" style={{ borderColor: COLORS.border }}>
+                          <CreateAppListingButton
+                            fileId={file.fileId}
+                            fileName={file.originalName}
+                            fileSize={file.fileSize}
+                            colorScheme="littleslice"
+                          />
+                        </div>
+                      ) : null}
+                      
                       <div 
                         className="flex items-center gap-2 mt-3 pt-3 border-t"
                         style={{ borderColor: COLORS.border }}
