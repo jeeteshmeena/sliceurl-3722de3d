@@ -1,6 +1,6 @@
 import { useState, useRef } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { ArrowLeft, Upload, Plus, X, Image as ImageIcon } from "lucide-react";
+import { ArrowLeft, Upload, Plus, X, Image as ImageIcon, Copy, Check, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -15,6 +15,7 @@ import {
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { getBaseUrl } from "@/lib/domain";
 
 const SLICEAPPS_COLORS = {
   bg: "#000000",
@@ -45,6 +46,12 @@ const CATEGORIES = [
   "Other",
 ];
 
+interface PublishedAppData {
+  id: string;
+  appName: string;
+  appUrl: string;
+}
+
 export default function CreateAppListing() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -55,12 +62,15 @@ export default function CreateAppListing() {
     fileId: string;
     fileName: string;
     fileSize: number;
+    serviceType?: string;
   } | null;
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [iconPreview, setIconPreview] = useState<string | null>(null);
   const [screenshots, setScreenshots] = useState<string[]>([]);
   const [bannerPreview, setBannerPreview] = useState<string | null>(null);
+  const [publishedApp, setPublishedApp] = useState<PublishedAppData | null>(null);
+  const [copiedLink, setCopiedLink] = useState(false);
   
   const iconInputRef = useRef<HTMLInputElement>(null);
   const screenshotInputRef = useRef<HTMLInputElement>(null);
@@ -162,6 +172,25 @@ export default function CreateAppListing() {
     setScreenshots(prev => prev.filter((_, i) => i !== index));
   };
 
+  const handleCopyLink = async () => {
+    if (!publishedApp) return;
+    
+    try {
+      await navigator.clipboard.writeText(publishedApp.appUrl);
+      setCopiedLink(true);
+      toast.success("Link copied!");
+      setTimeout(() => setCopiedLink(false), 2000);
+    } catch {
+      toast.error("Failed to copy link");
+    }
+  };
+
+  const handleOpenPage = () => {
+    if (publishedApp) {
+      window.open(publishedApp.appUrl, "_blank");
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -181,7 +210,7 @@ export default function CreateAppListing() {
       // First, get the slicebox_files record to get the UUID
       const { data: fileRecord, error: fileError } = await supabase
         .from("slicebox_files")
-        .select("id")
+        .select("id, service_type")
         .eq("file_id", fileData.fileId)
         .single();
 
@@ -212,8 +241,24 @@ export default function CreateAppListing() {
 
       if (listingError) throw listingError;
 
-      toast.success("App page created!");
-      navigate(`/app/${listing.id}`);
+      // If this is a LittleSlice file, remove expiry (make it permanent)
+      if (fileRecord.service_type === "ls") {
+        await supabase
+          .from("slicebox_files")
+          .update({ expires_at: null })
+          .eq("id", fileRecord.id);
+      }
+
+      const appUrl = `${getBaseUrl()}/app/${listing.id}`;
+      
+      // Set published state instead of navigating
+      setPublishedApp({
+        id: listing.id,
+        appName: formData.appName.trim(),
+        appUrl,
+      });
+
+      toast.success("App page published successfully!");
     } catch (err) {
       console.error("Failed to create app listing:", err);
       toast.error("Failed to create app page");
@@ -229,6 +274,109 @@ export default function CreateAppListing() {
     const i = Math.floor(Math.log(bytes) / Math.log(k));
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
   };
+
+  // Show success state after publish
+  if (publishedApp) {
+    return (
+      <div 
+        className="min-h-dvh flex items-center justify-center p-4"
+        style={{ backgroundColor: SLICEAPPS_COLORS.bg }}
+      >
+        <div 
+          className="w-full max-w-md p-6 rounded-2xl border text-center"
+          style={{ 
+            backgroundColor: SLICEAPPS_COLORS.card,
+            borderColor: SLICEAPPS_COLORS.border,
+          }}
+        >
+          <div 
+            className="w-16 h-16 rounded-full mx-auto mb-4 flex items-center justify-center"
+            style={{ backgroundColor: SLICEAPPS_COLORS.border }}
+          >
+            <Check className="h-8 w-8" style={{ color: SLICEAPPS_COLORS.text }} />
+          </div>
+          
+          <h2 
+            className="text-xl font-bold mb-2"
+            style={{ color: SLICEAPPS_COLORS.text }}
+          >
+            App Page Published!
+          </h2>
+          
+          <p 
+            className="text-sm mb-6"
+            style={{ color: SLICEAPPS_COLORS.textSecondary }}
+          >
+            Your app page for "{publishedApp.appName}" is now live.
+          </p>
+
+          <div className="mb-6">
+            <p 
+              className="text-xs mb-2"
+              style={{ color: SLICEAPPS_COLORS.textSecondary }}
+            >
+              App Page Link:
+            </p>
+            <div 
+              className="p-3 rounded-lg font-mono text-sm break-all"
+              style={{ 
+                backgroundColor: SLICEAPPS_COLORS.bg,
+                color: SLICEAPPS_COLORS.text,
+              }}
+            >
+              {publishedApp.appUrl}
+            </div>
+          </div>
+
+          <div className="flex gap-3">
+            <Button
+              onClick={handleCopyLink}
+              className="flex-1 border"
+              style={{
+                backgroundColor: SLICEAPPS_COLORS.text,
+                color: SLICEAPPS_COLORS.bg,
+              }}
+            >
+              {copiedLink ? (
+                <>
+                  <Check className="h-4 w-4 mr-2" />
+                  Copied!
+                </>
+              ) : (
+                <>
+                  <Copy className="h-4 w-4 mr-2" />
+                  Copy Link
+                </>
+              )}
+            </Button>
+            
+            <Button
+              onClick={handleOpenPage}
+              variant="outline"
+              className="flex-1 border"
+              style={{
+                backgroundColor: "transparent",
+                borderColor: SLICEAPPS_COLORS.border,
+                color: SLICEAPPS_COLORS.text,
+              }}
+            >
+              <ExternalLink className="h-4 w-4 mr-2" />
+              Open Page
+            </Button>
+          </div>
+
+          <Button
+            onClick={() => navigate(-1)}
+            variant="ghost"
+            className="w-full mt-4"
+            style={{ color: SLICEAPPS_COLORS.textSecondary }}
+          >
+            Done
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div 
@@ -472,6 +620,7 @@ export default function CreateAppListing() {
                     src={url}
                     alt={`Screenshot ${index + 1}`}
                     className="w-32 h-56 object-cover rounded-lg"
+                    loading="lazy"
                   />
                   <button
                     type="button"
@@ -527,7 +676,7 @@ export default function CreateAppListing() {
               }}
             >
               {bannerPreview ? (
-                <img src={bannerPreview} alt="Banner" className="w-full h-full object-cover" />
+                <img src={bannerPreview} alt="Banner" className="w-full h-full object-cover" loading="lazy" />
               ) : (
                 <div className="text-center">
                   <Upload className="h-8 w-8 mx-auto mb-2" style={{ color: SLICEAPPS_COLORS.textSecondary }} />
@@ -552,9 +701,8 @@ export default function CreateAppListing() {
             disabled={isSubmitting}
             className="w-full h-12 text-base font-medium border"
             style={{
-              backgroundColor: SLICEAPPS_COLORS.buttonBg,
-              borderColor: SLICEAPPS_COLORS.buttonBorder,
-              color: SLICEAPPS_COLORS.text,
+              backgroundColor: SLICEAPPS_COLORS.text,
+              color: SLICEAPPS_COLORS.bg,
             }}
           >
             {isSubmitting ? "Publishing..." : "Publish App Page"}

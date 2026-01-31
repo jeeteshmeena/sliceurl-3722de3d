@@ -220,6 +220,7 @@ export default function LittleSlice() {
         fileId: file.fileId,
         fileName: file.originalName,
         fileSize: file.fileSize,
+        serviceType: "ls",
       }
     });
   };

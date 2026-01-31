@@ -117,6 +117,7 @@ export default function SliceBox() {
         fileId: file.fileId,
         fileName: file.originalName,
         fileSize: file.fileSize,
+        serviceType: "sb",
       }
     });
   };
