@@ -76,9 +76,12 @@ function isExecutableFile(file: File): boolean {
   return EXECUTABLE_EXTENSIONS.includes(ext) || EXECUTABLE_MIME_TYPES.includes(file.type);
 }
 
-function isApkFile(fileName: string, mimeType: string): boolean {
-  return fileName.toLowerCase().endsWith('.apk') || 
-    mimeType === 'application/vnd.android.package-archive';
+function isApkFile(fileName: string, mimeType?: string): boolean {
+  // Check file extension first (most reliable)
+  if (fileName.toLowerCase().endsWith('.apk')) return true;
+  // Also check MIME type
+  if (mimeType === 'application/vnd.android.package-archive') return true;
+  return false;
 }
 
 function getFileIcon(mimeType: string) {
@@ -207,6 +210,11 @@ export default function LittleSlice() {
   const [showPassword, setShowPassword] = useState(false);
 
   const handleCreateAppPage = (file: UploadedFile) => {
+    if (!user) {
+      toast.error("Please sign in to create an app page");
+      navigate("/auth");
+      return;
+    }
     navigate("/app/create", {
       state: {
         fileId: file.fileId,
@@ -743,7 +751,7 @@ export default function LittleSlice() {
               <div className="space-y-3">
                 {uploadedFiles.map((file) => {
                   const FileIcon = getFileIcon(file.mimeType);
-                  const showCreateAppButton = isApkFile(file.originalName, file.mimeType) && user;
+                  const showCreateAppButton = isApkFile(file.originalName, file.mimeType);
                   return (
                     <motion.div
                       key={file.fileId}
