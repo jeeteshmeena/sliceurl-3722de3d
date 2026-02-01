@@ -113,7 +113,7 @@ export function Header() {
   const isOnDashboard = location.pathname === "/dashboard";
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-[1000] bg-background border-b border-border/40 safe-top max-w-[100vw] overflow-x-hidden" style={{ height: '64px' }}>
+    <header className="fixed top-0 left-0 right-0 z-[100] bg-background border-b border-border/40 safe-top max-w-[100vw] overflow-x-hidden" style={{ height: '64px' }}>
       <SliceLine />
       <div className="max-w-[1280px] mx-auto h-full flex items-center justify-between flex-nowrap">
         {/* Left Section - Brand */}
@@ -255,43 +255,43 @@ export function Header() {
                     </Avatar>
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" sideOffset={8} className="w-44 bg-popover border border-border shadow-lg rounded-xl p-1.5 z-[900]">
+                <DropdownMenuContent align="end" sideOffset={8} className="w-[200px] bg-popover border border-border shadow-md rounded-[14px] p-2 z-[300]">
                   <DropdownMenuItem
                     onClick={() => setProfileOpen(true)}
-                    className="cursor-pointer"
+                    className="cursor-pointer h-11 rounded-lg"
                   >
-                    <User className="h-4 w-4 mr-2" />
+                    <User className="h-4 w-4 mr-2.5" />
                     {t("profile")}
                   </DropdownMenuItem>
                   {!isOnDashboard && (
                     <DropdownMenuItem
                       onClick={() => navigate("/dashboard")}
-                      className="cursor-pointer"
+                      className="cursor-pointer h-11 rounded-lg"
                     >
-                      <Link2 className="h-4 w-4 mr-2" />
+                      <Link2 className="h-4 w-4 mr-2.5" />
                       {t("dashboard")}
                     </DropdownMenuItem>
                   )}
                   <DropdownMenuItem
                     onClick={() => navigate("/settings")}
-                    className="cursor-pointer"
+                    className="cursor-pointer h-11 rounded-lg"
                   >
-                    <Settings className="h-4 w-4 mr-2" />
+                    <Settings className="h-4 w-4 mr-2.5" />
                     {t("settings")}
                   </DropdownMenuItem>
                   <DropdownMenuItem
                     onClick={() => navigate("/feedback")}
-                    className="cursor-pointer"
+                    className="cursor-pointer h-11 rounded-lg"
                   >
-                    <MessageSquareHeart className="h-4 w-4 mr-2" />
+                    <MessageSquareHeart className="h-4 w-4 mr-2.5" />
                     {t("feedback") || "Feedback"}
                   </DropdownMenuItem>
-                  <DropdownMenuSeparator />
+                  <DropdownMenuSeparator className="my-1" />
                   <DropdownMenuItem
                     onClick={handleLogout}
-                    className="cursor-pointer text-destructive focus:text-destructive"
+                    className="cursor-pointer h-11 rounded-lg text-destructive focus:text-destructive"
                   >
-                    <LogOut className="h-4 w-4 mr-2" />
+                    <LogOut className="h-4 w-4 mr-2.5" />
                     {t("sign_out")}
                   </DropdownMenuItem>
                 </DropdownMenuContent>

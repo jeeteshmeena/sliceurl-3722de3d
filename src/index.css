@@ -197,6 +197,21 @@
     overflow-x: hidden;
   }
   
+  /* ============================================
+     GLOBAL Z-INDEX HIERARCHY
+     ============================================
+     Header:        z-100
+     Dropdown:      z-300
+     Modal Backdrop: z-400
+     Modal:         z-500
+     ============================================ */
+  
+  /* Header safe zone - 64px fixed height */
+  :root {
+    --header-height: 64px;
+    --header-safe-offset: 76px; /* header + 12px gap */
+  }
+  
   /* Selection styling */
   ::selection {
     @apply bg-accent/20 text-foreground;
@@ -693,19 +708,27 @@ textarea:focus-visible,
   padding-top: 5rem;
 }
 
-/* Global overflow protection */
+/* ============================================
+   GLOBAL OVERFLOW & VIEWPORT PROTECTION
+   ============================================ */
 html, body {
   overflow-x: hidden;
   max-width: 100vw;
 }
 
-/* Ensure all dialogs and dropdowns stay inside viewport */
-[data-radix-popper-content-wrapper] {
-  max-width: calc(100vw - 1rem) !important;
-  max-height: calc(100vh - 2rem) !important;
+/* Modals use internal scroll, not page scroll */
+[data-radix-dialog-content] {
+  overflow-y: auto;
+  overscroll-behavior: contain;
 }
 
-/* Dropdown menu solid background - prevent transparency */
+/* Dropdowns/popovers stay inside viewport */
+[data-radix-popper-content-wrapper] {
+  max-width: calc(100vw - 1rem) !important;
+  max-height: calc(100dvh - 80px) !important;
+}
+
+/* Dropdown solid background - prevent transparency */
 [data-radix-menu-content] {
   background-color: hsl(var(--popover)) !important;
 }
@@ -713,4 +736,37 @@ html, body {
 /* Modal safe-area top spacing */
 [role="dialog"] {
   margin-top: env(safe-area-inset-top, 0);
+}
+
+/* ============================================
+   TYPOGRAPHY SYSTEM
+   ============================================
+   Title:        16px semi-bold
+   Section label: 13px medium
+   Input text:   14px regular
+   Helper text:  12px regular
+   ============================================ */
+
+/* Icon sizing standard: 24x24 container */
+.icon-box {
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+/* Mobile-first: comfortable thumb spacing on 360px */
+@media (max-width: 400px) {
+  [data-radix-dialog-content] {
+    padding-left: 16px !important;
+    padding-right: 16px !important;
+  }
+  
+  .container,
+  .container-fluid {
+    padding-left: 12px;
+    padding-right: 12px;
+  }
 }
