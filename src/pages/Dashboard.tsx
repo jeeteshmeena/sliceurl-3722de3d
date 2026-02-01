@@ -1,7 +1,7 @@
 import { useState, useMemo } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Plus, Search, Copy, ExternalLink, Pin, Trash2, QrCode, Lock, Edit, CheckSquare, BarChart3, Palette, Scissors } from "lucide-react";
+import { Plus, Search, Copy, Pin, Trash2, QrCode, Lock, Edit, CheckSquare, BarChart3, Palette, Scissors } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -33,7 +33,7 @@ import type { Link as LinkType } from "@/hooks/useLinks";
 
 const Dashboard = () => {
   const { t } = useLanguage();
-  const { links, folders, loading, createLink, updateLink, deleteLink, togglePin, bulkDeleteLinks, bulkMoveToFolder } = useLinks();
+  const { links, folders, loading, createLink, updateLink, deleteLink, togglePin, bulkDeleteLinks, bulkMoveToFolder, bulkTogglePin } = useLinks();
   const { user } = useAuth();
   const { profile } = useProfile();
   const navigate = useNavigate();
@@ -151,6 +151,11 @@ const Dashboard = () => {
 
   const handleBulkMoveToFolder = async (folderId: string | null) => {
     await bulkMoveToFolder(Array.from(selectedIds), folderId);
+    clearSelection();
+  };
+
+  const handleBulkTogglePin = async (pin: boolean) => {
+    await bulkTogglePin(Array.from(selectedIds), pin);
     clearSelection();
   };
 
@@ -404,11 +409,6 @@ const Dashboard = () => {
                           title={link.title || undefined} 
                         />
                         
-                        <Button variant="ghost" size="icon-sm" asChild className="h-8 w-8">
-                          <a href={link.original_url} target="_blank" rel="noopener">
-                            <ExternalLink className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-                          </a>
-                        </Button>
                         
                         {/* QR Code */}
                         <Dialog>
@@ -521,11 +521,10 @@ const Dashboard = () => {
       <BulkActionsToolbar
         selectedCount={selectedIds.size}
         selectedLinks={selectedLinks}
-        folders={folders}
         onClearSelection={clearSelection}
         onSelectAll={selectAll}
         onBulkDelete={handleBulkDelete}
-        onBulkMoveToFolder={handleBulkMoveToFolder}
+        onBulkTogglePin={handleBulkTogglePin}
         totalLinks={filteredLinks.length}
       />
 

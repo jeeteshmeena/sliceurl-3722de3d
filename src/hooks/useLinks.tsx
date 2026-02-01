@@ -361,6 +361,29 @@ export function useLinks() {
     }
   };
 
+  const bulkTogglePin = async (ids: string[], pin: boolean) => {
+    try {
+      const { error } = await supabase
+        .from("links")
+        .update({ is_pinned: pin })
+        .in("id", ids);
+
+      if (error) throw error;
+
+      setLinks((prev) =>
+        prev.map((link) =>
+          ids.includes(link.id) ? { ...link, is_pinned: pin } as Link : link
+        )
+      );
+
+      toast.success(pin ? "Links pinned" : "Links unpinned", { 
+        description: `${ids.length} link${ids.length > 1 ? "s" : ""} ${pin ? "pinned" : "unpinned"}.` 
+      });
+    } catch (error: any) {
+      toast.error("Error updating links", { description: error.message });
+    }
+  };
+
   return {
     links,
     folders,
@@ -374,6 +397,7 @@ export function useLinks() {
     deleteFolder,
     bulkDeleteLinks,
     bulkMoveToFolder,
+    bulkTogglePin,
     refetch: fetchLinks,
   };
 }
