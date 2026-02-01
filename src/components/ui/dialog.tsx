@@ -40,9 +40,12 @@ const DialogContent = React.forwardRef<
     <DialogPrimitive.Content
       ref={ref}
       className={cn(
-        // Base styles - always centered
-        "fixed left-[50%] top-[50%] z-50 grid w-full max-w-lg translate-x-[-50%] translate-y-[-50%] gap-4 border bg-background p-6 shadow-lg duration-200",
-        "max-h-[90vh] overflow-y-auto rounded-xl",
+        // Base styles - always centered with safe-area spacing
+        "fixed left-[50%] top-[50%] z-50 grid w-[calc(100%-2rem)] max-w-[420px] translate-x-[-50%] translate-y-[-50%] gap-4 border bg-background pt-6 pb-6 px-6",
+        // Shadow for floating effect
+        "shadow-[0_10px_30px_rgba(0,0,0,0.12)]",
+        // Max height and scroll with safe-area
+        "max-h-[calc(90vh-48px)] overflow-y-auto rounded-2xl",
         // Animations
         "data-[state=open]:animate-in data-[state=closed]:animate-out",
         "data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
@@ -66,7 +69,7 @@ const DialogContent = React.forwardRef<
 DialogContent.displayName = DialogPrimitive.Content.displayName;
 
 const DialogHeader = ({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) => (
-  <div className={cn("flex flex-col space-y-1.5 text-center sm:text-left", className)} {...props} />
+  <div className={cn("flex flex-col space-y-1.5 text-center sm:text-left relative", className)} {...props} />
 );
 DialogHeader.displayName = "DialogHeader";
 

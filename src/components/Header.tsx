@@ -255,7 +255,7 @@ export function Header() {
                     </Avatar>
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-44">
+                <DropdownMenuContent align="end" sideOffset={8} className="w-44 bg-popover border border-border shadow-lg rounded-xl p-1.5 z-[900]">
                   <DropdownMenuItem
                     onClick={() => setProfileOpen(true)}
                     className="cursor-pointer"

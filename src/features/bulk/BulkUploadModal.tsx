@@ -350,9 +350,10 @@ export function BulkUploadModal({ open, onOpenChange, onComplete }: BulkUploadMo
         }}
         className={`
           flex flex-col p-0 gap-0 border-border/50 overflow-hidden
-          w-[95vw] max-w-2xl
-          max-h-[90vh]
+          w-[calc(100%-2rem)] max-w-2xl
+          max-h-[calc(90vh-48px)]
           fixed left-[50%] top-[50%] translate-x-[-50%] translate-y-[-50%]
+          shadow-[0_10px_30px_rgba(0,0,0,0.12)] rounded-2xl
           ${stage === "processing" ? "pointer-events-auto" : ""}
         `}
       >
@@ -420,7 +421,7 @@ export function BulkUploadModal({ open, onOpenChange, onComplete }: BulkUploadMo
                     placeholder="https://example.com/page1&#10;https://example.com/page2&#10;https://example.com/page3"
                     value={urlText}
                     onChange={(e) => setUrlText(e.target.value)}
-                    className="min-h-[120px] sm:min-h-[150px] font-mono text-sm resize-none"
+                    className="min-h-[140px] font-mono text-sm resize-none"
                     onKeyDown={(e) => {
                       // Ctrl/Cmd + Enter to submit
                       if ((e.ctrlKey || e.metaKey) && e.key === "Enter" && urlCount > 0 && !isLoading) {
@@ -487,7 +488,7 @@ export function BulkUploadModal({ open, onOpenChange, onComplete }: BulkUploadMo
 
         {/* Footer - Only for input stage */}
         {stage === "input" && (
-          <div className="flex-shrink-0 border-t border-border/50 bg-background p-4 sm:p-6 pb-[calc(1rem+env(safe-area-inset-bottom))] sm:pb-6">
+          <div className="flex-shrink-0 sticky bottom-0 border-t border-border/50 bg-background p-4 sm:p-6 pb-[calc(1rem+env(safe-area-inset-bottom))] sm:pb-6">
             <Button
               className="w-full gap-2 h-11"
               size="lg"
