@@ -1,6 +1,6 @@
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { Upload, X, Image as ImageIcon, Copy, Check, ExternalLink, GripVertical } from "lucide-react";
+import { Upload, X, Image as ImageIcon, Copy, Check, ExternalLink, GripVertical, Share2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -12,11 +12,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { getBaseUrl } from "@/lib/domain";
-import sliceAppsLogo from "@/assets/sliceurl-logo-new.png";
+import { SliceAppsHeader } from "@/components/sliceapps";
 
 const SLICEAPPS_COLORS = {
   bg: "#000000",
@@ -26,8 +27,7 @@ const SLICEAPPS_COLORS = {
   borderSoft: "#2a2a2a",
   text: "#ffffff",
   textSecondary: "#888888",
-  buttonBg: "#000000",
-  buttonBorder: "#444444",
+  green: "#4ade80",
 };
 
 const CATEGORIES = [
@@ -51,8 +51,10 @@ const CATEGORIES = [
 interface PublishedAppData {
   id: string;
   shortCode: string;
+  slugCode: string;
   appName: string;
   appUrl: string;
+  slugUrl: string;
 }
 
 export default function CreateAppListing() {
@@ -76,13 +78,13 @@ export default function CreateAppListing() {
   const [copiedLink, setCopiedLink] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
+  const [selectedLinkType, setSelectedLinkType] = useState<"short" | "slug">("short");
   
   const iconInputRef = useRef<HTMLInputElement>(null);
   const screenshotInputRef = useRef<HTMLInputElement>(null);
   const bannerInputRef = useRef<HTMLInputElement>(null);
-  const screenshotDropRef = useRef<HTMLDivElement>(null);
 
-  // Form state - removed shortDescription and whatsNew
+  // Form state - cleaned up
   const [formData, setFormData] = useState({
     appName: fileData?.fileName.replace(/\.apk$/i, "") || "",
     developerName: "",
@@ -214,8 +216,10 @@ export default function CreateAppListing() {
   const handleCopyLink = async () => {
     if (!publishedApp) return;
     
+    const urlToCopy = selectedLinkType === "short" ? publishedApp.appUrl : publishedApp.slugUrl;
+    
     try {
-      await navigator.clipboard.writeText(publishedApp.appUrl);
+      await navigator.clipboard.writeText(urlToCopy);
       setCopiedLink(true);
       toast.success("Link copied!");
       setTimeout(() => setCopiedLink(false), 2000);
@@ -224,9 +228,29 @@ export default function CreateAppListing() {
     }
   };
 
+  const handleShareLink = async () => {
+    if (!publishedApp) return;
+    
+    const urlToShare = selectedLinkType === "short" ? publishedApp.appUrl : publishedApp.slugUrl;
+    
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: publishedApp.appName,
+          url: urlToShare,
+        });
+      } catch {
+        // User cancelled or error
+      }
+    } else {
+      handleCopyLink();
+    }
+  };
+
   const handleOpenPage = () => {
     if (publishedApp) {
-      window.open(publishedApp.appUrl, "_blank");
+      const urlToOpen = selectedLinkType === "short" ? publishedApp.appUrl : publishedApp.slugUrl;
+      window.open(urlToOpen, "_blank");
     }
   };
 
@@ -241,7 +265,7 @@ export default function CreateAppListing() {
 
   // Generate random short code
   const generateShortCode = (): string => {
-    const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
     let result = '';
     for (let i = 0; i < 4; i++) {
       result += chars.charAt(Math.floor(Math.random() * chars.length));
@@ -276,33 +300,36 @@ export default function CreateAppListing() {
         throw new Error("File not found");
       }
 
-      // Try to use slug first, fallback to random code
-      let shortCode = generateSlug(formData.appName.trim());
+      // Generate both short code and slug
+      const slugCode = generateSlug(formData.appName.trim());
+      let shortCode = generateShortCode();
       
-      // Check if slug is available
+      // Ensure short code is unique
+      let isUnique = false;
+      let attempts = 0;
+      while (!isUnique && attempts < 10) {
+        const { data: existing } = await supabase
+          .from("app_listings")
+          .select("id")
+          .eq("short_code", shortCode)
+          .maybeSingle();
+        isUnique = !existing;
+        if (!isUnique) {
+          shortCode = generateShortCode();
+        }
+        attempts++;
+      }
+
+      // Check if slug is available, if not we'll just use the short code
       const { data: existingWithSlug } = await supabase
         .from("app_listings")
         .select("id")
-        .eq("short_code", shortCode)
+        .eq("short_code", slugCode)
         .maybeSingle();
       
-      if (existingWithSlug) {
-        // Slug taken, generate random code
-        let isUnique = false;
-        let attempts = 0;
-        while (!isUnique && attempts < 10) {
-          shortCode = generateShortCode();
-          const { data: existing } = await supabase
-            .from("app_listings")
-            .select("id")
-            .eq("short_code", shortCode)
-            .maybeSingle();
-          isUnique = !existing;
-          attempts++;
-        }
-      }
+      const canUseSlug = !existingWithSlug;
 
-      // Create the app listing with short_code
+      // Create the app listing with short_code (use short code as primary)
       const { data: listing, error: listingError } = await supabase
         .from("app_listings")
         .insert({
@@ -332,14 +359,18 @@ export default function CreateAppListing() {
           .eq("id", fileRecord.id);
       }
 
-      const appUrl = `${getBaseUrl()}/app/${listing.short_code}`;
+      const baseUrl = getBaseUrl();
+      const appUrl = `${baseUrl}/app/${shortCode}`;
+      const slugUrl = canUseSlug ? `${baseUrl}/app/${slugCode}` : appUrl;
       
       // Set published state instead of navigating
       setPublishedApp({
         id: listing.id,
-        shortCode: listing.short_code,
+        shortCode: shortCode,
+        slugCode: canUseSlug ? slugCode : shortCode,
         appName: formData.appName.trim(),
         appUrl,
+        slugUrl,
       });
 
       toast.success("App page published successfully!");
@@ -361,83 +392,137 @@ export default function CreateAppListing() {
 
   // Show success state after publish
   if (publishedApp) {
+    const showSlugOption = publishedApp.shortCode !== publishedApp.slugCode;
+    const currentUrl = selectedLinkType === "short" ? publishedApp.appUrl : publishedApp.slugUrl;
+    
     return (
       <div 
-        className="min-h-dvh flex items-center justify-center p-4"
+        className="min-h-dvh"
         style={{ backgroundColor: SLICEAPPS_COLORS.bg }}
       >
-        <div 
-          className="w-full max-w-md p-8 rounded-2xl border text-center"
-          style={{ 
-            backgroundColor: SLICEAPPS_COLORS.card,
-            borderColor: SLICEAPPS_COLORS.border,
-          }}
-        >
+        <SliceAppsHeader />
+        
+        <div className="flex items-center justify-center p-4 pt-20">
           <div 
-            className="w-16 h-16 rounded-full mx-auto mb-5 flex items-center justify-center"
-            style={{ backgroundColor: SLICEAPPS_COLORS.border }}
+            className="w-full max-w-md p-8 rounded-2xl border text-center"
+            style={{ 
+              backgroundColor: SLICEAPPS_COLORS.card,
+              borderColor: SLICEAPPS_COLORS.border,
+            }}
           >
-            <Check className="h-8 w-8" style={{ color: SLICEAPPS_COLORS.text }} />
-          </div>
-          
-          <h2 
-            className="text-xl font-bold mb-2"
-            style={{ color: SLICEAPPS_COLORS.text }}
-          >
-            Your App Page is Live
-          </h2>
-          
-          <p 
-            className="text-sm mb-6"
-            style={{ color: SLICEAPPS_COLORS.textSecondary }}
-          >
-            "{publishedApp.appName}" is now available for download.
-          </p>
-
-          <div className="mb-6">
+            <div 
+              className="w-16 h-16 rounded-full mx-auto mb-5 flex items-center justify-center"
+              style={{ backgroundColor: SLICEAPPS_COLORS.green }}
+            >
+              <Check className="h-8 w-8" style={{ color: SLICEAPPS_COLORS.bg }} />
+            </div>
+            
+            <h2 
+              className="text-xl font-bold mb-2"
+              style={{ color: SLICEAPPS_COLORS.text }}
+            >
+              App Page is Live
+            </h2>
+            
             <p 
-              className="text-xs mb-2"
+              className="text-sm mb-6"
               style={{ color: SLICEAPPS_COLORS.textSecondary }}
             >
-              App Page Link:
+              {publishedApp.appName}
             </p>
-            <div 
-              className="p-4 rounded-xl font-mono text-sm break-all"
-              style={{ 
-                backgroundColor: SLICEAPPS_COLORS.bg,
-                color: SLICEAPPS_COLORS.text,
-              }}
-            >
-              {publishedApp.appUrl}
-            </div>
-          </div>
 
-          <div className="flex gap-3">
-            <Button
-              onClick={handleCopyLink}
-              className="flex-1 h-12 rounded-xl font-medium"
-              style={{
-                backgroundColor: SLICEAPPS_COLORS.text,
-                color: SLICEAPPS_COLORS.bg,
-              }}
-            >
-              {copiedLink ? (
-                <>
-                  <Check className="h-4 w-4 mr-2" />
-                  Copied!
-                </>
-              ) : (
-                <>
-                  <Copy className="h-4 w-4 mr-2" />
-                  Copy Link
-                </>
-              )}
-            </Button>
-            
+            {/* Link type selector */}
+            {showSlugOption && (
+              <div className="mb-4">
+                <RadioGroup 
+                  value={selectedLinkType} 
+                  onValueChange={(v) => setSelectedLinkType(v as "short" | "slug")}
+                  className="flex gap-4 justify-center"
+                >
+                  <div className="flex items-center gap-2">
+                    <RadioGroupItem 
+                      value="short" 
+                      id="short"
+                      className="border-gray-500"
+                    />
+                    <Label 
+                      htmlFor="short" 
+                      className="text-sm cursor-pointer"
+                      style={{ color: SLICEAPPS_COLORS.text }}
+                    >
+                      Short link
+                    </Label>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <RadioGroupItem 
+                      value="slug" 
+                      id="slug"
+                      className="border-gray-500"
+                    />
+                    <Label 
+                      htmlFor="slug"
+                      className="text-sm cursor-pointer"
+                      style={{ color: SLICEAPPS_COLORS.text }}
+                    >
+                      Named link
+                    </Label>
+                  </div>
+                </RadioGroup>
+              </div>
+            )}
+
+            <div className="mb-6">
+              <div 
+                className="p-4 rounded-xl font-mono text-sm break-all"
+                style={{ 
+                  backgroundColor: SLICEAPPS_COLORS.bg,
+                  color: SLICEAPPS_COLORS.text,
+                }}
+              >
+                {currentUrl}
+              </div>
+            </div>
+
+            <div className="flex gap-3 mb-3">
+              <Button
+                onClick={handleCopyLink}
+                className="flex-1 h-12 rounded-xl font-medium"
+                style={{
+                  backgroundColor: SLICEAPPS_COLORS.text,
+                  color: SLICEAPPS_COLORS.bg,
+                }}
+              >
+                {copiedLink ? (
+                  <>
+                    <Check className="h-4 w-4 mr-2" />
+                    Copied
+                  </>
+                ) : (
+                  <>
+                    <Copy className="h-4 w-4 mr-2" />
+                    Copy Link
+                  </>
+                )}
+              </Button>
+              
+              <Button
+                onClick={handleShareLink}
+                variant="outline"
+                className="h-12 rounded-xl font-medium border px-4"
+                style={{
+                  backgroundColor: "transparent",
+                  borderColor: SLICEAPPS_COLORS.border,
+                  color: SLICEAPPS_COLORS.text,
+                }}
+              >
+                <Share2 className="h-4 w-4" />
+              </Button>
+            </div>
+
             <Button
               onClick={handleOpenPage}
               variant="outline"
-              className="flex-1 h-12 rounded-xl font-medium border"
+              className="w-full h-12 rounded-xl font-medium border"
               style={{
                 backgroundColor: "transparent",
                 borderColor: SLICEAPPS_COLORS.border,
@@ -447,16 +532,16 @@ export default function CreateAppListing() {
               <ExternalLink className="h-4 w-4 mr-2" />
               Open Page
             </Button>
-          </div>
 
-          <Button
-            onClick={() => navigate(-1)}
-            variant="ghost"
-            className="w-full mt-4"
-            style={{ color: SLICEAPPS_COLORS.textSecondary }}
-          >
-            Done
-          </Button>
+            <Button
+              onClick={() => navigate(-1)}
+              variant="ghost"
+              className="w-full mt-4"
+              style={{ color: SLICEAPPS_COLORS.textSecondary }}
+            >
+              Done
+            </Button>
+          </div>
         </div>
       </div>
     );
@@ -467,46 +552,21 @@ export default function CreateAppListing() {
       className="min-h-dvh"
       style={{ backgroundColor: SLICEAPPS_COLORS.bg }}
     >
-      {/* Header - Sticky with logo lockup */}
-      <header 
-        className="sticky top-0 z-50 border-b"
-        style={{ 
-          backgroundColor: SLICEAPPS_COLORS.bg,
-          borderColor: SLICEAPPS_COLORS.border,
-        }}
-      >
-        <div className="max-w-3xl mx-auto h-14 flex items-center px-4">
-          <div className="flex items-center gap-3">
-            <div 
-              className="w-9 h-9 rounded-full overflow-hidden flex items-center justify-center"
-              style={{ backgroundColor: SLICEAPPS_COLORS.card }}
-            >
-              <img 
-                src={sliceAppsLogo} 
-                alt="SliceAPPs" 
-                className="w-7 h-7 object-contain"
-              />
-            </div>
-            <div>
-              <span 
-                className="font-semibold text-lg tracking-tight block"
-                style={{ color: SLICEAPPS_COLORS.text }}
-              >
-                SliceAPPs
-              </span>
-              <span 
-                className="text-xs"
-                style={{ color: SLICEAPPS_COLORS.textSecondary }}
-              >
-                {fileData.fileName} · {formatFileSize(fileData.fileSize)}
-              </span>
-            </div>
-          </div>
-        </div>
-      </header>
+      {/* Header */}
+      <SliceAppsHeader />
 
       {/* Form */}
       <main className="max-w-3xl mx-auto px-4 py-8">
+        {/* File info badge */}
+        <div 
+          className="inline-flex items-center gap-2 px-3 py-2 rounded-lg mb-8"
+          style={{ backgroundColor: SLICEAPPS_COLORS.card }}
+        >
+          <span className="text-sm" style={{ color: SLICEAPPS_COLORS.textSecondary }}>
+            {fileData.fileName} · {formatFileSize(fileData.fileSize)}
+          </span>
+        </div>
+
         <form onSubmit={handleSubmit} className="space-y-10">
           
           {/* App Icon Section */}
@@ -563,7 +623,7 @@ export default function CreateAppListing() {
               onChange={(e) => setFormData(prev => ({ ...prev, appName: e.target.value }))}
               placeholder="My Awesome App"
               required
-              className="h-12 text-base border rounded-xl px-4"
+              className="h-14 text-base border rounded-xl px-4"
               style={{
                 backgroundColor: SLICEAPPS_COLORS.card,
                 borderColor: SLICEAPPS_COLORS.borderSoft,
@@ -584,7 +644,7 @@ export default function CreateAppListing() {
               value={formData.developerName}
               onChange={(e) => setFormData(prev => ({ ...prev, developerName: e.target.value }))}
               placeholder="Your name or company"
-              className="h-12 text-base border rounded-xl px-4"
+              className="h-14 text-base border rounded-xl px-4"
               style={{
                 backgroundColor: SLICEAPPS_COLORS.card,
                 borderColor: SLICEAPPS_COLORS.borderSoft,
@@ -606,7 +666,7 @@ export default function CreateAppListing() {
               onValueChange={(value) => setFormData(prev => ({ ...prev, category: value }))}
             >
               <SelectTrigger
-                className="h-12 text-base border rounded-xl px-4"
+                className="h-14 text-base border rounded-xl px-4"
                 style={{
                   backgroundColor: SLICEAPPS_COLORS.card,
                   borderColor: SLICEAPPS_COLORS.borderSoft,
@@ -654,7 +714,7 @@ export default function CreateAppListing() {
                   value={formData.versionName}
                   onChange={(e) => setFormData(prev => ({ ...prev, versionName: e.target.value }))}
                   placeholder="1.0"
-                  className="h-12 text-base border rounded-xl px-4"
+                  className="h-14 text-base border rounded-xl px-4"
                   style={{
                     backgroundColor: SLICEAPPS_COLORS.card,
                     borderColor: SLICEAPPS_COLORS.borderSoft,
@@ -673,7 +733,7 @@ export default function CreateAppListing() {
                   value={formData.versionCode}
                   onChange={(e) => setFormData(prev => ({ ...prev, versionCode: e.target.value }))}
                   placeholder="1"
-                  className="h-12 text-base border rounded-xl px-4"
+                  className="h-14 text-base border rounded-xl px-4"
                   style={{
                     backgroundColor: SLICEAPPS_COLORS.card,
                     borderColor: SLICEAPPS_COLORS.borderSoft,
@@ -690,14 +750,14 @@ export default function CreateAppListing() {
               className="text-base font-medium"
               style={{ color: SLICEAPPS_COLORS.text }}
             >
-              Full Description
+              Description
             </Label>
             <Textarea
               value={formData.fullDescription}
               onChange={(e) => setFormData(prev => ({ ...prev, fullDescription: e.target.value }))}
-              placeholder="Describe your app in detail..."
-              rows={6}
-              className="text-base border rounded-xl px-4 py-3 resize-none"
+              placeholder="Describe your app..."
+              rows={5}
+              className="text-base border rounded-xl px-4 py-4 resize-none"
               style={{
                 backgroundColor: SLICEAPPS_COLORS.card,
                 borderColor: SLICEAPPS_COLORS.borderSoft,
@@ -725,7 +785,6 @@ export default function CreateAppListing() {
             
             {/* Drop zone + horizontal scroll preview */}
             <div
-              ref={screenshotDropRef}
               onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
               onDragLeave={() => setIsDragging(false)}
               onDrop={handleScreenshotDrop}
@@ -738,11 +797,11 @@ export default function CreateAppListing() {
               {screenshots.length === 0 ? (
                 <div 
                   onClick={() => screenshotInputRef.current?.click()}
-                  className="flex flex-col items-center justify-center py-10 cursor-pointer"
+                  className="flex flex-col items-center justify-center py-12 cursor-pointer"
                 >
                   <Upload className="h-10 w-10 mb-3" style={{ color: SLICEAPPS_COLORS.textSecondary }} />
                   <p className="text-sm mb-1" style={{ color: SLICEAPPS_COLORS.text }}>
-                    Drop screenshots here or click to upload
+                    Drop screenshots here or tap to upload
                   </p>
                   <p className="text-xs" style={{ color: SLICEAPPS_COLORS.textSecondary }}>
                     Up to 8 screenshots, max 5MB each
@@ -855,7 +914,7 @@ export default function CreateAppListing() {
           <Button
             type="submit"
             disabled={isSubmitting}
-            className="w-full h-14 text-base font-semibold rounded-xl"
+            className="w-full h-14 text-base font-semibold rounded-2xl"
             style={{
               backgroundColor: SLICEAPPS_COLORS.text,
               color: SLICEAPPS_COLORS.bg,
