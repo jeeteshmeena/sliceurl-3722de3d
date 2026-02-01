@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Trash2, FolderInput, Download, X, CheckSquare } from "lucide-react";
+import { Trash2, Download, X, CheckSquare, Pin } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -19,32 +19,32 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import type { Link } from "@/hooks/useLinks";
-import type { Folder } from "@/hooks/useLinks";
 
 interface BulkActionsToolbarProps {
   selectedCount: number;
   selectedLinks: Link[];
-  folders: Folder[];
   onClearSelection: () => void;
   onSelectAll: () => void;
   onBulkDelete: () => Promise<void>;
-  onBulkMoveToFolder: (folderId: string | null) => Promise<void>;
+  onBulkTogglePin: (pin: boolean) => Promise<void>;
   totalLinks: number;
 }
 
 export function BulkActionsToolbar({
   selectedCount,
   selectedLinks,
-  folders,
   onClearSelection,
   onSelectAll,
   onBulkDelete,
-  onBulkMoveToFolder,
+  onBulkTogglePin,
   totalLinks,
 }: BulkActionsToolbarProps) {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
-  const [isMoving, setIsMoving] = useState(false);
+  const [isPinning, setIsPinning] = useState(false);
+
+  // Check if any selected link is already pinned
+  const hasAnyPinned = selectedLinks.some((link) => (link as any).is_pinned);
 
   const handleDelete = async () => {
     setIsDeleting(true);
@@ -53,10 +53,11 @@ export function BulkActionsToolbar({
     setShowDeleteConfirm(false);
   };
 
-  const handleMoveToFolder = async (folderId: string | null) => {
-    setIsMoving(true);
-    await onBulkMoveToFolder(folderId);
-    setIsMoving(false);
+  const handleTogglePin = async () => {
+    setIsPinning(true);
+    // If any link is pinned, unpin all. Otherwise, pin all.
+    await onBulkTogglePin(!hasAnyPinned);
+    setIsPinning(false);
   };
 
   const exportAsCSV = () => {
@@ -140,32 +141,16 @@ export function BulkActionsToolbar({
 
               {/* Bulk Actions */}
               <div className="flex items-center gap-1">
-                {/* Move to Folder */}
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="sm" disabled={isMoving}>
-                      <FolderInput className="h-4 w-4 mr-1" />
-                      <span className="hidden sm:inline">Move</span>
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="center" className="bg-popover">
-                    <DropdownMenuItem onClick={() => handleMoveToFolder(null)}>
-                      No Folder
-                    </DropdownMenuItem>
-                    {folders.map((folder) => (
-                      <DropdownMenuItem
-                        key={folder.id}
-                        onClick={() => handleMoveToFolder(folder.id)}
-                      >
-                        <span
-                          className="h-3 w-3 rounded-full mr-2"
-                          style={{ backgroundColor: folder.color }}
-                        />
-                        {folder.name}
-                      </DropdownMenuItem>
-                    ))}
-                  </DropdownMenuContent>
-                </DropdownMenu>
+                {/* Pin / Unpin */}
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  onClick={handleTogglePin}
+                  disabled={isPinning}
+                >
+                  <Pin className={`h-4 w-4 mr-1 ${hasAnyPinned ? 'fill-current' : ''}`} />
+                  <span className="hidden sm:inline">{hasAnyPinned ? "Unpin" : "Pin"}</span>
+                </Button>
 
                 {/* Export */}
                 <DropdownMenu>
