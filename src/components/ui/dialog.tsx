@@ -19,7 +19,7 @@ const DialogOverlay = React.forwardRef<
   <DialogPrimitive.Overlay
     ref={ref}
     className={cn(
-      "fixed inset-0 z-50 bg-foreground/60 backdrop-blur-[2px] data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
+      "fixed inset-0 z-[400] bg-foreground/60 backdrop-blur-[2px] data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
       className,
     )}
     {...props}
@@ -40,18 +40,22 @@ const DialogContent = React.forwardRef<
     <DialogPrimitive.Content
       ref={ref}
       className={cn(
-        // Base styles - always centered with safe-area spacing
-        "fixed left-[50%] top-[50%] z-50 grid w-[calc(100%-2rem)] max-w-[420px] translate-x-[-50%] translate-y-[-50%] gap-4 border bg-background pt-6 pb-6 px-6",
+        // Base positioning - centered modal card with header safe zone
+        "fixed left-[50%] z-[500] grid w-[94%] max-w-[420px] translate-x-[-50%]",
+        // Top offset: 76px (64px header + 12px gap), centered vertically within remaining space
+        "top-[76px]",
+        // Spacing and styling
+        "gap-4 border bg-background p-5",
+        // Border radius: 18px
+        "rounded-[18px]",
         // Shadow for floating effect
         "shadow-[0_10px_30px_rgba(0,0,0,0.12)]",
-        // Max height and scroll with safe-area
-        "max-h-[calc(90vh-48px)] overflow-y-auto rounded-2xl",
+        // Max height with internal scroll, bottom margin 16px
+        "max-h-[calc(100dvh-76px-16px)] overflow-y-auto",
         // Animations
         "data-[state=open]:animate-in data-[state=closed]:animate-out",
         "data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
         "data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95",
-        "data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%]",
-        "data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%]",
         className,
       )}
       {...props}
@@ -69,7 +73,7 @@ const DialogContent = React.forwardRef<
 DialogContent.displayName = DialogPrimitive.Content.displayName;
 
 const DialogHeader = ({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) => (
-  <div className={cn("flex flex-col space-y-1.5 text-center sm:text-left relative", className)} {...props} />
+  <div className={cn("flex flex-col space-y-1.5 text-center relative min-h-[48px] justify-center", className)} {...props} />
 );
 DialogHeader.displayName = "DialogHeader";
 
@@ -84,7 +88,7 @@ const DialogTitle = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <DialogPrimitive.Title
     ref={ref}
-    className={cn("text-lg font-semibold leading-none tracking-tight", className)}
+    className={cn("text-base font-semibold leading-none tracking-tight text-center", className)}
     {...props}
   />
 ));

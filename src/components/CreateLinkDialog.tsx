@@ -141,11 +141,11 @@ export function CreateLinkDialog({ open, onOpenChange, onCreateLink }: CreateLin
 
   return (
     <Dialog open={open} onOpenChange={(o) => { onOpenChange(o); if (!o) resetForm(); }}>
-      <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle>Create New Link</DialogTitle>
+      <DialogContent className="sm:max-w-[420px] max-h-[calc(100dvh-76px-16px)] overflow-y-auto">
+        <DialogHeader className="min-h-[48px]">
+          <DialogTitle className="text-base font-semibold">Create New Link</DialogTitle>
         </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-[14px]">
           <div className="space-y-2">
             <Label htmlFor="url">Destination URL</Label>
             <Input
@@ -157,25 +157,27 @@ export function CreateLinkDialog({ open, onOpenChange, onCreateLink }: CreateLin
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="slug">Custom Slug (optional)</Label>
+            <Label htmlFor="slug" className="text-[13px] font-medium">Custom Slug (optional)</Label>
             <div className="flex items-center gap-2">
-              <span className="text-sm text-muted-foreground whitespace-nowrap">{getDisplayDomain()}/s/</span>
+              <span className="text-[12px] text-muted-foreground whitespace-nowrap">{getDisplayDomain()}/s/</span>
               <Input
                 id="slug"
                 placeholder="my-link"
                 value={customSlug}
                 onChange={(e) => setCustomSlug(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ''))}
+                className="text-[14px]"
               />
             </div>
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="title">Title (optional)</Label>
+            <Label htmlFor="title" className="text-[13px] font-medium">Title (optional)</Label>
             <Input
               id="title"
               placeholder="My awesome link"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
+              className="text-[14px]"
             />
           </div>
 
@@ -289,7 +291,7 @@ export function CreateLinkDialog({ open, onOpenChange, onCreateLink }: CreateLin
             </CollapsibleContent>
           </Collapsible>
 
-          <Button type="submit" className="w-full" disabled={loading}>
+          <Button type="submit" className="w-full h-12 text-[14px] font-medium" disabled={loading}>
             {loading ? "Creating..." : "Create Link"}
           </Button>
         </form>

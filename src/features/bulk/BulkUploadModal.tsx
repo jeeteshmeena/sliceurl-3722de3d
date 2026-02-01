@@ -350,10 +350,10 @@ export function BulkUploadModal({ open, onOpenChange, onComplete }: BulkUploadMo
         }}
         className={`
           flex flex-col p-0 gap-0 border-border/50 overflow-hidden
-          w-[calc(100%-2rem)] max-w-2xl
-          max-h-[calc(90vh-48px)]
-          fixed left-[50%] top-[50%] translate-x-[-50%] translate-y-[-50%]
-          shadow-[0_10px_30px_rgba(0,0,0,0.12)] rounded-2xl
+          w-[94%] max-w-2xl
+          max-h-[calc(100dvh-76px-16px)]
+          !top-[76px] !translate-y-0
+          shadow-[0_10px_30px_rgba(0,0,0,0.12)] rounded-[18px]
           ${stage === "processing" ? "pointer-events-auto" : ""}
         `}
       >
@@ -421,7 +421,7 @@ export function BulkUploadModal({ open, onOpenChange, onComplete }: BulkUploadMo
                     placeholder="https://example.com/page1&#10;https://example.com/page2&#10;https://example.com/page3"
                     value={urlText}
                     onChange={(e) => setUrlText(e.target.value)}
-                    className="min-h-[140px] font-mono text-sm resize-none"
+                    className="min-h-[140px] font-mono text-sm resize-none text-[14px]"
                     onKeyDown={(e) => {
                       // Ctrl/Cmd + Enter to submit
                       if ((e.ctrlKey || e.metaKey) && e.key === "Enter" && urlCount > 0 && !isLoading) {
@@ -486,11 +486,11 @@ export function BulkUploadModal({ open, onOpenChange, onComplete }: BulkUploadMo
           </AnimatePresence>
         </div>
 
-        {/* Footer - Only for input stage */}
+        {/* Footer - Only for input stage, sticky at bottom with 16px margin */}
         {stage === "input" && (
-          <div className="flex-shrink-0 sticky bottom-0 border-t border-border/50 bg-background p-4 sm:p-6 pb-[calc(1rem+env(safe-area-inset-bottom))] sm:pb-6">
+          <div className="flex-shrink-0 sticky bottom-0 border-t border-border/50 bg-background p-4 pb-[calc(16px+env(safe-area-inset-bottom))]">
             <Button
-              className="w-full gap-2 h-11"
+              className="w-full gap-2 h-12 text-[14px] font-medium"
               size="lg"
               onClick={handleSliceAll}
               disabled={urlCount === 0 || isLoading}
