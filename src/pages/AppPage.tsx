@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useParams, Link, useNavigate } from "react-router-dom";
+import { useParams, Link } from "react-router-dom";
 import { 
   Star, Download, Package, Lock, AlertTriangle
 } from "lucide-react";
@@ -16,16 +16,6 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { SliceAppsHeader, RatingsReviewsSection } from "@/components/sliceapps";
-
-const SLICEAPPS_COLORS = {
-  bg: "#000000",
-  card: "#1a1a1a",
-  cardHover: "#2a2a2a",
-  border: "#333333",
-  text: "#ffffff",
-  textSecondary: "#888888",
-  green: "#4ade80",
-};
 
 interface AppListing {
   id: string;
@@ -70,7 +60,6 @@ interface Review {
 export default function AppPage() {
   const { id } = useParams<{ id: string }>();
   const { user } = useAuth();
-  const navigate = useNavigate();
   
   const [app, setApp] = useState<AppListing | null>(null);
   const [fileInfo, setFileInfo] = useState<FileInfo | null>(null);
@@ -257,17 +246,17 @@ export default function AppPage() {
   const formatDownloads = (count: number | null): string => {
     if (!count) return "0";
     if (count >= 1000000) return `${(count / 1000000).toFixed(1)}M+`;
-    if (count >= 1000) return `${(count / 1000).toFixed(1)}K+`;
+    if (count >= 100000) return `100K+`;
+    if (count >= 50000) return `50K+`;
+    if (count >= 10000) return `10K+`;
+    if (count >= 1000) return `${Math.floor(count / 1000)}K+`;
     return count.toString();
   };
 
   if (isLoading) {
     return (
-      <div 
-        className="min-h-dvh flex items-center justify-center"
-        style={{ backgroundColor: SLICEAPPS_COLORS.bg }}
-      >
-        <div className="animate-pulse" style={{ color: SLICEAPPS_COLORS.textSecondary }}>
+      <div className="min-h-dvh flex items-center justify-center bg-white dark:bg-black">
+        <div className="animate-pulse text-gray-500 dark:text-gray-400">
           Loading...
         </div>
       </div>
@@ -276,21 +265,11 @@ export default function AppPage() {
 
   if (!app) {
     return (
-      <div 
-        className="min-h-dvh flex items-center justify-center"
-        style={{ backgroundColor: SLICEAPPS_COLORS.bg, color: SLICEAPPS_COLORS.text }}
-      >
+      <div className="min-h-dvh flex items-center justify-center bg-white dark:bg-black text-gray-900 dark:text-white">
         <div className="text-center">
           <p className="text-lg mb-4">App not found</p>
           <Link to="/slicebox">
-            <Button
-              style={{ 
-                backgroundColor: SLICEAPPS_COLORS.card,
-                borderColor: SLICEAPPS_COLORS.border,
-                color: SLICEAPPS_COLORS.text,
-              }}
-              className="border"
-            >
+            <Button variant="outline">
               Go to SliceBox
             </Button>
           </Link>
@@ -303,11 +282,8 @@ export default function AppPage() {
   const actualDownloads = fileInfo?.download_count || 0;
 
   return (
-    <div 
-      className="min-h-dvh"
-      style={{ backgroundColor: SLICEAPPS_COLORS.bg }}
-    >
-      {/* Header - Clean, no back arrow */}
+    <div className="min-h-dvh bg-white dark:bg-black">
+      {/* Header */}
       <SliceAppsHeader showCreateButton />
 
       {/* Main Content */}
@@ -324,50 +300,37 @@ export default function AppPage() {
           </div>
         )}
 
-        {/* App Header - Clean layout: Icon, Name, Developer only */}
+        {/* App Header - Icon, Name, Developer only */}
         <div className="flex gap-4 mb-6">
           {/* Icon */}
-          <div 
-            className="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl flex-shrink-0 overflow-hidden"
-            style={{ backgroundColor: SLICEAPPS_COLORS.card }}
-          >
+          <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl flex-shrink-0 overflow-hidden bg-gray-100 dark:bg-gray-800">
             {app.icon_url ? (
               <img src={app.icon_url} alt={app.app_name} className="w-full h-full object-cover" loading="lazy" />
             ) : (
               <div className="w-full h-full flex items-center justify-center">
-                <Package className="h-10 w-10" style={{ color: SLICEAPPS_COLORS.textSecondary }} />
+                <Package className="h-10 w-10 text-gray-400" />
               </div>
             )}
           </div>
 
-          {/* Info - Name and Developer only (no category/version here) */}
+          {/* Info - Name and Developer only */}
           <div className="flex-1 min-w-0 flex flex-col justify-center">
-            <h1 
-              className="text-xl sm:text-2xl font-bold truncate"
-              style={{ color: SLICEAPPS_COLORS.text }}
-            >
+            <h1 className="text-xl sm:text-2xl font-bold truncate text-gray-900 dark:text-white">
               {app.app_name}
             </h1>
             {app.developer_name && (
-              <p 
-                className="text-sm mt-1.5"
-                style={{ color: SLICEAPPS_COLORS.textSecondary }}
-              >
+              <p className="text-sm mt-1.5 text-gray-500 dark:text-gray-400">
                 {app.developer_name}
               </p>
             )}
           </div>
         </div>
 
-        {/* Download Button - Large, rounded, white bg, black text */}
+        {/* Download Button - Large, rounded, green accent */}
         <Button
           onClick={handleDownload}
           disabled={isDownloading || !fileInfo || !!fileUnavailable}
-          className="w-full h-14 text-base font-semibold rounded-2xl mb-5 gap-3"
-          style={{
-            backgroundColor: fileUnavailable ? SLICEAPPS_COLORS.card : "#ffffff",
-            color: fileUnavailable ? SLICEAPPS_COLORS.textSecondary : "#000000",
-          }}
+          className="w-full h-14 text-base font-semibold rounded-2xl mb-5 gap-3 bg-green-500 hover:bg-green-600 text-white disabled:bg-gray-300 disabled:text-gray-500"
         >
           {fileInfo?.password_hash && <Lock className="h-5 w-5" />}
           <Download className="h-5 w-5" />
@@ -376,74 +339,65 @@ export default function AppPage() {
 
         {/* File Unavailable Warning */}
         {fileUnavailable && (
-          <div 
-            className="flex items-center gap-3 p-4 rounded-xl mb-5"
-            style={{ backgroundColor: SLICEAPPS_COLORS.card }}
-          >
-            <AlertTriangle className="h-5 w-5 flex-shrink-0" style={{ color: SLICEAPPS_COLORS.textSecondary }} />
-            <p className="text-sm" style={{ color: SLICEAPPS_COLORS.textSecondary }}>
+          <div className="flex items-center gap-3 p-4 rounded-xl mb-5 bg-gray-100 dark:bg-gray-800">
+            <AlertTriangle className="h-5 w-5 flex-shrink-0 text-gray-500" />
+            <p className="text-sm text-gray-500">
               {fileUnavailable}
             </p>
           </div>
         )}
 
-        {/* Stats Row - Rating, Reviews, Downloads, Size (no version) */}
-        <div 
-          className="flex items-center justify-between p-4 rounded-xl mb-6"
-          style={{ backgroundColor: SLICEAPPS_COLORS.card }}
-        >
+        {/* Stats Row - Rating, Reviews, Downloads, Size only */}
+        <div className="flex items-center justify-between p-4 rounded-xl mb-6 bg-gray-50 dark:bg-gray-900">
           {/* Rating */}
           <div className="text-center flex-1">
             <div className="flex items-center justify-center gap-1 mb-1">
-              <Star className="h-4 w-4 fill-current" style={{ color: SLICEAPPS_COLORS.green }} />
-              <span className="font-semibold" style={{ color: SLICEAPPS_COLORS.text }}>
-                {app.rating_avg?.toFixed(1) || "—"}
+              <Star className="h-4 w-4 fill-current" style={{ color: "#22c55e" }} />
+              <span className="font-semibold text-gray-900 dark:text-white">
+                {app.rating_avg?.toFixed(1) || "0.0"}
               </span>
             </div>
-            <p className="text-xs" style={{ color: SLICEAPPS_COLORS.textSecondary }}>Rating</p>
+            <p className="text-xs text-gray-500 dark:text-gray-400">Rating</p>
           </div>
           
-          <div className="w-px h-8" style={{ backgroundColor: SLICEAPPS_COLORS.border }} />
+          <div className="w-px h-8 bg-gray-200 dark:bg-gray-700" />
           
           {/* Reviews Count */}
           <div className="text-center flex-1">
-            <div className="font-semibold mb-1" style={{ color: SLICEAPPS_COLORS.text }}>
+            <div className="font-semibold mb-1 text-gray-900 dark:text-white">
               {app.rating_count || 0}
             </div>
-            <p className="text-xs" style={{ color: SLICEAPPS_COLORS.textSecondary }}>Reviews</p>
+            <p className="text-xs text-gray-500 dark:text-gray-400">Reviews</p>
           </div>
           
-          <div className="w-px h-8" style={{ backgroundColor: SLICEAPPS_COLORS.border }} />
+          <div className="w-px h-8 bg-gray-200 dark:bg-gray-700" />
           
           {/* Downloads Count - Human readable */}
           <div className="text-center flex-1">
             <div className="flex items-center justify-center gap-1 mb-1">
-              <Download className="h-3.5 w-3.5" style={{ color: SLICEAPPS_COLORS.text }} />
-              <span className="font-semibold" style={{ color: SLICEAPPS_COLORS.text }}>
+              <Download className="h-3.5 w-3.5 text-gray-900 dark:text-white" />
+              <span className="font-semibold text-gray-900 dark:text-white">
                 {formatDownloads(actualDownloads)}
               </span>
             </div>
-            <p className="text-xs" style={{ color: SLICEAPPS_COLORS.textSecondary }}>Downloads</p>
+            <p className="text-xs text-gray-500 dark:text-gray-400">Downloads</p>
           </div>
           
-          <div className="w-px h-8" style={{ backgroundColor: SLICEAPPS_COLORS.border }} />
+          <div className="w-px h-8 bg-gray-200 dark:bg-gray-700" />
           
           {/* File Size */}
           <div className="text-center flex-1">
-            <div className="font-semibold mb-1" style={{ color: SLICEAPPS_COLORS.text }}>
-              {fileInfo ? formatFileSize(fileInfo.file_size) : "—"}
+            <div className="font-semibold mb-1 text-gray-900 dark:text-white">
+              {fileInfo ? formatFileSize(fileInfo.file_size) : "--"}
             </div>
-            <p className="text-xs" style={{ color: SLICEAPPS_COLORS.textSecondary }}>Size</p>
+            <p className="text-xs text-gray-500 dark:text-gray-400">Size</p>
           </div>
         </div>
 
         {/* Screenshots - Horizontal scroll gallery */}
         {app.screenshots && app.screenshots.length > 0 && (
           <div className="mb-6">
-            <h2 
-              className="font-semibold mb-3 text-lg"
-              style={{ color: SLICEAPPS_COLORS.text }}
-            >
+            <h2 className="font-semibold mb-3 text-lg text-gray-900 dark:text-white">
               Screenshots
             </h2>
             <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
@@ -452,8 +406,7 @@ export default function AppPage() {
                   key={index}
                   src={url}
                   alt={`Screenshot ${index + 1}`}
-                  className="w-36 h-64 object-cover rounded-xl flex-shrink-0 cursor-pointer border"
-                  style={{ borderColor: SLICEAPPS_COLORS.border }}
+                  className="w-36 h-64 object-cover rounded-xl flex-shrink-0 cursor-pointer border border-gray-200 dark:border-gray-700"
                   onClick={() => setSelectedScreenshot(index)}
                   loading="lazy"
                 />
@@ -462,75 +415,60 @@ export default function AppPage() {
           </div>
         )}
 
-        {/* About - Expandable section */}
+        {/* About section */}
         {app.full_description && (
-          <div 
-            className="p-5 rounded-xl mb-6"
-            style={{ backgroundColor: SLICEAPPS_COLORS.card }}
-          >
-            <h2 
-              className="font-semibold mb-3 text-lg"
-              style={{ color: SLICEAPPS_COLORS.text }}
-            >
+          <div className="p-5 rounded-xl mb-6 bg-gray-50 dark:bg-gray-900">
+            <h2 className="font-semibold mb-3 text-lg text-gray-900 dark:text-white">
               About this app
             </h2>
-            <p 
-              className="text-sm whitespace-pre-wrap leading-relaxed"
-              style={{ color: SLICEAPPS_COLORS.textSecondary }}
-            >
+            <p className="text-sm whitespace-pre-wrap leading-relaxed text-gray-600 dark:text-gray-300">
               {app.full_description}
             </p>
           </div>
         )}
 
-        {/* Additional Info */}
-        <div 
-          className="p-5 rounded-xl mb-6"
-          style={{ backgroundColor: SLICEAPPS_COLORS.card }}
-        >
-          <h2 
-            className="font-semibold mb-4 text-lg"
-            style={{ color: SLICEAPPS_COLORS.text }}
-          >
+        {/* Additional Info - Category, Developer, Version, Size only */}
+        <div className="p-5 rounded-xl mb-6 bg-gray-50 dark:bg-gray-900">
+          <h2 className="font-semibold mb-4 text-lg text-gray-900 dark:text-white">
             Additional Information
           </h2>
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <p className="text-xs mb-1" style={{ color: SLICEAPPS_COLORS.textSecondary }}>
+              <p className="text-xs mb-1 text-gray-500 dark:text-gray-400">
                 Category
               </p>
-              <p className="text-sm" style={{ color: SLICEAPPS_COLORS.text }}>
+              <p className="text-sm text-gray-900 dark:text-white">
                 {app.category || "Other"}
               </p>
             </div>
             <div>
-              <p className="text-xs mb-1" style={{ color: SLICEAPPS_COLORS.textSecondary }}>
-                Version
-              </p>
-              <p className="text-sm" style={{ color: SLICEAPPS_COLORS.text }}>
-                {app.version_name || "1.0"} ({app.version_code || "1"})
-              </p>
-            </div>
-            <div>
-              <p className="text-xs mb-1" style={{ color: SLICEAPPS_COLORS.textSecondary }}>
+              <p className="text-xs mb-1 text-gray-500 dark:text-gray-400">
                 Developer
               </p>
-              <p className="text-sm" style={{ color: SLICEAPPS_COLORS.text }}>
+              <p className="text-sm text-gray-900 dark:text-white">
                 {app.developer_name || "Unknown"}
               </p>
             </div>
             <div>
-              <p className="text-xs mb-1" style={{ color: SLICEAPPS_COLORS.textSecondary }}>
+              <p className="text-xs mb-1 text-gray-500 dark:text-gray-400">
+                Version
+              </p>
+              <p className="text-sm text-gray-900 dark:text-white">
+                {app.version_name || "1.0"} ({app.version_code || "1"})
+              </p>
+            </div>
+            <div>
+              <p className="text-xs mb-1 text-gray-500 dark:text-gray-400">
                 Size
               </p>
-              <p className="text-sm" style={{ color: SLICEAPPS_COLORS.text }}>
-                {fileInfo ? formatFileSize(fileInfo.file_size) : "—"}
+              <p className="text-sm text-gray-900 dark:text-white">
+                {fileInfo ? formatFileSize(fileInfo.file_size) : "--"}
               </p>
             </div>
           </div>
         </div>
 
-        {/* Ratings & Reviews - Enhanced component */}
+        {/* Ratings & Reviews */}
         <div className="mb-6">
           <RatingsReviewsSection
             appId={app.id}
@@ -546,8 +484,7 @@ export default function AppPage() {
       {/* Screenshot Modal */}
       {selectedScreenshot !== null && app.screenshots && (
         <div 
-          className="fixed inset-0 z-50 flex items-center justify-center p-4"
-          style={{ backgroundColor: "rgba(0,0,0,0.9)" }}
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/90"
           onClick={() => setSelectedScreenshot(null)}
         >
           <img
@@ -560,17 +497,12 @@ export default function AppPage() {
 
       {/* Password Dialog */}
       <Dialog open={showPasswordDialog} onOpenChange={setShowPasswordDialog}>
-        <DialogContent
-          style={{
-            backgroundColor: SLICEAPPS_COLORS.card,
-            borderColor: SLICEAPPS_COLORS.border,
-          }}
-        >
+        <DialogContent className="bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-700">
           <DialogHeader>
-            <DialogTitle style={{ color: SLICEAPPS_COLORS.text }}>
+            <DialogTitle className="text-gray-900 dark:text-white">
               Password Required
             </DialogTitle>
-            <DialogDescription style={{ color: SLICEAPPS_COLORS.textSecondary }}>
+            <DialogDescription className="text-gray-500 dark:text-gray-400">
               This file is password protected. Please enter the password to download.
             </DialogDescription>
           </DialogHeader>
@@ -581,12 +513,7 @@ export default function AppPage() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && handlePasswordSubmit()}
-              className="border"
-              style={{
-                backgroundColor: SLICEAPPS_COLORS.bg,
-                borderColor: SLICEAPPS_COLORS.border,
-                color: SLICEAPPS_COLORS.text,
-              }}
+              className="border bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white"
             />
             <div className="flex gap-3">
               <Button
@@ -595,23 +522,14 @@ export default function AppPage() {
                   setPassword("");
                 }}
                 variant="outline"
-                className="flex-1 border"
-                style={{
-                  backgroundColor: "transparent",
-                  borderColor: SLICEAPPS_COLORS.border,
-                  color: SLICEAPPS_COLORS.text,
-                }}
+                className="flex-1 border border-gray-200 dark:border-gray-700"
               >
                 Cancel
               </Button>
               <Button
                 onClick={handlePasswordSubmit}
                 disabled={isVerifyingPassword || !password}
-                className="flex-1"
-                style={{
-                  backgroundColor: SLICEAPPS_COLORS.text,
-                  color: SLICEAPPS_COLORS.bg,
-                }}
+                className="flex-1 bg-green-500 hover:bg-green-600 text-white"
               >
                 {isVerifyingPassword ? "Verifying..." : "Download"}
               </Button>
