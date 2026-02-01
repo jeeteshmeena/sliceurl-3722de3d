@@ -1,13 +1,10 @@
 import { useState, useEffect } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { 
-  Star, Download,
-  Package, User, Lock, AlertTriangle
+  Star, Download, Package, Lock, AlertTriangle
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Separator } from "@/components/ui/separator";
 import {
   Dialog,
   DialogContent,
@@ -18,7 +15,7 @@ import {
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import sliceAppsLogo from "@/assets/sliceurl-logo-new.png";
+import { SliceAppsHeader, RatingsReviewsSection } from "@/components/sliceapps";
 
 const SLICEAPPS_COLORS = {
   bg: "#000000",
@@ -27,8 +24,7 @@ const SLICEAPPS_COLORS = {
   border: "#333333",
   text: "#ffffff",
   textSecondary: "#888888",
-  buttonBg: "#000000",
-  buttonBorder: "#444444",
+  green: "#4ade80",
 };
 
 interface AppListing {
@@ -88,11 +84,6 @@ export default function AppPage() {
   const [password, setPassword] = useState("");
   const [isVerifyingPassword, setIsVerifyingPassword] = useState(false);
   
-  // Review form state
-  const [reviewRating, setReviewRating] = useState(5);
-  const [reviewText, setReviewText] = useState("");
-  const [isSubmittingReview, setIsSubmittingReview] = useState(false);
-  
   // Screenshot viewer
   const [selectedScreenshot, setSelectedScreenshot] = useState<number | null>(null);
 
@@ -145,7 +136,7 @@ export default function AppPage() {
         .select("*")
         .eq("app_id", appData.id)
         .order("created_at", { ascending: false })
-        .limit(10);
+        .limit(20);
 
       if (reviewsData) {
         setReviews(reviewsData);
@@ -255,40 +246,6 @@ export default function AppPage() {
     }
   };
 
-  const handleSubmitReview = async () => {
-    if (!app) return;
-
-    // Only require login for reviews with text
-    if (reviewText.trim() && !user) {
-      toast.error("Please sign in to write a review");
-      return;
-    }
-
-    setIsSubmittingReview(true);
-    try {
-      const { error } = await supabase
-        .from("app_reviews")
-        .insert({
-          app_id: app.id,
-          rating: reviewRating,
-          review_text: reviewText.trim() || null,
-          user_id: user?.id || null,
-        });
-
-      if (error) throw error;
-
-      toast.success("Review submitted!");
-      setReviewText("");
-      setReviewRating(5);
-      loadAppData(); // Reload to get updated ratings
-    } catch (err) {
-      console.error("Failed to submit review:", err);
-      toast.error("Failed to submit review");
-    } finally {
-      setIsSubmittingReview(false);
-    }
-  };
-
   const formatFileSize = (bytes: number): string => {
     if (bytes === 0) return "0 B";
     const k = 1024;
@@ -297,30 +254,11 @@ export default function AppPage() {
     return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + " " + sizes[i];
   };
 
-  const formatDate = (dateStr: string | null): string => {
-    if (!dateStr) return "Unknown";
-    return new Date(dateStr).toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-    });
-  };
-
   const formatDownloads = (count: number | null): string => {
     if (!count) return "0";
-    if (count >= 1000000) return `${(count / 1000000).toFixed(1)}M`;
-    if (count >= 1000) return `${(count / 1000).toFixed(1)}K`;
+    if (count >= 1000000) return `${(count / 1000000).toFixed(1)}M+`;
+    if (count >= 1000) return `${(count / 1000).toFixed(1)}K+`;
     return count.toString();
-  };
-
-  const getRatingDistribution = (): number[] => {
-    const dist = [0, 0, 0, 0, 0];
-    reviews.forEach(r => {
-      if (r.rating >= 1 && r.rating <= 5) {
-        dist[r.rating - 1]++;
-      }
-    });
-    return dist.reverse(); // 5 stars first
   };
 
   if (isLoading) {
@@ -361,8 +299,6 @@ export default function AppPage() {
     );
   }
 
-  const ratingDist = getRatingDistribution();
-  const maxRatingCount = Math.max(...ratingDist, 1);
   // Use actual file download count for consistency
   const actualDownloads = fileInfo?.download_count || 0;
 
@@ -371,35 +307,8 @@ export default function AppPage() {
       className="min-h-dvh"
       style={{ backgroundColor: SLICEAPPS_COLORS.bg }}
     >
-      {/* Header - Sticky with logo lockup */}
-      <header 
-        className="sticky top-0 z-50 border-b"
-        style={{ 
-          backgroundColor: SLICEAPPS_COLORS.bg,
-          borderColor: SLICEAPPS_COLORS.border,
-        }}
-      >
-        <div className="max-w-4xl mx-auto h-14 flex items-center px-4">
-          <Link to="/" className="flex items-center gap-3">
-            <div 
-              className="w-9 h-9 rounded-full overflow-hidden flex items-center justify-center"
-              style={{ backgroundColor: SLICEAPPS_COLORS.card }}
-            >
-              <img 
-                src={sliceAppsLogo} 
-                alt="SliceAPPs" 
-                className="w-7 h-7 object-contain"
-              />
-            </div>
-            <span 
-              className="font-semibold text-lg tracking-tight"
-              style={{ color: SLICEAPPS_COLORS.text }}
-            >
-              SliceAPPs
-            </span>
-          </Link>
-        </div>
-      </header>
+      {/* Header - Clean, no back arrow */}
+      <SliceAppsHeader showCreateButton />
 
       {/* Main Content */}
       <main className="max-w-4xl mx-auto px-4 py-6">
@@ -415,7 +324,7 @@ export default function AppPage() {
           </div>
         )}
 
-        {/* App Header - Clean layout */}
+        {/* App Header - Clean layout: Icon, Name, Developer only */}
         <div className="flex gap-4 mb-6">
           {/* Icon */}
           <div 
@@ -431,8 +340,8 @@ export default function AppPage() {
             )}
           </div>
 
-          {/* Info */}
-          <div className="flex-1 min-w-0">
+          {/* Info - Name and Developer only (no category/version here) */}
+          <div className="flex-1 min-w-0 flex flex-col justify-center">
             <h1 
               className="text-xl sm:text-2xl font-bold truncate"
               style={{ color: SLICEAPPS_COLORS.text }}
@@ -441,62 +350,52 @@ export default function AppPage() {
             </h1>
             {app.developer_name && (
               <p 
-                className="text-sm mt-1"
+                className="text-sm mt-1.5"
                 style={{ color: SLICEAPPS_COLORS.textSecondary }}
               >
                 {app.developer_name}
               </p>
             )}
-            {app.category && (
-              <p 
-                className="text-xs mt-1"
-                style={{ color: SLICEAPPS_COLORS.textSecondary }}
-              >
-                {app.category}
-              </p>
-            )}
           </div>
         </div>
+
+        {/* Download Button - Large, rounded, white bg, black text */}
+        <Button
+          onClick={handleDownload}
+          disabled={isDownloading || !fileInfo || !!fileUnavailable}
+          className="w-full h-14 text-base font-semibold rounded-2xl mb-5 gap-3"
+          style={{
+            backgroundColor: fileUnavailable ? SLICEAPPS_COLORS.card : "#ffffff",
+            color: fileUnavailable ? SLICEAPPS_COLORS.textSecondary : "#000000",
+          }}
+        >
+          {fileInfo?.password_hash && <Lock className="h-5 w-5" />}
+          <Download className="h-5 w-5" />
+          {isDownloading ? "Downloading..." : "Download"}
+        </Button>
 
         {/* File Unavailable Warning */}
         {fileUnavailable && (
           <div 
-            className="flex items-center gap-3 p-4 rounded-xl mb-6"
-            style={{ 
-              backgroundColor: SLICEAPPS_COLORS.card,
-              borderColor: SLICEAPPS_COLORS.border,
-            }}
+            className="flex items-center gap-3 p-4 rounded-xl mb-5"
+            style={{ backgroundColor: SLICEAPPS_COLORS.card }}
           >
-            <AlertTriangle className="h-5 w-5 flex-shrink-0" style={{ color: "#888888" }} />
+            <AlertTriangle className="h-5 w-5 flex-shrink-0" style={{ color: SLICEAPPS_COLORS.textSecondary }} />
             <p className="text-sm" style={{ color: SLICEAPPS_COLORS.textSecondary }}>
               {fileUnavailable}
             </p>
           </div>
         )}
 
-        {/* Download Button - Large, rounded, high contrast */}
-        <Button
-          onClick={handleDownload}
-          disabled={isDownloading || !fileInfo || !!fileUnavailable}
-          className="w-full h-14 text-base font-semibold rounded-xl mb-6"
-          style={{
-            backgroundColor: fileUnavailable ? SLICEAPPS_COLORS.card : SLICEAPPS_COLORS.text,
-            color: fileUnavailable ? SLICEAPPS_COLORS.textSecondary : SLICEAPPS_COLORS.bg,
-          }}
-        >
-          {fileInfo?.password_hash && <Lock className="h-5 w-5 mr-2" />}
-          <Download className="h-5 w-5 mr-2" />
-          {isDownloading ? "Downloading..." : "Download"}
-        </Button>
-
-        {/* Stats Row - Clean, no clutter */}
+        {/* Stats Row - Rating, Reviews, Downloads, Size (no version) */}
         <div 
           className="flex items-center justify-between p-4 rounded-xl mb-6"
           style={{ backgroundColor: SLICEAPPS_COLORS.card }}
         >
+          {/* Rating */}
           <div className="text-center flex-1">
             <div className="flex items-center justify-center gap-1 mb-1">
-              <Star className="h-4 w-4 fill-current" style={{ color: SLICEAPPS_COLORS.text }} />
+              <Star className="h-4 w-4 fill-current" style={{ color: SLICEAPPS_COLORS.green }} />
               <span className="font-semibold" style={{ color: SLICEAPPS_COLORS.text }}>
                 {app.rating_avg?.toFixed(1) || "—"}
               </span>
@@ -506,6 +405,7 @@ export default function AppPage() {
           
           <div className="w-px h-8" style={{ backgroundColor: SLICEAPPS_COLORS.border }} />
           
+          {/* Reviews Count */}
           <div className="text-center flex-1">
             <div className="font-semibold mb-1" style={{ color: SLICEAPPS_COLORS.text }}>
               {app.rating_count || 0}
@@ -515,29 +415,25 @@ export default function AppPage() {
           
           <div className="w-px h-8" style={{ backgroundColor: SLICEAPPS_COLORS.border }} />
           
+          {/* Downloads Count - Human readable */}
           <div className="text-center flex-1">
-            <div className="font-semibold mb-1" style={{ color: SLICEAPPS_COLORS.text }}>
-              {formatDownloads(actualDownloads)}
+            <div className="flex items-center justify-center gap-1 mb-1">
+              <Download className="h-3.5 w-3.5" style={{ color: SLICEAPPS_COLORS.text }} />
+              <span className="font-semibold" style={{ color: SLICEAPPS_COLORS.text }}>
+                {formatDownloads(actualDownloads)}
+              </span>
             </div>
             <p className="text-xs" style={{ color: SLICEAPPS_COLORS.textSecondary }}>Downloads</p>
           </div>
           
           <div className="w-px h-8" style={{ backgroundColor: SLICEAPPS_COLORS.border }} />
           
+          {/* File Size */}
           <div className="text-center flex-1">
             <div className="font-semibold mb-1" style={{ color: SLICEAPPS_COLORS.text }}>
               {fileInfo ? formatFileSize(fileInfo.file_size) : "—"}
             </div>
             <p className="text-xs" style={{ color: SLICEAPPS_COLORS.textSecondary }}>Size</p>
-          </div>
-          
-          <div className="w-px h-8" style={{ backgroundColor: SLICEAPPS_COLORS.border }} />
-          
-          <div className="text-center flex-1">
-            <div className="font-semibold mb-1" style={{ color: SLICEAPPS_COLORS.text }}>
-              {app.version_name || "1.0"}
-            </div>
-            <p className="text-xs" style={{ color: SLICEAPPS_COLORS.textSecondary }}>Version</p>
           </div>
         </div>
 
@@ -617,176 +513,33 @@ export default function AppPage() {
             </div>
             <div>
               <p className="text-xs mb-1" style={{ color: SLICEAPPS_COLORS.textSecondary }}>
-                Updated
-              </p>
-              <p className="text-sm" style={{ color: SLICEAPPS_COLORS.text }}>
-                {formatDate(app.release_date)}
-              </p>
-            </div>
-            <div>
-              <p className="text-xs mb-1" style={{ color: SLICEAPPS_COLORS.textSecondary }}>
                 Developer
               </p>
               <p className="text-sm" style={{ color: SLICEAPPS_COLORS.text }}>
                 {app.developer_name || "Unknown"}
               </p>
             </div>
+            <div>
+              <p className="text-xs mb-1" style={{ color: SLICEAPPS_COLORS.textSecondary }}>
+                Size
+              </p>
+              <p className="text-sm" style={{ color: SLICEAPPS_COLORS.text }}>
+                {fileInfo ? formatFileSize(fileInfo.file_size) : "—"}
+              </p>
+            </div>
           </div>
         </div>
 
-        {/* Ratings & Reviews */}
-        <div 
-          className="p-5 rounded-xl mb-6"
-          style={{ backgroundColor: SLICEAPPS_COLORS.card }}
-        >
-          <h2 
-            className="font-semibold mb-4 text-lg"
-            style={{ color: SLICEAPPS_COLORS.text }}
-          >
-            Ratings & Reviews
-          </h2>
-
-          {/* Rating Summary */}
-          <div className="flex gap-6 mb-6">
-            <div className="text-center">
-              <div 
-                className="text-5xl font-bold"
-                style={{ color: SLICEAPPS_COLORS.text }}
-              >
-                {app.rating_avg?.toFixed(1) || "0.0"}
-              </div>
-              <div className="flex gap-0.5 justify-center mt-1">
-                {[1, 2, 3, 4, 5].map(star => (
-                  <Star
-                    key={star}
-                    className={`h-4 w-4 ${star <= Math.round(app.rating_avg || 0) ? "fill-current" : ""}`}
-                    style={{ color: SLICEAPPS_COLORS.text }}
-                  />
-                ))}
-              </div>
-              <p className="text-xs mt-1" style={{ color: SLICEAPPS_COLORS.textSecondary }}>
-                {app.rating_count || 0} reviews
-              </p>
-            </div>
-
-            {/* Rating Distribution */}
-            <div className="flex-1 space-y-1">
-              {[5, 4, 3, 2, 1].map((star, index) => (
-                <div key={star} className="flex items-center gap-2">
-                  <span className="text-xs w-3" style={{ color: SLICEAPPS_COLORS.textSecondary }}>
-                    {star}
-                  </span>
-                  <div 
-                    className="flex-1 h-2 rounded-full overflow-hidden"
-                    style={{ backgroundColor: SLICEAPPS_COLORS.border }}
-                  >
-                    <div
-                      className="h-full rounded-full"
-                      style={{ 
-                        backgroundColor: SLICEAPPS_COLORS.text,
-                        width: `${(ratingDist[index] / maxRatingCount) * 100}%`,
-                      }}
-                    />
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          <Separator className="mb-4" style={{ backgroundColor: SLICEAPPS_COLORS.border }} />
-
-          {/* Add Review */}
-          <div className="mb-6">
-            <h3 
-              className="text-sm font-medium mb-3"
-              style={{ color: SLICEAPPS_COLORS.text }}
-            >
-              Write a review
-            </h3>
-            <div className="flex gap-1 mb-3">
-              {[1, 2, 3, 4, 5].map(star => (
-                <button
-                  key={star}
-                  onClick={() => setReviewRating(star)}
-                  className="p-1"
-                >
-                  <Star
-                    className={`h-6 w-6 transition-colors ${star <= reviewRating ? "fill-current" : ""}`}
-                    style={{ color: SLICEAPPS_COLORS.text }}
-                  />
-                </button>
-              ))}
-            </div>
-            <Textarea
-              value={reviewText}
-              onChange={(e) => setReviewText(e.target.value)}
-              placeholder={user ? "Share your thoughts about this app..." : "Sign in to write a review, or just rate it!"}
-              rows={3}
-              className="border resize-none mb-3"
-              style={{
-                backgroundColor: SLICEAPPS_COLORS.bg,
-                borderColor: SLICEAPPS_COLORS.border,
-                color: SLICEAPPS_COLORS.text,
-              }}
-            />
-            <Button
-              onClick={handleSubmitReview}
-              disabled={isSubmittingReview}
-              className="rounded-lg"
-              style={{
-                backgroundColor: SLICEAPPS_COLORS.text,
-                color: SLICEAPPS_COLORS.bg,
-              }}
-            >
-              {isSubmittingReview ? "Submitting..." : "Submit Review"}
-            </Button>
-          </div>
-
-          {/* Reviews List */}
-          {reviews.length > 0 && (
-            <div className="space-y-4">
-              {reviews.map(review => (
-                <div 
-                  key={review.id}
-                  className="p-3 rounded-lg"
-                  style={{ backgroundColor: SLICEAPPS_COLORS.bg }}
-                >
-                  <div className="flex items-center gap-2 mb-2">
-                    <div 
-                      className="w-8 h-8 rounded-full flex items-center justify-center"
-                      style={{ backgroundColor: SLICEAPPS_COLORS.border }}
-                    >
-                      <User className="h-4 w-4" style={{ color: SLICEAPPS_COLORS.textSecondary }} />
-                    </div>
-                    <div className="flex-1">
-                      <p className="text-sm" style={{ color: SLICEAPPS_COLORS.text }}>
-                        {review.user_id ? "User" : "Guest"}
-                      </p>
-                      <div className="flex items-center gap-2">
-                        <div className="flex gap-0.5">
-                          {[1, 2, 3, 4, 5].map(star => (
-                            <Star
-                              key={star}
-                              className={`h-3 w-3 ${star <= review.rating ? "fill-current" : ""}`}
-                              style={{ color: SLICEAPPS_COLORS.text }}
-                            />
-                          ))}
-                        </div>
-                        <span className="text-xs" style={{ color: SLICEAPPS_COLORS.textSecondary }}>
-                          {new Date(review.created_at).toLocaleDateString()}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                  {review.review_text && (
-                    <p className="text-sm" style={{ color: SLICEAPPS_COLORS.textSecondary }}>
-                      {review.review_text}
-                    </p>
-                  )}
-                </div>
-              ))}
-            </div>
-          )}
+        {/* Ratings & Reviews - Enhanced component */}
+        <div className="mb-6">
+          <RatingsReviewsSection
+            appId={app.id}
+            ratingAvg={app.rating_avg}
+            ratingCount={app.rating_count}
+            reviews={reviews}
+            userId={user?.id || null}
+            onReviewSubmit={loadAppData}
+          />
         </div>
       </main>
 
