@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
-import { Star, User } from "lucide-react";
+import { Star, User, Edit2, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Separator } from "@/components/ui/separator";
@@ -12,6 +12,8 @@ interface Review {
   review_text: string | null;
   created_at: string;
   user_id: string | null;
+  ip_address?: string | null;
+  browser_fingerprint?: string | null;
   username?: string;
 }
 
@@ -24,9 +26,26 @@ interface RatingsReviewsSectionProps {
   onReviewSubmit: () => void;
 }
 
+// Generate simple browser fingerprint
+const getBrowserFingerprint = (): string => {
+  const data = [
+    navigator.userAgent,
+    navigator.language,
+    screen.width,
+    screen.height,
+    new Date().getTimezoneOffset(),
+  ].join("|");
+  
+  let hash = 0;
+  for (let i = 0; i < data.length; i++) {
+    hash = ((hash << 5) - hash) + data.charCodeAt(i);
+    hash = hash & hash;
+  }
+  return Math.abs(hash).toString(36);
+};
+
 // Generate random username for anonymous users (consistent per review)
 const generateRandomUsername = (seed: string): string => {
-  // Simple hash to get consistent random
   let hash = 0;
   for (let i = 0; i < seed.length; i++) {
     hash = ((hash << 5) - hash) + seed.charCodeAt(i);
@@ -48,6 +67,9 @@ export function RatingsReviewsSection({
   const [reviewText, setReviewText] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [userProfiles, setUserProfiles] = useState<Record<string, string>>({});
+  const [myReview, setMyReview] = useState<Review | null>(null);
+  const [isEditing, setIsEditing] = useState(false);
+  const [browserFingerprint] = useState(getBrowserFingerprint);
 
   // Load user profiles for reviews
   useEffect(() => {
@@ -71,29 +93,148 @@ export function RatingsReviewsSection({
     loadProfiles();
   }, [reviews]);
 
+  // Check if current user/IP already has a review
+  useEffect(() => {
+    // Find review by current user
+    if (userId) {
+      const userReview = reviews.find(r => r.user_id === userId);
+      if (userReview) {
+        setMyReview(userReview);
+        return;
+      }
+    }
+    // Otherwise check via submit-review API to see if IP has a review
+    setMyReview(null);
+  }, [reviews, userId]);
+
   const handleSubmitReview = async () => {
+    if (isSubmitting) return;
+    
     setIsSubmitting(true);
     try {
-      const { error } = await supabase
-        .from("app_reviews")
-        .insert({
-          app_id: appId,
+      const response = await supabase.functions.invoke("submit-review", {
+        body: {
+          appId,
           rating: reviewRating,
-          review_text: reviewText.trim() || null,
-          user_id: userId || null,
-        });
+          reviewText: reviewText.trim() || null,
+          browserFingerprint,
+        },
+      });
 
-      if (error) throw error;
+      if (response.error) throw response.error;
 
-      toast.success("Review submitted!");
-      setReviewText("");
-      setReviewRating(5);
-      onReviewSubmit();
+      const data = response.data;
+      
+      if (!data.success) {
+        toast.error(data.error || "Failed to submit review");
+        return;
+      }
+
+      if (data.action === "existing") {
+        // This IP already has a review - show it and offer to edit
+        setMyReview(data.review);
+        setReviewRating(data.review.rating);
+        setReviewText(data.review.review_text || "");
+        setIsEditing(true);
+        toast.info("You have already reviewed this app. Edit your review instead.");
+      } else {
+        toast.success("Review submitted!");
+        setReviewText("");
+        setReviewRating(5);
+        setMyReview(data.review);
+        onReviewSubmit();
+      }
     } catch (err) {
       console.error("Failed to submit review:", err);
       toast.error("Failed to submit review");
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  const handleUpdateReview = async () => {
+    if (!myReview || isSubmitting) return;
+    
+    setIsSubmitting(true);
+    try {
+      const response = await supabase.functions.invoke("update-review", {
+        body: {
+          reviewId: myReview.id,
+          rating: reviewRating,
+          reviewText: reviewText.trim() || null,
+          browserFingerprint,
+        },
+      });
+
+      if (response.error) throw response.error;
+
+      const data = response.data;
+      
+      if (!data.success) {
+        toast.error(data.error || "Failed to update review");
+        return;
+      }
+
+      toast.success("Review updated!");
+      setIsEditing(false);
+      setMyReview(data.review);
+      onReviewSubmit();
+    } catch (err) {
+      console.error("Failed to update review:", err);
+      toast.error("Failed to update review");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleDeleteReview = async () => {
+    if (!myReview || !userId || isSubmitting) return;
+    
+    setIsSubmitting(true);
+    try {
+      const response = await supabase.functions.invoke("delete-review", {
+        body: {
+          reviewId: myReview.id,
+          browserFingerprint,
+        },
+      });
+
+      if (response.error) throw response.error;
+
+      const data = response.data;
+      
+      if (!data.success) {
+        toast.error(data.error || "Failed to delete review");
+        return;
+      }
+
+      toast.success("Review deleted!");
+      setMyReview(null);
+      setReviewText("");
+      setReviewRating(5);
+      setIsEditing(false);
+      onReviewSubmit();
+    } catch (err) {
+      console.error("Failed to delete review:", err);
+      toast.error("Failed to delete review");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const startEditing = () => {
+    if (myReview) {
+      setReviewRating(myReview.rating);
+      setReviewText(myReview.review_text || "");
+      setIsEditing(true);
+    }
+  };
+
+  const cancelEditing = () => {
+    setIsEditing(false);
+    if (myReview) {
+      setReviewRating(myReview.rating);
+      setReviewText(myReview.review_text || "");
     }
   };
 
@@ -113,8 +254,11 @@ export function RatingsReviewsSection({
     if (review.user_id && userProfiles[review.user_id]) {
       return userProfiles[review.user_id];
     }
-    // Generate consistent random name based on review id
     return generateRandomUsername(review.id);
+  };
+
+  const isMyReview = (review: Review): boolean => {
+    return myReview?.id === review.id;
   };
 
   return (
@@ -170,28 +314,73 @@ export function RatingsReviewsSection({
 
       <Separator className="my-5 bg-gray-200 dark:bg-gray-700" />
 
-      {/* Write a review */}
+      {/* Write/Edit a review */}
       <div className="mb-6">
         <h3 className="text-sm font-medium mb-3 text-gray-900 dark:text-white">
-          Rate this app
+          {myReview && !isEditing ? "Your Review" : isEditing ? "Edit Your Review" : "Rate this app"}
         </h3>
-        <div className="flex gap-1.5 mb-4">
-          {[1, 2, 3, 4, 5].map(star => (
-            <button
-              key={star}
-              onClick={() => setReviewRating(star)}
-              className="p-1 transition-transform hover:scale-110"
-            >
-              <Star
-                className={`h-8 w-8 transition-colors ${star <= reviewRating ? "fill-current" : ""}`}
-                style={{ color: star <= reviewRating ? "#22c55e" : "#d1d5db" }}
-              />
-            </button>
-          ))}
-        </div>
         
-        {userId ? (
+        {myReview && !isEditing ? (
+          // Show existing review with edit option
+          <div className="p-4 rounded-xl bg-white dark:bg-gray-800 border-2 border-green-500/30">
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex gap-0.5">
+                {[1, 2, 3, 4, 5].map(star => (
+                  <Star
+                    key={star}
+                    className={`h-5 w-5 ${star <= myReview.rating ? "fill-current" : ""}`}
+                    style={{ color: "#22c55e" }}
+                  />
+                ))}
+              </div>
+              <div className="flex gap-2">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={startEditing}
+                  className="h-8 px-2"
+                >
+                  <Edit2 className="h-4 w-4 mr-1" />
+                  Edit
+                </Button>
+                {userId && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={handleDeleteReview}
+                    disabled={isSubmitting}
+                    className="h-8 px-2 text-red-500 hover:text-red-600"
+                  >
+                    <Trash2 className="h-4 w-4 mr-1" />
+                    Delete
+                  </Button>
+                )}
+              </div>
+            </div>
+            {myReview.review_text && (
+              <p className="text-sm text-gray-600 dark:text-gray-300">
+                {myReview.review_text}
+              </p>
+            )}
+          </div>
+        ) : (
+          // Show rating input form
           <>
+            <div className="flex gap-1.5 mb-4">
+              {[1, 2, 3, 4, 5].map(star => (
+                <button
+                  key={star}
+                  onClick={() => setReviewRating(star)}
+                  className="p-1 transition-transform hover:scale-110"
+                >
+                  <Star
+                    className={`h-8 w-8 transition-colors ${star <= reviewRating ? "fill-current" : ""}`}
+                    style={{ color: star <= reviewRating ? "#22c55e" : "#d1d5db" }}
+                  />
+                </button>
+              ))}
+            </div>
+            
             <Textarea
               value={reviewText}
               onChange={(e) => setReviewText(e.target.value)}
@@ -199,26 +388,35 @@ export function RatingsReviewsSection({
               rows={3}
               className="border resize-none mb-3 bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white"
             />
-            <Button
-              onClick={handleSubmitReview}
-              disabled={isSubmitting}
-              className="rounded-xl h-11 px-6 bg-green-500 hover:bg-green-600 text-white"
-            >
-              {isSubmitting ? "Submitting..." : "Submit Review"}
-            </Button>
-          </>
-        ) : (
-          <>
-            <p className="text-sm mb-3 text-gray-500 dark:text-gray-400">
-              Sign in to write a review, or just tap to rate!
-            </p>
-            <Button
-              onClick={handleSubmitReview}
-              disabled={isSubmitting}
-              className="rounded-xl h-11 px-6 bg-green-500 hover:bg-green-600 text-white"
-            >
-              {isSubmitting ? "Submitting..." : "Submit Rating"}
-            </Button>
+            
+            <div className="flex gap-2">
+              {isEditing ? (
+                <>
+                  <Button
+                    onClick={handleUpdateReview}
+                    disabled={isSubmitting}
+                    className="rounded-xl h-11 px-6 bg-green-500 hover:bg-green-600 text-white"
+                  >
+                    {isSubmitting ? "Saving..." : "Save Changes"}
+                  </Button>
+                  <Button
+                    onClick={cancelEditing}
+                    variant="outline"
+                    className="rounded-xl h-11 px-6"
+                  >
+                    Cancel
+                  </Button>
+                </>
+              ) : (
+                <Button
+                  onClick={handleSubmitReview}
+                  disabled={isSubmitting}
+                  className="rounded-xl h-11 px-6 bg-green-500 hover:bg-green-600 text-white"
+                >
+                  {isSubmitting ? "Submitting..." : "Submit Review"}
+                </Button>
+              )}
+            </div>
           </>
         )}
       </div>
@@ -228,7 +426,7 @@ export function RatingsReviewsSection({
         <>
           <Separator className="my-5 bg-gray-200 dark:bg-gray-700" />
           <div className="space-y-4 max-h-[400px] overflow-y-auto">
-            {reviews.map(review => (
+            {reviews.filter(r => r.id !== myReview?.id).map(review => (
               <div 
                 key={review.id}
                 className="p-4 rounded-xl bg-white dark:bg-gray-800"

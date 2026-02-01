@@ -169,26 +169,35 @@ export type Database = {
       app_reviews: {
         Row: {
           app_id: string
+          browser_fingerprint: string | null
           created_at: string
           id: string
+          ip_address: string | null
           rating: number
           review_text: string | null
+          updated_at: string | null
           user_id: string | null
         }
         Insert: {
           app_id: string
+          browser_fingerprint?: string | null
           created_at?: string
           id?: string
+          ip_address?: string | null
           rating: number
           review_text?: string | null
+          updated_at?: string | null
           user_id?: string | null
         }
         Update: {
           app_id?: string
+          browser_fingerprint?: string | null
           created_at?: string
           id?: string
+          ip_address?: string | null
           rating?: number
           review_text?: string | null
+          updated_at?: string | null
           user_id?: string | null
         }
         Relationships: [
