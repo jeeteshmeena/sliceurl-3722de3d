@@ -244,12 +244,13 @@ export default function AppPage() {
   };
 
   const formatDownloads = (count: number | null): string => {
-    if (!count) return "0";
+    if (!count || count === 0) return "0";
     if (count >= 1000000) return `${(count / 1000000).toFixed(1)}M+`;
-    if (count >= 100000) return `100K+`;
-    if (count >= 50000) return `50K+`;
-    if (count >= 10000) return `10K+`;
+    if (count >= 100000) return "100K+";
+    if (count >= 10000) return "10K+";
     if (count >= 1000) return `${Math.floor(count / 1000)}K+`;
+    if (count >= 100) return "100+";
+    if (count >= 10) return "10+";
     return count.toString();
   };
 
@@ -347,48 +348,51 @@ export default function AppPage() {
           </div>
         )}
 
-        {/* Stats Row - Rating, Reviews, Downloads, Size only */}
-        <div className="flex items-center justify-between p-4 rounded-xl mb-6 bg-gray-50 dark:bg-gray-900">
-          {/* Rating */}
+        {/* Stats Row - Rating (with reviews count), Downloads, Size only */}
+        <div className="flex items-center justify-between p-4 rounded-xl mb-6 bg-gray-50 dark:bg-gray-900 border border-gray-100 dark:border-gray-800">
+          {/* Rating with stars and review count */}
           <div className="text-center flex-1">
-            <div className="flex items-center justify-center gap-1 mb-1">
-              <Star className="h-4 w-4 fill-current" style={{ color: "#22c55e" }} />
-              <span className="font-semibold text-gray-900 dark:text-white">
+            <div className="flex items-center justify-center gap-1.5 mb-1">
+              <span className="font-bold text-lg text-gray-900 dark:text-white">
                 {app.rating_avg?.toFixed(1) || "0.0"}
               </span>
+              <div className="flex gap-0.5">
+                {[1, 2, 3, 4, 5].map(star => (
+                  <Star 
+                    key={star} 
+                    className={`h-3.5 w-3.5 ${star <= Math.round(app.rating_avg || 0) ? "fill-current" : ""}`}
+                    style={{ color: "#22c55e" }}
+                  />
+                ))}
+              </div>
             </div>
-            <p className="text-xs text-gray-500 dark:text-gray-400">Rating</p>
+            <p className="text-xs text-gray-500 dark:text-gray-400">
+              ({(app.rating_count || 0).toLocaleString()} reviews)
+            </p>
           </div>
           
-          <div className="w-px h-8 bg-gray-200 dark:bg-gray-700" />
-          
-          {/* Reviews Count */}
-          <div className="text-center flex-1">
-            <div className="font-semibold mb-1 text-gray-900 dark:text-white">
-              {app.rating_count || 0}
-            </div>
-            <p className="text-xs text-gray-500 dark:text-gray-400">Reviews</p>
-          </div>
-          
-          <div className="w-px h-8 bg-gray-200 dark:bg-gray-700" />
+          <div className="w-px h-10 bg-gray-200 dark:bg-gray-700" />
           
           {/* Downloads Count - Human readable */}
           <div className="text-center flex-1">
-            <div className="flex items-center justify-center gap-1 mb-1">
-              <Download className="h-3.5 w-3.5 text-gray-900 dark:text-white" />
-              <span className="font-semibold text-gray-900 dark:text-white">
+            <div className="flex items-center justify-center gap-1.5 mb-1">
+              <Download className="h-4 w-4 text-gray-600 dark:text-gray-300" />
+              <span className="font-bold text-lg text-gray-900 dark:text-white">
                 {formatDownloads(actualDownloads)}
               </span>
             </div>
             <p className="text-xs text-gray-500 dark:text-gray-400">Downloads</p>
           </div>
           
-          <div className="w-px h-8 bg-gray-200 dark:bg-gray-700" />
+          <div className="w-px h-10 bg-gray-200 dark:bg-gray-700" />
           
           {/* File Size */}
           <div className="text-center flex-1">
-            <div className="font-semibold mb-1 text-gray-900 dark:text-white">
-              {fileInfo ? formatFileSize(fileInfo.file_size) : "--"}
+            <div className="flex items-center justify-center gap-1.5 mb-1">
+              <Package className="h-4 w-4 text-gray-600 dark:text-gray-300" />
+              <span className="font-bold text-lg text-gray-900 dark:text-white">
+                {fileInfo ? formatFileSize(fileInfo.file_size) : "--"}
+              </span>
             </div>
             <p className="text-xs text-gray-500 dark:text-gray-400">Size</p>
           </div>
