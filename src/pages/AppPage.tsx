@@ -13,7 +13,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { toast } from "sonner";
-import { supabase } from "@/integrations/supabase/client";
+import { supabase } from "@/integrations/supabase/client"; // Used for reviews and password verification
 import { useAuth } from "@/hooks/useAuth";
 import { SliceAppsHeader, RatingsReviewsSection } from "@/components/sliceapps";
 
@@ -36,6 +36,15 @@ interface AppListing {
   total_downloads: number | null;
   release_date: string | null;
   file_id: string;
+}
+
+// Simplified file info from public endpoint
+interface PublicFileInfo {
+  file_id: string;
+  file_size: number;
+  original_name: string;
+  is_password_protected: boolean;
+  download_count: number;
 }
 
 interface FileInfo {
@@ -84,55 +93,49 @@ export default function AppPage() {
     if (!id) return;
 
     try {
-      // Check if id is a UUID or short_code
-      const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id);
-      
-      let query = supabase
-        .from("app_listings")
-        .select("*");
-      
-      if (isUuid) {
-        query = query.eq("id", id);
-      } else {
-        query = query.eq("short_code", id);
-      }
-      
-      const { data: appData, error: appError } = await query.single();
+      // Use public endpoint to fetch app info (no auth required)
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/public-app-info?id=${encodeURIComponent(id)}`,
+        {
+          method: "GET",
+          headers: { "Content-Type": "application/json" },
+          credentials: "omit", // Don't send auth cookies
+        }
+      );
 
-      if (appError) throw appError;
-      setApp(appData);
-
-      // Load file info
-      const { data: fileData, error: fileError } = await supabase
-        .from("slicebox_files")
-        .select("file_id, file_size, storage_path, original_name, password_hash, is_deleted, expires_at, download_count")
-        .eq("id", appData.file_id)
-        .single();
-
-      if (fileError) {
-        setFileUnavailable("File not found");
-      } else if (fileData.is_deleted) {
-        setFileUnavailable("This file has been deleted");
-      } else if (fileData.expires_at && new Date(fileData.expires_at) < new Date()) {
-        setFileUnavailable("This file has expired");
-      } else {
-        setFileInfo(fileData);
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        toast.error(errorData.error || "Failed to load app");
+        setIsLoading(false);
+        return;
       }
 
-      // Load reviews
-      const { data: reviewsData } = await supabase
-        .from("app_reviews")
-        .select("*")
-        .eq("app_id", appData.id)
-        .order("created_at", { ascending: false })
-        .limit(20);
+      const data = await response.json();
 
-      if (reviewsData) {
-        setReviews(reviewsData);
+      setApp(data.app);
+      
+      if (data.fileUnavailable) {
+        setFileUnavailable(data.fileUnavailable);
+      } else if (data.fileInfo) {
+        // Map public file info to our interface
+        setFileInfo({
+          file_id: data.fileInfo.file_id,
+          file_size: data.fileInfo.file_size,
+          storage_path: "", // Not needed, streaming endpoint handles it
+          original_name: data.fileInfo.original_name,
+          password_hash: data.fileInfo.is_password_protected ? "protected" : null,
+          is_deleted: null,
+          expires_at: null,
+          download_count: data.fileInfo.download_count,
+        });
+      }
+
+      if (data.reviews) {
+        setReviews(data.reviews);
       }
     } catch (err) {
       console.error("Failed to load app:", err);
-      toast.error("Failed to load app");
+      toast.error("This page is temporarily unavailable. Please try again later.");
     } finally {
       setIsLoading(false);
     }

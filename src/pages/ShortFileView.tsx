@@ -7,7 +7,7 @@ import {
 } from "lucide-react";
 import { IsolatedButton } from "@/components/slicebox/IsolatedButton";
 import { IsolatedInput } from "@/components/slicebox/IsolatedInput";
-import { supabase } from "@/integrations/supabase/client";
+import { supabase } from "@/integrations/supabase/client"; // Used for password verification
 import { toast } from "sonner";
 
 interface FileMetadata {
@@ -87,51 +87,53 @@ export default function ShortFileView({ expectedServiceType }: ShortFileViewProp
       }
 
       try {
-        // Look up by short_code
-        const { data, error: fetchError } = await supabase
-          .from("slicebox_files")
-          .select("file_id, short_code, original_name, file_size, mime_type, storage_path, expires_at, password_hash, download_count, is_deleted, service_type")
-          .eq("short_code", shortCode)
-          .eq("is_deleted", false)
-          .single();
+        // Use public endpoint to fetch file info (no auth required)
+        const response = await fetch(
+          `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/public-file-info?shortCode=${encodeURIComponent(shortCode)}`,
+          {
+            method: "GET",
+            headers: { "Content-Type": "application/json" },
+            credentials: "omit", // Don't send auth cookies
+          }
+        );
 
-        if (fetchError || !data) {
-          setError("File not found");
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({}));
+          if (response.status === 410) {
+            setError("This file has expired");
+          } else {
+            setError(errorData.error || "File not found");
+          }
           setLoading(false);
           return;
         }
 
+        const data = await response.json();
+
         // Verify service type matches if expected
-        if (expectedServiceType && data.service_type !== expectedServiceType) {
+        if (expectedServiceType && data.serviceType !== expectedServiceType) {
           // Redirect to correct URL
-          const correctPath = data.service_type === "ls" ? `/ls/${shortCode}` : `/sb/${shortCode}`;
+          const correctPath = data.serviceType === "ls" ? `/ls/${shortCode}` : `/sb/${shortCode}`;
           navigate(correctPath, { replace: true });
           return;
         }
 
-        // Check expiry
-        if (data.expires_at && new Date(data.expires_at) < new Date()) {
-          setError("This file has expired");
-          setLoading(false);
-          return;
-        }
-
         setFile({
-          fileId: data.file_id,
-          shortCode: data.short_code || shortCode,
-          originalName: data.original_name,
-          fileSize: data.file_size,
-          mimeType: data.mime_type,
-          storagePath: data.storage_path,
-          expiresAt: data.expires_at,
-          isPasswordProtected: !!data.password_hash,
-          downloadCount: data.download_count || 0,
-          serviceType: data.service_type || "sb",
+          fileId: data.fileId,
+          shortCode: data.shortCode || shortCode,
+          originalName: data.originalName,
+          fileSize: data.fileSize,
+          mimeType: data.mimeType,
+          storagePath: "", // Not needed for download, streaming endpoint handles it
+          expiresAt: data.expiresAt,
+          isPasswordProtected: data.isPasswordProtected,
+          downloadCount: data.downloadCount || 0,
+          serviceType: data.serviceType || "sb",
         });
         setLoading(false);
       } catch (err) {
         console.error("Error fetching file:", err);
-        setError("Failed to load file");
+        setError("This file is temporarily unavailable. Please try again later.");
         setLoading(false);
       }
     }
