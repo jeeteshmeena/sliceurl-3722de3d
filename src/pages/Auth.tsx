@@ -1,15 +1,14 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { motion, AnimatePresence } from "framer-motion";
 import { Mail, ArrowLeft, Loader2, Lock, Eye, EyeOff, User, AlertCircle, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { useLanguage } from "@/lib/i18n";
-import { Footer } from "@/components/Footer";
 import { SliceLogo } from "@/components/SliceLogo";
 import { AuthSuccess } from "@/components/AuthSuccess";
+import { AuthLayout } from "@/components/auth/AuthLayout";
 
 type AuthMode = "login" | "signup" | "forgot-password";
 
@@ -35,32 +34,22 @@ interface FormAlert {
 
 // Inline error component for form fields
 const FieldError = ({ message }: { message?: string }) => (
-  <AnimatePresence mode="wait">
+  <>
     {message && (
-      <motion.div
-        initial={{ opacity: 0, y: -4, height: 0 }}
-        animate={{ opacity: 1, y: 0, height: "auto" }}
-        exit={{ opacity: 0, y: -4, height: 0 }}
-        transition={{ duration: 0.15 }}
-        className="flex items-center gap-1.5 mt-1.5 text-destructive"
-      >
+      <div className="flex items-center gap-1.5 mt-1.5 text-destructive animate-fade-in">
         <AlertCircle className="h-3.5 w-3.5 flex-shrink-0" />
         <span className="text-xs font-medium">{message}</span>
-      </motion.div>
+      </div>
     )}
-  </AnimatePresence>
+  </>
 );
 
 // Form alert banner component
 const FormAlertBanner = ({ alert, onDismiss }: { alert: FormAlert | null; onDismiss: () => void }) => (
-  <AnimatePresence mode="wait">
+  <>
     {alert && (
-      <motion.div
-        initial={{ opacity: 0, y: -8, height: 0 }}
-        animate={{ opacity: 1, y: 0, height: "auto" }}
-        exit={{ opacity: 0, y: -8, height: 0 }}
-        transition={{ duration: 0.2 }}
-        className={`mb-4 p-3 rounded-xl border flex items-start gap-2.5 ${
+      <div
+        className={`mb-4 p-3 rounded-xl border flex items-start gap-2.5 animate-fade-in ${
           alert.type === "error"
             ? "bg-destructive/5 border-destructive/20 text-destructive"
             : alert.type === "success"
@@ -85,9 +74,9 @@ const FormAlertBanner = ({ alert, onDismiss }: { alert: FormAlert | null; onDism
             </button>
           )}
         </div>
-      </motion.div>
+      </div>
     )}
-  </AnimatePresence>
+  </>
 );
 
 const Auth = ({ mode: initialMode = "login" }: AuthProps) => {
@@ -127,7 +116,6 @@ const Auth = ({ mode: initialMode = "login" }: AuthProps) => {
     if (fieldErrors[field]) {
       setFieldErrors((prev) => ({ ...prev, [field]: undefined }));
     }
-    // Also clear form alert when user starts correcting
     if (formAlert) {
       setFormAlert(null);
     }
@@ -138,7 +126,6 @@ const Auth = ({ mode: initialMode = "login" }: AuthProps) => {
     const errors: FieldErrors = {};
     let isValid = true;
 
-    // Email validation
     if (!email.trim()) {
       errors.email = "Email is required";
       isValid = false;
@@ -148,7 +135,6 @@ const Auth = ({ mode: initialMode = "login" }: AuthProps) => {
     }
 
     if (mode === "signup") {
-      // Full name validation
       if (!fullName.trim()) {
         errors.fullName = "Full name is required";
         isValid = false;
@@ -157,7 +143,6 @@ const Auth = ({ mode: initialMode = "login" }: AuthProps) => {
         isValid = false;
       }
 
-      // Password validation
       if (!password) {
         errors.password = "Password is required";
         isValid = false;
@@ -166,7 +151,6 @@ const Auth = ({ mode: initialMode = "login" }: AuthProps) => {
         isValid = false;
       }
 
-      // Confirm password validation
       if (!confirmPassword) {
         errors.confirmPassword = "Please confirm your password";
         isValid = false;
@@ -191,7 +175,6 @@ const Auth = ({ mode: initialMode = "login" }: AuthProps) => {
     e.preventDefault();
     setFormAlert(null);
 
-    // Validate form
     if (!validateForm()) {
       return;
     }
@@ -248,7 +231,6 @@ const Auth = ({ mode: initialMode = "login" }: AuthProps) => {
         const { error } = await signIn(email, password);
         if (error) {
           if (error.message.includes("Invalid login credentials")) {
-            // Generic message for security - don't reveal if email exists
             setFormAlert({
               type: "error",
               message: "Incorrect email or password. Please try again.",
@@ -266,7 +248,6 @@ const Auth = ({ mode: initialMode = "login" }: AuthProps) => {
             });
           }
         }
-        // Success handled by useEffect when user state changes
       }
     } catch (error: any) {
       setFormAlert({
@@ -298,7 +279,6 @@ const Auth = ({ mode: initialMode = "login" }: AuthProps) => {
           message: "Google sign-in failed. Please try again.",
         });
       }
-      // OAuth redirects automatically, so no need to handle success here
     } catch (error: any) {
       setFormAlert({
         type: "error",
@@ -340,267 +320,248 @@ const Auth = ({ mode: initialMode = "login" }: AuthProps) => {
   };
 
   const getInputClassName = (hasError: boolean) => {
-    return `pl-12 h-12 text-base border-border focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors ${
+    return `pl-12 h-[46px] text-sm border-border focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors rounded-xl ${
       hasError ? "border-destructive focus:border-destructive focus:ring-destructive/20" : ""
     }`;
   };
 
   return (
-    <div className="min-h-screen bg-background flex flex-col">
-      <div className="flex-1 flex flex-col items-center justify-center px-4 py-8">
-        {/* SliceURL Logo + Text Header */}
-        <Link to="/" className="flex items-center gap-2.5 mb-8">
-          <motion.div
-            initial={{ scale: 0.9, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            transition={{ type: "spring", stiffness: 200, damping: 15 }}
-          >
-            <SliceLogo size="lg" showText={false} />
-          </motion.div>
-          <motion.span
-            initial={{ opacity: 0, x: -5 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.1 }}
-            className="text-2xl font-semibold tracking-tight"
-          >
-            <span className="text-foreground">Slice</span>
-            <span className="text-muted-foreground">URL</span>
-          </motion.span>
-        </Link>
+    <AuthLayout>
+      {/* Logo */}
+      <Link to="/" className="flex items-center gap-2.5 mb-8">
+        <SliceLogo size="lg" showText={false} />
+        <span className="text-2xl font-semibold tracking-tight">
+          <span className="text-foreground">Slice</span>
+          <span className="text-muted-foreground">URL</span>
+        </span>
+      </Link>
 
-        {/* Auth Card */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="w-full max-w-md bg-card border border-border rounded-2xl p-6 md:p-8 shadow-sm"
-        >
-          {/* Header */}
-          <div className="text-center mb-6">
-            <h1 className="text-xl md:text-2xl font-bold text-foreground">{getTitle()}</h1>
-            <p className="text-muted-foreground text-sm mt-1">{getSubtitle()}</p>
-          </div>
+      {/* Auth Card */}
+      <div className="w-full bg-card border border-border rounded-2xl p-6 md:p-8 shadow-[0_10px_30px_rgba(0,0,0,0.08)]">
+        {/* Header */}
+        <div className="text-center mb-6">
+          <h1 className="text-xl md:text-2xl font-bold text-foreground">{getTitle()}</h1>
+          <p className="text-muted-foreground text-sm mt-1">{getSubtitle()}</p>
+        </div>
 
-          {/* Form Alert Banner */}
-          <FormAlertBanner alert={formAlert} onDismiss={() => setFormAlert(null)} />
+        {/* Form Alert Banner */}
+        <FormAlertBanner alert={formAlert} onDismiss={() => setFormAlert(null)} />
 
-          {/* Google OAuth Button - Only show on login/signup modes */}
-          {mode !== "forgot-password" && (
-            <>
-              <Button
-                type="button"
-                variant="outline"
-                className="w-full h-12 gap-3 text-foreground font-medium border-border hover:bg-muted/50"
-                onClick={handleGoogleSignIn}
-                disabled={isGoogleLoading || isLoading}
-              >
-                {isGoogleLoading ? (
-                  <Loader2 className="h-5 w-5 animate-spin" />
-                ) : (
-                  <svg className="h-5 w-5" viewBox="0 0 24 24">
-                    <path
-                      fill="#4285F4"
-                      d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
-                    />
-                    <path
-                      fill="#34A853"
-                      d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
-                    />
-                    <path
-                      fill="#FBBC05"
-                      d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
-                    />
-                    <path
-                      fill="#EA4335"
-                      d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
-                    />
-                  </svg>
-                )}
-                {t("continue_google")}
-              </Button>
-
-              {/* OR Divider with lines */}
-              <div className="relative my-6">
-                <div className="absolute inset-0 flex items-center">
-                  <span className="w-full border-t border-dashed border-border" />
-                </div>
-                <div className="relative flex justify-center text-xs uppercase">
-                  <span className="bg-card px-4 text-muted-foreground font-medium">{t("or")}</span>
-                </div>
-              </div>
-            </>
-          )}
-
-          <form onSubmit={handleSubmit} className="space-y-4">
-            {/* Full Name field (signup only) */}
-            {mode === "signup" && (
-              <div>
-                <div className="relative">
-                  <User className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                  <Input
-                    type="text"
-                    placeholder={t("full_name")}
-                    value={fullName}
-                    onChange={(e) => {
-                      setFullName(e.target.value);
-                      clearFieldError("fullName");
-                    }}
-                    className={getInputClassName(!!fieldErrors.fullName)}
-                    disabled={isLoading}
-                    autoFocus
-                  />
-                </div>
-                <FieldError message={fieldErrors.fullName} />
-              </div>
-            )}
-
-            {/* Email field */}
-            <div>
-              <div className="relative">
-                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                <Input
-                  type="email"
-                  placeholder={t("email")}
-                  value={email}
-                  onChange={(e) => {
-                    setEmail(e.target.value);
-                    clearFieldError("email");
-                  }}
-                  className={getInputClassName(!!fieldErrors.email)}
-                  disabled={isLoading}
-                  autoFocus={mode !== "signup"}
-                />
-              </div>
-              <FieldError message={fieldErrors.email} />
-            </div>
-
-            {/* Password field (hidden for forgot-password) */}
-            {mode !== "forgot-password" && (
-              <div>
-                <div className="relative">
-                  <Lock className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                  <Input
-                    type={showPassword ? "text" : "password"}
-                    placeholder={t("password")}
-                    value={password}
-                    onChange={(e) => {
-                      setPassword(e.target.value);
-                      clearFieldError("password");
-                    }}
-                    className={`${getInputClassName(!!fieldErrors.password)} pr-12`}
-                    disabled={isLoading}
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
-                    disabled={isLoading}
-                  >
-                    {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
-                  </button>
-                </div>
-                <FieldError message={fieldErrors.password} />
-              </div>
-            )}
-
-            {/* Confirm password (signup only) */}
-            {mode === "signup" && (
-              <div>
-                <div className="relative">
-                  <Lock className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                  <Input
-                    type={showPassword ? "text" : "password"}
-                    placeholder={t("confirm_password")}
-                    value={confirmPassword}
-                    onChange={(e) => {
-                      setConfirmPassword(e.target.value);
-                      clearFieldError("confirmPassword");
-                    }}
-                    className={getInputClassName(!!fieldErrors.confirmPassword)}
-                    disabled={isLoading}
-                  />
-                </div>
-                <FieldError message={fieldErrors.confirmPassword} />
-              </div>
-            )}
-
-            {/* Forgot password link (login only) */}
-            {mode === "login" && (
-              <div className="text-right">
-                <button
-                  type="button"
-                  onClick={() => handleModeSwitch("forgot-password")}
-                  className="text-sm text-muted-foreground hover:text-foreground transition-colors"
-                  disabled={isLoading}
-                >
-                  {t("forgot_password")}
-                </button>
-              </div>
-            )}
-
-            {/* Submit button */}
-            <Button 
-              type="submit" 
-              className="w-full h-12 text-base font-medium bg-foreground text-background hover:bg-foreground/90" 
-              disabled={isLoading || isGoogleLoading}
+        {/* Google OAuth Button */}
+        {mode !== "forgot-password" && (
+          <>
+            <Button
+              type="button"
+              variant="outline"
+              className="w-full h-12 gap-3 text-foreground font-medium border-border hover:bg-muted/50 rounded-xl"
+              onClick={handleGoogleSignIn}
+              disabled={isGoogleLoading || isLoading}
             >
-              {isLoading ? (
-                <>
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  {mode === "forgot-password" ? t("sending") : mode === "signup" ? t("creating_account") : t("signing_in")}
-                </>
+              {isGoogleLoading ? (
+                <Loader2 className="h-5 w-5 animate-spin" />
               ) : (
-                mode === "forgot-password" ? t("send_reset") : mode === "signup" ? t("create_account") : t("sign_in")
+                <svg className="h-5 w-5" viewBox="0 0 24 24">
+                  <path
+                    fill="#4285F4"
+                    d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
+                  />
+                  <path
+                    fill="#34A853"
+                    d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
+                  />
+                  <path
+                    fill="#FBBC05"
+                    d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
+                  />
+                  <path
+                    fill="#EA4335"
+                    d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
+                  />
+                </svg>
               )}
+              {t("continue_google")}
             </Button>
 
-            {/* Back button (forgot-password only) */}
-            {mode === "forgot-password" && (
-              <Button 
-                variant="outline" 
-                className="w-full h-12" 
-                onClick={() => handleModeSwitch("login")} 
-                type="button"
-                disabled={isLoading}
-              >
-                <ArrowLeft className="h-4 w-4 mr-2" />
-                {t("back_signin")}
-              </Button>
-            )}
-          </form>
+            {/* OR Divider */}
+            <div className="relative my-6">
+              <div className="absolute inset-0 flex items-center">
+                <span className="w-full border-t border-dashed border-border" />
+              </div>
+              <div className="relative flex justify-center text-xs uppercase">
+                <span className="bg-card px-4 text-muted-foreground font-medium">{t("or")}</span>
+              </div>
+            </div>
+          </>
+        )}
 
-          {/* Terms & Privacy (signup mode) */}
+        <form onSubmit={handleSubmit} className="space-y-4">
+          {/* Full Name field (signup only) */}
           {mode === "signup" && (
-            <p className="text-center text-sm text-muted-foreground mt-6">
-              {t("agree_terms_prefix")}{" "}
-              <Link to="/terms" className="text-foreground underline hover:no-underline">
-                {t("terms_of_service")}
-              </Link>{" "}
-              {t("and")}{" "}
-              <Link to="/privacy" className="text-foreground underline hover:no-underline">
-                {t("privacy_policy")}
-              </Link>
-            </p>
-          )}
-
-          {/* Mode switcher */}
-          {mode !== "forgot-password" && (
-            <div className="mt-6 pt-6 border-t border-border text-center">
-              <p className="text-sm text-muted-foreground">
-                {mode === "login" ? t("no_account") : t("have_account")}{" "}
-                <Link
-                  to={mode === "login" ? "/register" : "/login"}
-                  className="text-foreground font-semibold underline hover:no-underline"
-                >
-                  {mode === "login" ? t("sign_up") : t("sign_in")}
-                </Link>
-              </p>
+            <div>
+              <div className="relative">
+                <User className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                <Input
+                  type="text"
+                  placeholder={t("full_name")}
+                  value={fullName}
+                  onChange={(e) => {
+                    setFullName(e.target.value);
+                    clearFieldError("fullName");
+                  }}
+                  className={getInputClassName(!!fieldErrors.fullName)}
+                  disabled={isLoading}
+                  autoFocus
+                />
+              </div>
+              <FieldError message={fieldErrors.fullName} />
             </div>
           )}
-        </motion.div>
-      </div>
 
-      <Footer />
-    </div>
+          {/* Email field */}
+          <div>
+            <div className="relative">
+              <Mail className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+              <Input
+                type="email"
+                placeholder={t("email")}
+                value={email}
+                onChange={(e) => {
+                  setEmail(e.target.value);
+                  clearFieldError("email");
+                }}
+                className={getInputClassName(!!fieldErrors.email)}
+                disabled={isLoading}
+                autoFocus={mode !== "signup"}
+              />
+            </div>
+            <FieldError message={fieldErrors.email} />
+          </div>
+
+          {/* Password field */}
+          {mode !== "forgot-password" && (
+            <div>
+              <div className="relative">
+                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                <Input
+                  type={showPassword ? "text" : "password"}
+                  placeholder={t("password")}
+                  value={password}
+                  onChange={(e) => {
+                    setPassword(e.target.value);
+                    clearFieldError("password");
+                  }}
+                  className={`${getInputClassName(!!fieldErrors.password)} pr-12`}
+                  disabled={isLoading}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                  disabled={isLoading}
+                >
+                  {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                </button>
+              </div>
+              <FieldError message={fieldErrors.password} />
+            </div>
+          )}
+
+          {/* Confirm password (signup only) */}
+          {mode === "signup" && (
+            <div>
+              <div className="relative">
+                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                <Input
+                  type={showPassword ? "text" : "password"}
+                  placeholder={t("confirm_password")}
+                  value={confirmPassword}
+                  onChange={(e) => {
+                    setConfirmPassword(e.target.value);
+                    clearFieldError("confirmPassword");
+                  }}
+                  className={getInputClassName(!!fieldErrors.confirmPassword)}
+                  disabled={isLoading}
+                />
+              </div>
+              <FieldError message={fieldErrors.confirmPassword} />
+            </div>
+          )}
+
+          {/* Forgot password link (login only) */}
+          {mode === "login" && (
+            <div className="text-right">
+              <button
+                type="button"
+                onClick={() => handleModeSwitch("forgot-password")}
+                className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+                disabled={isLoading}
+              >
+                {t("forgot_password")}
+              </button>
+            </div>
+          )}
+
+          {/* Submit button */}
+          <Button 
+            type="submit" 
+            className="w-full h-12 text-base font-medium bg-foreground text-background hover:bg-foreground/90 rounded-xl" 
+            disabled={isLoading || isGoogleLoading}
+          >
+            {isLoading ? (
+              <>
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                {mode === "forgot-password" ? t("sending") : mode === "signup" ? t("creating_account") : t("signing_in")}
+              </>
+            ) : (
+              mode === "forgot-password" ? t("send_reset") : mode === "signup" ? t("create_account") : t("sign_in")
+            )}
+          </Button>
+
+          {/* Back button (forgot-password only) */}
+          {mode === "forgot-password" && (
+            <Button 
+              variant="outline" 
+              className="w-full h-12 rounded-xl" 
+              onClick={() => handleModeSwitch("login")} 
+              type="button"
+              disabled={isLoading}
+            >
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              {t("back_signin")}
+            </Button>
+          )}
+        </form>
+
+        {/* Terms & Privacy (signup mode) */}
+        {mode === "signup" && (
+          <p className="text-center text-sm text-muted-foreground mt-6">
+            {t("agree_terms_prefix")}{" "}
+            <Link to="/terms" className="text-foreground underline hover:no-underline">
+              {t("terms_of_service")}
+            </Link>{" "}
+            {t("and")}{" "}
+            <Link to="/privacy" className="text-foreground underline hover:no-underline">
+              {t("privacy_policy")}
+            </Link>
+          </p>
+        )}
+
+        {/* Mode switcher */}
+        {mode !== "forgot-password" && (
+          <div className="mt-6 pt-6 border-t border-border text-center">
+            <p className="text-sm text-muted-foreground">
+              {mode === "login" ? t("no_account") : t("have_account")}{" "}
+              <Link
+                to={mode === "login" ? "/register" : "/login"}
+                className="text-foreground font-semibold underline hover:no-underline"
+              >
+                {mode === "login" ? t("sign_up") : t("sign_in")}
+              </Link>
+            </p>
+          </div>
+        )}
+      </div>
+    </AuthLayout>
   );
 };
 
