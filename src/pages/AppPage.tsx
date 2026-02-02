@@ -155,26 +155,14 @@ export default function AppPage() {
 
     setIsDownloading(true);
     try {
-      // Use the edge function to get a signed download URL
-      const { data, error } = await supabase.functions.invoke("slicebox-download", {
-        body: { fileId: fileInfo.file_id },
-      });
-
-      if (error) throw error;
+      // Use the unified streaming endpoint
+      const streamUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/file-stream?fileId=${fileInfo.file_id}${passwordForDownload ? '&verified=true' : ''}`;
       
-      if (!data.success) {
-        if (data.requiresPassword && !passwordForDownload) {
-          setShowPasswordDialog(true);
-          setIsDownloading(false);
-          return;
-        }
-        throw new Error(data.error || "Download failed");
-      }
-
-      // Trigger streaming download with the signed URL
+      // Create a hidden link and trigger download
       const a = document.createElement("a");
-      a.href = data.downloadUrl;
-      a.download = data.fileName;
+      a.href = streamUrl;
+      a.download = fileInfo.original_name;
+      a.style.display = "none";
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
@@ -185,7 +173,7 @@ export default function AppPage() {
       toast.success("Download started!");
     } catch (err) {
       console.error("Download failed:", err);
-      toast.error("Download failed");
+      toast.error("This file is temporarily unavailable. Please try again later.");
     } finally {
       setIsDownloading(false);
     }
@@ -211,14 +199,17 @@ export default function AppPage() {
         return;
       }
 
-      // Password correct - get download URL
+      // Password correct - use streaming endpoint with verified flag
       setShowPasswordDialog(false);
       setPassword("");
 
-      // Trigger streaming download with the signed URL
+      // Use the unified streaming endpoint
+      const streamUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/file-stream?fileId=${fileInfo.file_id}&verified=true`;
+      
       const a = document.createElement("a");
-      a.href = data.downloadUrl;
+      a.href = streamUrl;
       a.download = fileInfo.original_name;
+      a.style.display = "none";
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
@@ -229,7 +220,7 @@ export default function AppPage() {
       toast.success("Download started!");
     } catch (err) {
       console.error("Password verification failed:", err);
-      toast.error("Failed to verify password");
+      toast.error("This file is temporarily unavailable. Please try again later.");
     } finally {
       setIsVerifyingPassword(false);
     }

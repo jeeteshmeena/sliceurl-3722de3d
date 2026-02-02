@@ -161,42 +161,47 @@ export default function ShortFileView({ expectedServiceType }: ShortFileViewProp
           return;
         }
 
-        window.location.href = response.data.downloadUrl;
+        // Use streaming endpoint with verified flag
+        const streamUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/file-stream?fileId=${file.fileId}&verified=true`;
+        
+        // Create a hidden link and trigger download
+        const a = document.createElement("a");
+        a.href = streamUrl;
+        a.download = file.originalName;
+        a.style.display = "none";
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        
         toast.success("Download started!");
         setVerifying(false);
       } catch (err) {
         console.error("Password verification failed:", err);
-        toast.error("Failed to verify password");
+        toast.error("This file is temporarily unavailable. Please try again later.");
         setVerifying(false);
       }
       return;
     }
 
-    // No password - use download edge function for signed URL
+    // No password - use streaming endpoint directly
     setDownloading(true);
     try {
-      const response = await supabase.functions.invoke("slicebox-download", {
-        body: { fileId: file.fileId },
-      });
-
-      if (response.error || !response.data?.success) {
-        const errorMessage = response.data?.error || "Download failed";
-        if (errorMessage.includes("expired")) {
-          toast.error("This file has expired");
-        } else if (errorMessage.includes("deleted")) {
-          toast.error("This file has been deleted");
-        } else {
-          toast.error("Failed to download file");
-        }
-        setDownloading(false);
-        return;
-      }
-
-      window.location.href = response.data.downloadUrl;
+      // Use the unified streaming endpoint
+      const streamUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/file-stream?fileId=${file.fileId}`;
+      
+      // Create a hidden link and trigger download
+      const a = document.createElement("a");
+      a.href = streamUrl;
+      a.download = file.originalName;
+      a.style.display = "none";
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      
       toast.success("Download started!");
     } catch (err) {
       console.error("Download error:", err);
-      toast.error("Download failed. Please try again.");
+      toast.error("This file is temporarily unavailable. Please try again later.");
     } finally {
       setDownloading(false);
     }
