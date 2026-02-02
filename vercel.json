@@ -1,5 +1,11 @@
 {
   "rewrites": [
+    { "source": "/app/:path*", "destination": "/index.html" },
+    { "source": "/slicebox/:path*", "destination": "/index.html" },
+    { "source": "/littleslice/:path*", "destination": "/index.html" },
+    { "source": "/s/:path*", "destination": "/index.html" },
+    { "source": "/ls/:path*", "destination": "/index.html" },
+    { "source": "/sb/:path*", "destination": "/index.html" },
     { "source": "/(.*)", "destination": "/index.html" }
   ],
   "headers": [
