@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { Calendar, Lock, Hash, MousePointerClick, Settings2, Wand2, Eye } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -10,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { useLinkBehavior } from "@/hooks/useLinkBehavior";
+import { InfoTooltip } from "@/components/InfoTooltip";
 
 export interface BulkOptionsData {
   batchName: string;
@@ -36,24 +36,22 @@ export function BulkOptions({ options, onChange }: BulkOptionsProps) {
   };
 
   return (
-    <div className="space-y-4 p-4 bg-muted/30 rounded-xl border border-border/50">
-      <h3 className="text-sm font-medium text-foreground flex items-center gap-2">
+    <div className="space-y-4 p-4 rounded-[12px] border border-border bg-muted/30">
+      <h3 className="text-[13px] font-medium text-foreground flex items-center gap-2">
         <Settings2 className="h-4 w-4 text-muted-foreground" />
         Batch Settings
       </h3>
 
       {/* Link Preview Toggle - Only visible when global setting is OFF */}
       {!globalLinkPreview && (
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between py-2">
           <div className="flex items-center gap-2">
             <Eye className="h-4 w-4 text-muted-foreground" />
-            <div>
-              <Label htmlFor="linkPreview" className="text-xs text-muted-foreground">
+            <div className="flex items-center gap-1.5">
+              <Label htmlFor="linkPreview" className="text-[13px] font-medium">
                 Link Preview
               </Label>
-              <p className="text-xs text-muted-foreground/70">
-                Show preview before redirecting
-              </p>
+              <InfoTooltip content="Show a preview page before redirecting visitors." />
             </div>
           </div>
           <SlidingToggle
@@ -65,8 +63,8 @@ export function BulkOptions({ options, onChange }: BulkOptionsProps) {
       )}
 
       {/* Batch Name */}
-      <div className="space-y-2">
-        <Label htmlFor="batchName" className="text-xs text-muted-foreground">
+      <div className="space-y-1.5">
+        <Label htmlFor="batchName" className="text-[13px] font-medium">
           Batch Name
         </Label>
         <Input
@@ -74,13 +72,13 @@ export function BulkOptions({ options, onChange }: BulkOptionsProps) {
           placeholder="e.g., YouTube Campaign"
           value={options.batchName}
           onChange={(e) => updateOption("batchName", e.target.value)}
-          className="h-9"
+          className="h-10"
         />
       </div>
 
       {/* Slug Prefix */}
-      <div className="space-y-2">
-        <Label htmlFor="slugPrefix" className="text-xs text-muted-foreground flex items-center gap-1">
+      <div className="space-y-1.5">
+        <Label htmlFor="slugPrefix" className="text-[13px] font-medium flex items-center gap-1">
           <Hash className="h-3 w-3" />
           Slug Prefix
         </Label>
@@ -90,21 +88,26 @@ export function BulkOptions({ options, onChange }: BulkOptionsProps) {
             placeholder="yt-"
             value={options.slugPrefix}
             onChange={(e) => updateOption("slugPrefix", e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ''))}
-            className="h-9 flex-1"
+            className="h-10 flex-1"
           />
-          <span className="text-xs text-muted-foreground whitespace-nowrap">
+          <span className="text-[12px] text-muted-foreground whitespace-nowrap">
             → {options.slugPrefix || 'prefix-'}001
           </span>
         </div>
       </div>
 
       {/* Password Protection */}
-      <div className="space-y-2">
-        <div className="flex items-center justify-between">
-          <Label htmlFor="passwordToggle" className="text-xs text-muted-foreground flex items-center gap-1">
-            <Lock className="h-3 w-3" />
-            Password Protection
-          </Label>
+      <div className="space-y-1.5">
+        <div className="flex items-center justify-between py-2">
+          <div className="flex items-center gap-2">
+            <Lock className="h-4 w-4 text-muted-foreground" />
+            <div className="flex items-center gap-1.5">
+              <Label htmlFor="passwordToggle" className="text-[13px] font-medium">
+                Password Protection
+              </Label>
+              <InfoTooltip content="Require visitors to enter a password before accessing the link." />
+            </div>
+          </div>
           <TextSwitch
             id="passwordToggle"
             checked={options.passwordEnabled}
@@ -117,14 +120,14 @@ export function BulkOptions({ options, onChange }: BulkOptionsProps) {
             placeholder="Enter password for all links"
             value={options.password}
             onChange={(e) => updateOption("password", e.target.value)}
-            className="h-9"
+            className="h-10"
           />
         )}
       </div>
 
       {/* Expiry Date */}
-      <div className="space-y-2">
-        <Label className="text-xs text-muted-foreground flex items-center gap-1">
+      <div className="space-y-1.5">
+        <Label className="text-[13px] font-medium flex items-center gap-1">
           <Calendar className="h-3 w-3" />
           Expiry Date
         </Label>
@@ -133,7 +136,7 @@ export function BulkOptions({ options, onChange }: BulkOptionsProps) {
             <Button
               variant="outline"
               className={cn(
-                "w-full justify-start text-left font-normal h-9",
+                "w-full justify-start text-left font-normal h-10 rounded-[12px]",
                 !options.expiry && "text-muted-foreground"
               )}
             >
@@ -163,8 +166,8 @@ export function BulkOptions({ options, onChange }: BulkOptionsProps) {
       </div>
 
       {/* Max Clicks */}
-      <div className="space-y-2">
-        <Label htmlFor="maxClicks" className="text-xs text-muted-foreground flex items-center gap-1">
+      <div className="space-y-1.5">
+        <Label htmlFor="maxClicks" className="text-[13px] font-medium flex items-center gap-1">
           <MousePointerClick className="h-3 w-3" />
           Max Clicks (optional)
         </Label>
@@ -175,16 +178,18 @@ export function BulkOptions({ options, onChange }: BulkOptionsProps) {
           placeholder="Unlimited"
           value={options.maxClicks || ""}
           onChange={(e) => updateOption("maxClicks", e.target.value ? parseInt(e.target.value) : undefined)}
-          className="h-9"
+          className="h-10"
         />
       </div>
 
       {/* Auto Title */}
-      <div className="flex items-center justify-between">
-        <Label htmlFor="autoTitle" className="text-xs text-muted-foreground flex items-center gap-1">
-          <Wand2 className="h-3 w-3" />
-          AI Auto-Title
-        </Label>
+      <div className="flex items-center justify-between py-2">
+        <div className="flex items-center gap-2">
+          <Wand2 className="h-4 w-4 text-muted-foreground" />
+          <Label htmlFor="autoTitle" className="text-[13px] font-medium">
+            AI Auto-Title
+          </Label>
+        </div>
         <TextSwitch
           id="autoTitle"
           checked={options.autoTitle}

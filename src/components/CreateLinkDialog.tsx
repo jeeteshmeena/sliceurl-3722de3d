@@ -1,11 +1,11 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { SlidingToggle } from "@/components/ui/sliding-toggle";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { Lock, ChevronDown, Settings2, Eye, BarChart3, Check, X } from "lucide-react";
+import { Lock, ChevronDown, Settings2, Eye, BarChart3, Check, X, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { CreateLinkData } from "@/hooks/useLinks";
 import { getDisplayDomain } from "@/lib/domain";
@@ -14,6 +14,8 @@ import { InlineUtmSection } from "./utm/InlineUtmSection";
 import { buildUtmUrl } from "./utm/UtmPreview";
 import { useLinkBehavior } from "@/hooks/useLinkBehavior";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useSlugValidation } from "@/hooks/useSlugValidation";
+import { InfoTooltip } from "./InfoTooltip";
 
 interface CreateLinkDialogProps {
   open: boolean;
@@ -39,7 +41,6 @@ export function CreateLinkDialog({ open, onOpenChange, onCreateLink }: CreateLin
   
   // Form state
   const [url, setUrl] = useState("");
-  const [customSlug, setCustomSlug] = useState("");
   const [title, setTitle] = useState("");
   const [isPasswordProtected, setIsPasswordProtected] = useState(false);
   const [password, setPassword] = useState("");
@@ -54,26 +55,11 @@ export function CreateLinkDialog({ open, onOpenChange, onCreateLink }: CreateLin
   const [utmEnabled, setUtmEnabled] = useState(false);
   const [utmParams, setUtmParams] = useState<UtmParams>(emptyUtmParams);
 
-  // Slug validation state
-  const [slugStatus, setSlugStatus] = useState<'idle' | 'valid' | 'taken' | 'invalid'>('idle');
+  // Slug validation with real backend check
+  const { slug: customSlug, status: slugStatus, handleSlugChange, setSlug: setCustomSlug, setStatus: setSlugStatus } = useSlugValidation();
 
   const handleUtmChange = (params: UtmParams) => {
     setUtmParams(params);
-  };
-
-  const handleSlugChange = (value: string) => {
-    const sanitized = value.toLowerCase().replace(/[^a-z0-9-]/g, '');
-    setCustomSlug(sanitized);
-    
-    // Simple validation
-    if (!sanitized) {
-      setSlugStatus('idle');
-    } else if (sanitized.length < 2) {
-      setSlugStatus('invalid');
-    } else {
-      // In real implementation, this would check availability via API
-      setSlugStatus('valid');
-    }
   };
 
   const resetForm = () => {
@@ -125,6 +111,12 @@ export function CreateLinkDialog({ open, onOpenChange, onCreateLink }: CreateLin
     // UTM validation
     if (utmEnabled && !utmParams.utm_source.trim()) {
       toast.error("UTM Source is required when UTM tracking is enabled");
+      return;
+    }
+
+    // Slug validation - reject if taken or invalid
+    if (customSlug && (slugStatus === 'taken' || slugStatus === 'invalid')) {
+      toast.error(slugStatus === 'taken' ? "Slug already in use" : "Invalid slug");
       return;
     }
 
@@ -237,17 +229,21 @@ export function CreateLinkDialog({ open, onOpenChange, onCreateLink }: CreateLin
                   />
                   {slugStatus !== 'idle' && (
                     <div className="pr-3">
-                      {slugStatus === 'valid' && <Check className="h-4 w-4 text-green-500" />}
+                      {slugStatus === 'checking' && <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />}
+                      {slugStatus === 'available' && <Check className="h-4 w-4 text-green-500" />}
                       {slugStatus === 'taken' && <X className="h-4 w-4 text-destructive" />}
                       {slugStatus === 'invalid' && <X className="h-4 w-4 text-destructive" />}
                     </div>
                   )}
                 </div>
-                {slugStatus === 'valid' && customSlug && (
-                  <p className="text-xs text-green-500">✓ Available</p>
+                {slugStatus === 'available' && customSlug && (
+                  <p className="text-xs text-green-500">Slug available</p>
+                )}
+                {slugStatus === 'taken' && customSlug && (
+                  <p className="text-xs text-destructive">Slug already in use</p>
                 )}
                 {slugStatus === 'invalid' && customSlug && (
-                  <p className="text-xs text-destructive">✗ Too short (min 2 characters)</p>
+                  <p className="text-xs text-destructive">Invalid (min 2 chars, letters, numbers, dashes only)</p>
                 )}
               </div>
 
@@ -268,13 +264,11 @@ export function CreateLinkDialog({ open, onOpenChange, onCreateLink }: CreateLin
                 <div className="flex items-center justify-between py-3 px-4 rounded-[12px] border border-border bg-muted/30">
                   <div className="flex items-center gap-3">
                     <Eye className="h-4 w-4 text-muted-foreground" />
-                    <div>
+                    <div className="flex items-center gap-1.5">
                       <Label htmlFor="preview-toggle" className="cursor-pointer text-[13px] font-medium">
                         Link Preview
                       </Label>
-                      <p className="text-[11px] text-muted-foreground">
-                        Show preview before redirecting
-                      </p>
+                      <InfoTooltip content="Show a preview page before redirecting visitors." />
                     </div>
                   </div>
                   <SlidingToggle
@@ -290,9 +284,12 @@ export function CreateLinkDialog({ open, onOpenChange, onCreateLink }: CreateLin
                 <div className="flex items-center justify-between py-3 px-4">
                   <div className="flex items-center gap-3">
                     <Lock className="h-4 w-4 text-muted-foreground" />
-                    <Label htmlFor="password-toggle" className="cursor-pointer text-[13px] font-medium">
-                      Password Protection
-                    </Label>
+                    <div className="flex items-center gap-1.5">
+                      <Label htmlFor="password-toggle" className="cursor-pointer text-[13px] font-medium">
+                        Password Protection
+                      </Label>
+                      <InfoTooltip content="Require visitors to enter a password before accessing the link." />
+                    </div>
                   </div>
                   <SlidingToggle
                     id="password-toggle"
@@ -337,9 +334,12 @@ export function CreateLinkDialog({ open, onOpenChange, onCreateLink }: CreateLin
                 <div className="flex items-center justify-between py-3 px-4">
                   <div className="flex items-center gap-3">
                     <BarChart3 className="h-4 w-4 text-muted-foreground" />
-                    <Label htmlFor="utm-toggle" className="cursor-pointer text-[13px] font-medium">
-                      UTM Tracking
-                    </Label>
+                    <div className="flex items-center gap-1.5">
+                      <Label htmlFor="utm-toggle" className="cursor-pointer text-[13px] font-medium">
+                        UTM Tracking
+                      </Label>
+                      <InfoTooltip content="Add UTM parameters for analytics tracking." />
+                    </div>
                   </div>
                   <SlidingToggle
                     id="utm-toggle"
