@@ -1,19 +1,19 @@
 import { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { SlidingToggle } from "@/components/ui/sliding-toggle";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { Lock, ChevronDown, Settings2, Eye } from "lucide-react";
+import { Lock, ChevronDown, Settings2, Eye, BarChart3, Check, X } from "lucide-react";
 import { toast } from "sonner";
 import { CreateLinkData } from "@/hooks/useLinks";
 import { getDisplayDomain } from "@/lib/domain";
-import { UtmRow } from "./utm/UtmRow";
-import { UtmModal } from "./utm/UtmModal";
 import { UtmParams } from "./utm/UtmForm";
+import { InlineUtmSection } from "./utm/InlineUtmSection";
 import { buildUtmUrl } from "./utm/UtmPreview";
 import { useLinkBehavior } from "@/hooks/useLinkBehavior";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface CreateLinkDialogProps {
   open: boolean;
@@ -30,6 +30,7 @@ const emptyUtmParams: UtmParams = {
 };
 
 export function CreateLinkDialog({ open, onOpenChange, onCreateLink }: CreateLinkDialogProps) {
+  const isMobile = useIsMobile();
   const [loading, setLoading] = useState(false);
   const [showAdvanced, setShowAdvanced] = useState(false);
   
@@ -49,17 +50,30 @@ export function CreateLinkDialog({ open, onOpenChange, onCreateLink }: CreateLin
   // Per-link preview toggle (only used when global is OFF)
   const [linkPreviewForThis, setLinkPreviewForThis] = useState(false);
 
-  // UTM state
+  // UTM state - now inline toggle
   const [utmEnabled, setUtmEnabled] = useState(false);
   const [utmParams, setUtmParams] = useState<UtmParams>(emptyUtmParams);
-  const [utmError, setUtmError] = useState("");
-  const [utmModalOpen, setUtmModalOpen] = useState(false);
 
-  const handleUtmSave = (params: UtmParams) => {
+  // Slug validation state
+  const [slugStatus, setSlugStatus] = useState<'idle' | 'valid' | 'taken' | 'invalid'>('idle');
+
+  const handleUtmChange = (params: UtmParams) => {
     setUtmParams(params);
-    // Enable UTM if any param is filled
-    const hasAnyParam = Object.values(params).some((v) => v.trim() !== "");
-    setUtmEnabled(hasAnyParam);
+  };
+
+  const handleSlugChange = (value: string) => {
+    const sanitized = value.toLowerCase().replace(/[^a-z0-9-]/g, '');
+    setCustomSlug(sanitized);
+    
+    // Simple validation
+    if (!sanitized) {
+      setSlugStatus('idle');
+    } else if (sanitized.length < 2) {
+      setSlugStatus('invalid');
+    } else {
+      // In real implementation, this would check availability via API
+      setSlugStatus('valid');
+    }
   };
 
   const resetForm = () => {
@@ -74,8 +88,8 @@ export function CreateLinkDialog({ open, onOpenChange, onCreateLink }: CreateLin
     setShowAdvanced(false);
     setUtmEnabled(false);
     setUtmParams(emptyUtmParams);
-    setUtmError("");
     setLinkPreviewForThis(false);
+    setSlugStatus('idle');
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -110,10 +124,9 @@ export function CreateLinkDialog({ open, onOpenChange, onCreateLink }: CreateLin
 
     // UTM validation
     if (utmEnabled && !utmParams.utm_source.trim()) {
-      setUtmError("utm_source is required when UTM tracking is enabled");
+      toast.error("UTM Source is required when UTM tracking is enabled");
       return;
     }
-    setUtmError("");
 
     setLoading(true);
     try {
@@ -148,171 +161,253 @@ export function CreateLinkDialog({ open, onOpenChange, onCreateLink }: CreateLin
     }
   };
 
+  const handleClose = () => {
+    onOpenChange(false);
+    resetForm();
+  };
+
+  if (!open) return null;
+
   return (
-    <Dialog open={open} onOpenChange={(o) => { onOpenChange(o); if (!o) resetForm(); }}>
-      <DialogContent className="sm:max-w-[420px] max-h-[calc(100dvh-76px-16px)] overflow-y-auto">
-        <DialogHeader className="min-h-[48px]">
-          <DialogTitle className="text-base font-semibold">Create New Link</DialogTitle>
-        </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-[14px]">
-          <div className="space-y-2">
-            <Label htmlFor="url">Destination URL</Label>
-            <Input
-              id="url"
-              placeholder="https://example.com/very-long-url"
-              value={url}
-              onChange={(e) => setUrl(e.target.value)}
-            />
-          </div>
+    <AnimatePresence>
+      {open && (
+        <>
+          {/* Backdrop */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.15 }}
+            className="fixed inset-0 z-[400] bg-foreground/60 backdrop-blur-[2px]"
+            onClick={handleClose}
+          />
 
-          <div className="space-y-2">
-            <Label htmlFor="slug" className="text-[13px] font-medium">Custom Slug (optional)</Label>
-            <div className="flex items-center gap-2">
-              <span className="text-[12px] text-muted-foreground whitespace-nowrap">{getDisplayDomain()}/s/</span>
-              <Input
-                id="slug"
-                placeholder="my-link"
-                value={customSlug}
-                onChange={(e) => setCustomSlug(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ''))}
-                className="text-[14px]"
-              />
+          {/* Modal Content */}
+          <motion.div
+            initial={isMobile ? { y: "100%" } : { opacity: 0, scale: 0.97 }}
+            animate={isMobile ? { y: 0 } : { opacity: 1, scale: 1 }}
+            exit={isMobile ? { y: "100%" } : { opacity: 0, scale: 0.97 }}
+            transition={{ duration: 0.18, ease: "easeOut" }}
+            className={`fixed z-[500] bg-background ${
+              isMobile
+                ? "inset-x-0 bottom-0 rounded-t-[18px] max-h-[90vh]"
+                : "left-1/2 top-[76px] -translate-x-1/2 w-[94%] max-w-[420px] rounded-[18px] max-h-[calc(100dvh-76px-16px)]"
+            } shadow-[0_10px_30px_rgba(0,0,0,0.12)] overflow-hidden flex flex-col`}
+          >
+            {/* Header */}
+            <div className="flex items-center justify-between px-5 py-4 border-b border-border shrink-0">
+              <h2 className="text-base font-semibold">Create New Link</h2>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleClose}
+                className="text-muted-foreground hover:text-foreground h-8 px-3"
+              >
+                Close
+              </Button>
             </div>
-          </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="title" className="text-[13px] font-medium">Title (optional)</Label>
-            <Input
-              id="title"
-              placeholder="My awesome link"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              className="text-[14px]"
-            />
-          </div>
+            {/* Scrollable Content */}
+            <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto px-5 py-4 space-y-4">
+              {/* 1. Destination URL */}
+              <div className="space-y-2">
+                <Label htmlFor="url" className="text-[13px] font-medium">Destination URL</Label>
+                <Input
+                  id="url"
+                  placeholder="https://example.com/very-long-url"
+                  value={url}
+                  onChange={(e) => setUrl(e.target.value)}
+                  className="text-[14px] h-11"
+                />
+              </div>
 
-          {/* Link Preview Toggle - Only visible when global setting is OFF */}
-          {!globalLinkPreview && (
-            <div className="space-y-3 rounded-xl border border-border p-4 bg-muted/30">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <Eye className="h-4 w-4 text-muted-foreground" />
-                  <div>
-                    <Label htmlFor="preview-toggle" className="cursor-pointer">Link Preview</Label>
-                    <p className="text-xs text-muted-foreground">
-                      Show preview before redirecting
+              {/* 2. Custom Slug - paa.ge style */}
+              <div className="space-y-2">
+                <Label htmlFor="slug" className="text-[13px] font-medium">Custom Slug (optional)</Label>
+                <div className="flex items-center rounded-[12px] border border-border bg-muted/30 overflow-hidden focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-0">
+                  <span className="px-3 text-[13px] text-muted-foreground whitespace-nowrap bg-muted/50 h-11 flex items-center border-r border-border">
+                    {getDisplayDomain()}/s/
+                  </span>
+                  <Input
+                    id="slug"
+                    placeholder="my-link"
+                    value={customSlug}
+                    onChange={(e) => handleSlugChange(e.target.value)}
+                    className="text-[14px] h-11 border-0 focus-visible:ring-0 rounded-none"
+                  />
+                  {slugStatus !== 'idle' && (
+                    <div className="pr-3">
+                      {slugStatus === 'valid' && <Check className="h-4 w-4 text-green-500" />}
+                      {slugStatus === 'taken' && <X className="h-4 w-4 text-destructive" />}
+                      {slugStatus === 'invalid' && <X className="h-4 w-4 text-destructive" />}
+                    </div>
+                  )}
+                </div>
+                {slugStatus === 'valid' && customSlug && (
+                  <p className="text-xs text-green-500">✓ Available</p>
+                )}
+                {slugStatus === 'invalid' && customSlug && (
+                  <p className="text-xs text-destructive">✗ Too short (min 2 characters)</p>
+                )}
+              </div>
+
+              {/* 3. Title (optional) */}
+              <div className="space-y-2">
+                <Label htmlFor="title" className="text-[13px] font-medium">Title (optional)</Label>
+                <Input
+                  id="title"
+                  placeholder="My awesome link"
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  className="text-[14px] h-11"
+                />
+              </div>
+
+              {/* 4. Link Preview Toggle - Only visible when global setting is OFF */}
+              {!globalLinkPreview && (
+                <div className="flex items-center justify-between py-3 px-4 rounded-[12px] border border-border bg-muted/30">
+                  <div className="flex items-center gap-3">
+                    <Eye className="h-4 w-4 text-muted-foreground" />
+                    <div>
+                      <Label htmlFor="preview-toggle" className="cursor-pointer text-[13px] font-medium">
+                        Link Preview
+                      </Label>
+                      <p className="text-[11px] text-muted-foreground">
+                        Show preview before redirecting
+                      </p>
+                    </div>
+                  </div>
+                  <SlidingToggle
+                    id="preview-toggle"
+                    checked={linkPreviewForThis}
+                    onCheckedChange={setLinkPreviewForThis}
+                  />
+                </div>
+              )}
+
+              {/* 5. Password Protection Toggle */}
+              <div className="rounded-[12px] border border-border bg-muted/30 overflow-hidden">
+                <div className="flex items-center justify-between py-3 px-4">
+                  <div className="flex items-center gap-3">
+                    <Lock className="h-4 w-4 text-muted-foreground" />
+                    <Label htmlFor="password-toggle" className="cursor-pointer text-[13px] font-medium">
+                      Password Protection
+                    </Label>
+                  </div>
+                  <SlidingToggle
+                    id="password-toggle"
+                    checked={isPasswordProtected}
+                    onCheckedChange={setIsPasswordProtected}
+                  />
+                </div>
+                
+                {isPasswordProtected && (
+                  <div className="px-4 pb-4 space-y-3 animate-fade-in border-t border-border pt-3">
+                    <div className="space-y-1.5">
+                      <Label htmlFor="password" className="text-[13px]">Password</Label>
+                      <Input
+                        id="password"
+                        type="password"
+                        placeholder="Enter password"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        className="h-10"
+                      />
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label htmlFor="confirm-password" className="text-[13px]">Confirm Password</Label>
+                      <Input
+                        id="confirm-password"
+                        type="password"
+                        placeholder="Confirm password"
+                        value={confirmPassword}
+                        onChange={(e) => setConfirmPassword(e.target.value)}
+                        className="h-10"
+                      />
+                    </div>
+                    <p className="text-[11px] text-muted-foreground">
+                      Visitors will need to enter this password to access the link.
                     </p>
                   </div>
-                </div>
-                <SlidingToggle
-                  id="preview-toggle"
-                  checked={linkPreviewForThis}
-                  onCheckedChange={setLinkPreviewForThis}
-                />
+                )}
               </div>
-            </div>
-          )}
 
-          {/* Password Protection */}
-          <div className="space-y-3 rounded-xl border border-border p-4 bg-muted/30">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Lock className="h-4 w-4 text-muted-foreground" />
-                <Label htmlFor="password-toggle" className="cursor-pointer">Password Protection</Label>
-              </div>
-              <SlidingToggle
-                id="password-toggle"
-                checked={isPasswordProtected}
-                onCheckedChange={setIsPasswordProtected}
-              />
-            </div>
-            
-            {isPasswordProtected && (
-              <div className="space-y-3 pt-2 animate-fade-in">
-                <div className="space-y-2">
-                  <Label htmlFor="password">Password</Label>
-                  <Input
-                    id="password"
-                    type="password"
-                    placeholder="Enter password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
+              {/* 6. UTM Tracking Toggle - Inline */}
+              <div className="rounded-[12px] border border-border bg-muted/30 overflow-hidden">
+                <div className="flex items-center justify-between py-3 px-4">
+                  <div className="flex items-center gap-3">
+                    <BarChart3 className="h-4 w-4 text-muted-foreground" />
+                    <Label htmlFor="utm-toggle" className="cursor-pointer text-[13px] font-medium">
+                      UTM Tracking
+                    </Label>
+                  </div>
+                  <SlidingToggle
+                    id="utm-toggle"
+                    checked={utmEnabled}
+                    onCheckedChange={setUtmEnabled}
                   />
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="confirm-password">Confirm Password</Label>
-                  <Input
-                    id="confirm-password"
-                    type="password"
-                    placeholder="Confirm password"
-                    value={confirmPassword}
-                    onChange={(e) => setConfirmPassword(e.target.value)}
-                  />
-                </div>
-                <p className="text-xs text-muted-foreground">
-                  Visitors will need to enter this password to access the link.
-                </p>
+                
+                {utmEnabled && (
+                  <div className="px-4 pb-4 border-t border-border">
+                    <InlineUtmSection params={utmParams} onChange={handleUtmChange} />
+                  </div>
+                )}
               </div>
-            )}
-          </div>
 
-          {/* Advanced Options */}
-          <Collapsible open={showAdvanced} onOpenChange={setShowAdvanced}>
-            <CollapsibleTrigger asChild>
-              <Button type="button" variant="ghost" className="w-full justify-between">
-                <span className="flex items-center gap-2">
-                  <Settings2 className="h-4 w-4" />
-                  Advanced Options
-                </span>
-                <ChevronDown className={`h-4 w-4 transition-transform ${showAdvanced ? 'rotate-180' : ''}`} />
+              {/* 7. Advanced Options */}
+              <Collapsible open={showAdvanced} onOpenChange={setShowAdvanced}>
+                <CollapsibleTrigger asChild>
+                  <Button 
+                    type="button" 
+                    variant="ghost" 
+                    className="w-full justify-between h-11 px-4 rounded-[12px] border border-border bg-muted/30"
+                  >
+                    <span className="flex items-center gap-3">
+                      <Settings2 className="h-4 w-4 text-muted-foreground" />
+                      <span className="text-[13px] font-medium">Advanced Options</span>
+                    </span>
+                    <ChevronDown className={`h-4 w-4 text-muted-foreground transition-transform duration-200 ${showAdvanced ? 'rotate-180' : ''}`} />
+                  </Button>
+                </CollapsibleTrigger>
+                <CollapsibleContent className="space-y-3 pt-3 animate-fade-in">
+                  <div className="space-y-1.5">
+                    <Label htmlFor="expires" className="text-[13px]">Expiration Date</Label>
+                    <Input
+                      id="expires"
+                      type="datetime-local"
+                      value={expiresAt}
+                      onChange={(e) => setExpiresAt(e.target.value)}
+                      className="h-10"
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label htmlFor="max-clicks" className="text-[13px]">Max Clicks</Label>
+                    <Input
+                      id="max-clicks"
+                      type="number"
+                      placeholder="Unlimited"
+                      min="1"
+                      value={maxClicks}
+                      onChange={(e) => setMaxClicks(e.target.value)}
+                      className="h-10"
+                    />
+                  </div>
+                </CollapsibleContent>
+              </Collapsible>
+
+              {/* 8. Create Button */}
+              <Button 
+                type="submit" 
+                className="w-full h-12 text-[14px] font-medium rounded-[12px]" 
+                disabled={loading}
+              >
+                {loading ? "Creating..." : "Create Link"}
               </Button>
-            </CollapsibleTrigger>
-            <CollapsibleContent className="space-y-4 pt-2">
-              <div className="space-y-2">
-                <Label htmlFor="expires">Expiration Date (optional)</Label>
-                <Input
-                  id="expires"
-                  type="datetime-local"
-                  value={expiresAt}
-                  onChange={(e) => setExpiresAt(e.target.value)}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="max-clicks">Max Clicks (optional)</Label>
-                <Input
-                  id="max-clicks"
-                  type="number"
-                  placeholder="Unlimited"
-                  min="1"
-                  value={maxClicks}
-                  onChange={(e) => setMaxClicks(e.target.value)}
-                />
-              </div>
-              
-              {/* UTM Row - Opens Modal */}
-              <UtmRow
-                enabled={utmEnabled}
-                params={utmParams}
-                onEditClick={() => setUtmModalOpen(true)}
-              />
-              {utmError && (
-                <p className="text-xs text-destructive mt-1">{utmError}</p>
-              )}
-            </CollapsibleContent>
-          </Collapsible>
-
-          <Button type="submit" className="w-full h-12 text-[14px] font-medium" disabled={loading}>
-            {loading ? "Creating..." : "Create Link"}
-          </Button>
-        </form>
-
-        {/* UTM Modal */}
-        <UtmModal
-          open={utmModalOpen}
-          onOpenChange={setUtmModalOpen}
-          params={utmParams}
-          onSave={handleUtmSave}
-        />
-      </DialogContent>
-    </Dialog>
+            </form>
+          </motion.div>
+        </>
+      )}
+    </AnimatePresence>
   );
 }
