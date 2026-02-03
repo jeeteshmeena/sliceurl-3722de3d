@@ -9,7 +9,8 @@ import { Lock, ChevronDown, Settings2, Eye } from "lucide-react";
 import { toast } from "sonner";
 import { CreateLinkData } from "@/hooks/useLinks";
 import { getDisplayDomain } from "@/lib/domain";
-import { UtmSection } from "./utm/UtmSection";
+import { UtmRow } from "./utm/UtmRow";
+import { UtmModal } from "./utm/UtmModal";
 import { UtmParams } from "./utm/UtmForm";
 import { buildUtmUrl } from "./utm/UtmPreview";
 import { useLinkBehavior } from "@/hooks/useLinkBehavior";
@@ -52,6 +53,14 @@ export function CreateLinkDialog({ open, onOpenChange, onCreateLink }: CreateLin
   const [utmEnabled, setUtmEnabled] = useState(false);
   const [utmParams, setUtmParams] = useState<UtmParams>(emptyUtmParams);
   const [utmError, setUtmError] = useState("");
+  const [utmModalOpen, setUtmModalOpen] = useState(false);
+
+  const handleUtmSave = (params: UtmParams) => {
+    setUtmParams(params);
+    // Enable UTM if any param is filled
+    const hasAnyParam = Object.values(params).some((v) => v.trim() !== "");
+    setUtmEnabled(hasAnyParam);
+  };
 
   const resetForm = () => {
     setUrl("");
@@ -279,15 +288,15 @@ export function CreateLinkDialog({ open, onOpenChange, onCreateLink }: CreateLin
                 />
               </div>
               
-              {/* UTM Builder Section */}
-              <UtmSection
-                baseUrl={url}
+              {/* UTM Row - Opens Modal */}
+              <UtmRow
                 enabled={utmEnabled}
-                onEnabledChange={setUtmEnabled}
                 params={utmParams}
-                onParamsChange={setUtmParams}
-                error={utmError}
+                onEditClick={() => setUtmModalOpen(true)}
               />
+              {utmError && (
+                <p className="text-xs text-destructive mt-1">{utmError}</p>
+              )}
             </CollapsibleContent>
           </Collapsible>
 
@@ -295,6 +304,14 @@ export function CreateLinkDialog({ open, onOpenChange, onCreateLink }: CreateLin
             {loading ? "Creating..." : "Create Link"}
           </Button>
         </form>
+
+        {/* UTM Modal */}
+        <UtmModal
+          open={utmModalOpen}
+          onOpenChange={setUtmModalOpen}
+          params={utmParams}
+          onSave={handleUtmSave}
+        />
       </DialogContent>
     </Dialog>
   );

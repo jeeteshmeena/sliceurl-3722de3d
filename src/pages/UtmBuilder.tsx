@@ -1,10 +1,16 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { Copy, Check, ExternalLink, ArrowLeft } from "lucide-react";
+import { Copy, Check, ExternalLink, ArrowLeft, Info } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { useNavigate } from "react-router-dom";
 import { UtmForm, UtmParams } from "@/components/utm/UtmForm";
 import { UtmPresets } from "@/components/utm/UtmPresets";
