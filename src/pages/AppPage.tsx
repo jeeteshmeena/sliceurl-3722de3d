@@ -1,8 +1,6 @@
 import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
-import { 
-  Star, Download, Package, Lock, AlertTriangle
-} from "lucide-react";
+import { Star, Lock, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -13,7 +11,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { toast } from "sonner";
-import { supabase } from "@/integrations/supabase/client"; // Used for reviews and password verification
+import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { SliceAppsHeader, RatingsReviewsSection } from "@/components/sliceapps";
 
@@ -36,15 +34,6 @@ interface AppListing {
   total_downloads: number | null;
   release_date: string | null;
   file_id: string;
-}
-
-// Simplified file info from public endpoint
-interface PublicFileInfo {
-  file_id: string;
-  file_size: number;
-  original_name: string;
-  is_password_protected: boolean;
-  download_count: number;
 }
 
 interface FileInfo {
@@ -77,12 +66,10 @@ export default function AppPage() {
   const [isDownloading, setIsDownloading] = useState(false);
   const [fileUnavailable, setFileUnavailable] = useState<string | null>(null);
   
-  // Password dialog
   const [showPasswordDialog, setShowPasswordDialog] = useState(false);
   const [password, setPassword] = useState("");
   const [isVerifyingPassword, setIsVerifyingPassword] = useState(false);
   
-  // Screenshot viewer
   const [selectedScreenshot, setSelectedScreenshot] = useState<number | null>(null);
 
   useEffect(() => {
@@ -93,13 +80,12 @@ export default function AppPage() {
     if (!id) return;
 
     try {
-      // Use public endpoint to fetch app info (no auth required)
       const response = await fetch(
         `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/public-app-info?id=${encodeURIComponent(id)}`,
         {
           method: "GET",
           headers: { "Content-Type": "application/json" },
-          credentials: "omit", // Don't send auth cookies
+          credentials: "omit",
         }
       );
 
@@ -117,11 +103,10 @@ export default function AppPage() {
       if (data.fileUnavailable) {
         setFileUnavailable(data.fileUnavailable);
       } else if (data.fileInfo) {
-        // Map public file info to our interface
         setFileInfo({
           file_id: data.fileInfo.file_id,
           file_size: data.fileInfo.file_size,
-          storage_path: "", // Not needed, streaming endpoint handles it
+          storage_path: "",
           original_name: data.fileInfo.original_name,
           password_hash: data.fileInfo.is_password_protected ? "protected" : null,
           is_deleted: null,
@@ -144,7 +129,6 @@ export default function AppPage() {
   const handleDownload = async () => {
     if (!fileInfo || !app) return;
 
-    // Check if password protected
     if (fileInfo.password_hash) {
       setShowPasswordDialog(true);
       return;
@@ -158,10 +142,8 @@ export default function AppPage() {
 
     setIsDownloading(true);
     try {
-      // Use the unified streaming endpoint
       const streamUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/file-stream?fileId=${fileInfo.file_id}${passwordForDownload ? '&verified=true' : ''}`;
       
-      // Create a hidden link and trigger download
       const a = document.createElement("a");
       a.href = streamUrl;
       a.download = fileInfo.original_name;
@@ -170,7 +152,6 @@ export default function AppPage() {
       a.click();
       document.body.removeChild(a);
 
-      // Update local download count from actual file downloads
       setFileInfo(prev => prev ? { ...prev, download_count: (prev.download_count || 0) + 1 } : null);
 
       toast.success("Download started!");
@@ -187,7 +168,6 @@ export default function AppPage() {
 
     setIsVerifyingPassword(true);
     try {
-      // Verify password
       const { data, error } = await supabase.functions.invoke("slicebox-verify-password", {
         body: { 
           fileId: fileInfo.file_id,
@@ -202,11 +182,9 @@ export default function AppPage() {
         return;
       }
 
-      // Password correct - use streaming endpoint with verified flag
       setShowPasswordDialog(false);
       setPassword("");
 
-      // Use the unified streaming endpoint
       const streamUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/file-stream?fileId=${fileInfo.file_id}&verified=true`;
       
       const a = document.createElement("a");
@@ -217,7 +195,6 @@ export default function AppPage() {
       a.click();
       document.body.removeChild(a);
 
-      // Update local download count
       setFileInfo(prev => prev ? { ...prev, download_count: (prev.download_count || 0) + 1 } : null);
 
       toast.success("Download started!");
@@ -251,223 +228,191 @@ export default function AppPage() {
   if (isLoading) {
     return (
       <div className="min-h-dvh flex items-center justify-center bg-white dark:bg-black">
-        <div className="animate-pulse text-gray-500 dark:text-gray-400">
-          Loading...
-        </div>
+        <div className="text-gray-400 dark:text-gray-500">Loading...</div>
       </div>
     );
   }
 
   if (!app) {
     return (
-      <div className="min-h-dvh flex items-center justify-center bg-white dark:bg-black text-gray-900 dark:text-white">
+      <div className="min-h-dvh flex items-center justify-center bg-white dark:bg-black">
         <div className="text-center">
-          <p className="text-lg mb-4">App not found</p>
+          <p className="text-lg mb-4 text-gray-900 dark:text-white">App not found</p>
           <Link to="/slicebox">
-            <Button variant="outline">
-              Go to SliceBox
-            </Button>
+            <Button variant="outline">Go to SliceBox</Button>
           </Link>
         </div>
       </div>
     );
   }
 
-  // Use actual file download count for consistency
   const actualDownloads = fileInfo?.download_count || 0;
 
   return (
     <div className="min-h-dvh bg-white dark:bg-black">
-      {/* Header */}
       <SliceAppsHeader showCreateButton />
 
-      {/* Main Content */}
-      <main className="max-w-4xl mx-auto px-4 py-6">
-        {/* Promo Banner */}
-        {app.promo_banner_url && (
-          <div className="mb-6 rounded-xl overflow-hidden">
-            <img 
-              src={app.promo_banner_url} 
-              alt="Promo" 
-              className="w-full h-48 object-cover"
-              loading="lazy"
-            />
-          </div>
-        )}
-
-        {/* App Header - Icon, Name, Developer only */}
+      <main className="max-w-2xl mx-auto px-4 py-6">
+        {/* Top Section: Icon + Name + Developer + Download Button */}
         <div className="flex gap-4 mb-6">
-          {/* Icon */}
-          <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl flex-shrink-0 overflow-hidden bg-gray-100 dark:bg-gray-800">
+          {/* Large App Icon */}
+          <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl flex-shrink-0 overflow-hidden bg-gray-100 dark:bg-gray-900">
             {app.icon_url ? (
               <img src={app.icon_url} alt={app.app_name} className="w-full h-full object-cover" loading="lazy" />
             ) : (
-              <div className="w-full h-full flex items-center justify-center">
-                <Package className="h-10 w-10 text-gray-400" />
+              <div className="w-full h-full flex items-center justify-center text-gray-300 dark:text-gray-600 text-2xl font-bold">
+                {app.app_name.charAt(0)}
               </div>
             )}
           </div>
 
-          {/* Info - Name and Developer only */}
+          {/* Name + Developer */}
           <div className="flex-1 min-w-0 flex flex-col justify-center">
-            <h1 className="text-xl sm:text-2xl font-bold truncate text-gray-900 dark:text-white">
+            <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white leading-tight">
               {app.app_name}
             </h1>
             {app.developer_name && (
-              <p className="text-sm mt-1.5 text-gray-500 dark:text-gray-400">
+              <p className="text-sm text-green-600 dark:text-green-500 mt-1">
                 {app.developer_name}
               </p>
             )}
           </div>
         </div>
 
-        {/* Download Button - Large, rounded, green accent */}
+        {/* Download Button */}
         <Button
           onClick={handleDownload}
           disabled={isDownloading || !fileInfo || !!fileUnavailable}
-          className="w-full h-14 text-base font-semibold rounded-2xl mb-5 gap-3 bg-green-500 hover:bg-green-600 text-white disabled:bg-gray-300 disabled:text-gray-500"
+          className="w-full h-12 text-base font-medium rounded-lg bg-green-600 hover:bg-green-700 text-white disabled:bg-gray-200 disabled:text-gray-400 dark:disabled:bg-gray-800 dark:disabled:text-gray-500"
         >
-          {fileInfo?.password_hash && <Lock className="h-5 w-5" />}
-          <Download className="h-5 w-5" />
+          {fileInfo?.password_hash && <Lock className="h-4 w-4 mr-2" />}
           {isDownloading ? "Downloading..." : "Download"}
         </Button>
 
         {/* File Unavailable Warning */}
         {fileUnavailable && (
-          <div className="flex items-center gap-3 p-4 rounded-xl mb-5 bg-gray-100 dark:bg-gray-800">
-            <AlertTriangle className="h-5 w-5 flex-shrink-0 text-gray-500" />
-            <p className="text-sm text-gray-500">
-              {fileUnavailable}
-            </p>
+          <div className="flex items-center gap-3 mt-4 text-gray-500 dark:text-gray-400">
+            <AlertTriangle className="h-4 w-4 flex-shrink-0" />
+            <p className="text-sm">{fileUnavailable}</p>
           </div>
         )}
 
-        {/* Stats Row - Rating (with reviews count), Downloads, Size only */}
-        <div className="flex items-center justify-between p-4 rounded-xl mb-6 bg-gray-50 dark:bg-gray-900 border border-gray-100 dark:border-gray-800">
-          {/* Rating with stars and review count */}
-          <div className="text-center flex-1">
-            <div className="flex items-center justify-center gap-1.5 mb-1">
-              <span className="font-bold text-lg text-gray-900 dark:text-white">
+        {/* Stats Row - Clean text only */}
+        <div className="flex items-center justify-around py-5 mt-4">
+          {/* Rating */}
+          <div className="text-center">
+            <div className="flex items-center justify-center gap-1">
+              <span className="text-base font-medium text-gray-900 dark:text-white">
                 {app.rating_avg?.toFixed(1) || "0.0"}
               </span>
-              <div className="flex gap-0.5">
-                {[1, 2, 3, 4, 5].map(star => (
-                  <Star 
-                    key={star} 
-                    className={`h-3.5 w-3.5 ${star <= Math.round(app.rating_avg || 0) ? "fill-current" : ""}`}
-                    style={{ color: "#22c55e" }}
-                  />
-                ))}
-              </div>
+              <Star className="h-4 w-4 fill-current text-gray-900 dark:text-white" />
             </div>
-            <p className="text-xs text-gray-500 dark:text-gray-400">
-              ({(app.rating_count || 0).toLocaleString()} reviews)
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+              {(app.rating_count || 0).toLocaleString()} reviews
             </p>
           </div>
-          
-          <div className="w-px h-10 bg-gray-200 dark:bg-gray-700" />
-          
-          {/* Downloads Count - Human readable */}
-          <div className="text-center flex-1">
-            <div className="flex items-center justify-center gap-1.5 mb-1">
-              <Download className="h-4 w-4 text-gray-600 dark:text-gray-300" />
-              <span className="font-bold text-lg text-gray-900 dark:text-white">
-                {formatDownloads(actualDownloads)}
-              </span>
-            </div>
-            <p className="text-xs text-gray-500 dark:text-gray-400">Downloads</p>
+
+          {/* Downloads */}
+          <div className="text-center">
+            <p className="text-base font-medium text-gray-900 dark:text-white">
+              {formatDownloads(actualDownloads)}
+            </p>
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+              Downloads
+            </p>
           </div>
-          
-          <div className="w-px h-10 bg-gray-200 dark:bg-gray-700" />
-          
-          {/* File Size */}
-          <div className="text-center flex-1">
-            <div className="flex items-center justify-center gap-1.5 mb-1">
-              <Package className="h-4 w-4 text-gray-600 dark:text-gray-300" />
-              <span className="font-bold text-lg text-gray-900 dark:text-white">
-                {fileInfo ? formatFileSize(fileInfo.file_size) : "--"}
-              </span>
-            </div>
-            <p className="text-xs text-gray-500 dark:text-gray-400">Size</p>
+
+          {/* Size */}
+          <div className="text-center">
+            <p className="text-base font-medium text-gray-900 dark:text-white">
+              {fileInfo ? formatFileSize(fileInfo.file_size) : "--"}
+            </p>
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+              Size
+            </p>
           </div>
         </div>
 
-        {/* Screenshots - Horizontal scroll gallery */}
+        {/* Screenshots */}
         {app.screenshots && app.screenshots.length > 0 && (
-          <div className="mb-6">
-            <h2 className="font-semibold mb-3 text-lg text-gray-900 dark:text-white">
+          <section className="mt-6">
+            <h2 className="text-base font-medium text-gray-900 dark:text-white mb-3">
               Screenshots
             </h2>
-            <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
+            <div className="flex gap-3 overflow-x-auto pb-2 -mx-4 px-4 scrollbar-hide">
               {app.screenshots.map((url, index) => (
                 <img
                   key={index}
                   src={url}
                   alt={`Screenshot ${index + 1}`}
-                  className="w-36 h-64 object-cover rounded-xl flex-shrink-0 cursor-pointer border border-gray-200 dark:border-gray-700"
+                  className="w-32 h-56 object-cover rounded-lg flex-shrink-0 cursor-pointer"
                   onClick={() => setSelectedScreenshot(index)}
                   loading="lazy"
                 />
               ))}
             </div>
-          </div>
+          </section>
         )}
 
-        {/* About section */}
+        {/* About this app */}
         {app.full_description && (
-          <div className="p-5 rounded-xl mb-6 bg-gray-50 dark:bg-gray-900">
-            <h2 className="font-semibold mb-3 text-lg text-gray-900 dark:text-white">
+          <section className="mt-8">
+            <h2 className="text-base font-medium text-gray-900 dark:text-white mb-3">
               About this app
             </h2>
-            <p className="text-sm whitespace-pre-wrap leading-relaxed text-gray-600 dark:text-gray-300">
+            <p className="text-sm text-gray-600 dark:text-gray-300 leading-relaxed whitespace-pre-wrap">
               {app.full_description}
             </p>
-          </div>
+          </section>
         )}
 
-        {/* Additional Info - Category, Developer, Version, Size only */}
-        <div className="p-5 rounded-xl mb-6 bg-gray-50 dark:bg-gray-900">
-          <h2 className="font-semibold mb-4 text-lg text-gray-900 dark:text-white">
-            Additional Information
+        {/* What's New */}
+        {app.whats_new && (
+          <section className="mt-8">
+            <h2 className="text-base font-medium text-gray-900 dark:text-white mb-3">
+              What's new
+            </h2>
+            <p className="text-sm text-gray-600 dark:text-gray-300 leading-relaxed whitespace-pre-wrap">
+              {app.whats_new}
+            </p>
+          </section>
+        )}
+
+        {/* Additional Info */}
+        <section className="mt-8">
+          <h2 className="text-base font-medium text-gray-900 dark:text-white mb-4">
+            Additional information
           </h2>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-2 gap-y-4 gap-x-8">
             <div>
-              <p className="text-xs mb-1 text-gray-500 dark:text-gray-400">
-                Category
+              <p className="text-xs text-gray-500 dark:text-gray-400 mb-0.5">Version</p>
+              <p className="text-sm text-gray-900 dark:text-white">
+                {app.version_name || "1.0"}
               </p>
+            </div>
+            <div>
+              <p className="text-xs text-gray-500 dark:text-gray-400 mb-0.5">Category</p>
               <p className="text-sm text-gray-900 dark:text-white">
                 {app.category || "Other"}
               </p>
             </div>
             <div>
-              <p className="text-xs mb-1 text-gray-500 dark:text-gray-400">
-                Developer
-              </p>
+              <p className="text-xs text-gray-500 dark:text-gray-400 mb-0.5">Developer</p>
               <p className="text-sm text-gray-900 dark:text-white">
                 {app.developer_name || "Unknown"}
               </p>
             </div>
             <div>
-              <p className="text-xs mb-1 text-gray-500 dark:text-gray-400">
-                Version
-              </p>
-              <p className="text-sm text-gray-900 dark:text-white">
-                {app.version_name || "1.0"} ({app.version_code || "1"})
-              </p>
-            </div>
-            <div>
-              <p className="text-xs mb-1 text-gray-500 dark:text-gray-400">
-                Size
-              </p>
+              <p className="text-xs text-gray-500 dark:text-gray-400 mb-0.5">Size</p>
               <p className="text-sm text-gray-900 dark:text-white">
                 {fileInfo ? formatFileSize(fileInfo.file_size) : "--"}
               </p>
             </div>
           </div>
-        </div>
+        </section>
 
         {/* Ratings & Reviews */}
-        <div className="mb-6">
+        <section className="mt-8">
           <RatingsReviewsSection
             appId={app.id}
             ratingAvg={app.rating_avg}
@@ -476,7 +421,7 @@ export default function AppPage() {
             userId={user?.id || null}
             onReviewSubmit={loadAppData}
           />
-        </div>
+        </section>
       </main>
 
       {/* Screenshot Modal */}
@@ -495,23 +440,23 @@ export default function AppPage() {
 
       {/* Password Dialog */}
       <Dialog open={showPasswordDialog} onOpenChange={setShowPasswordDialog}>
-        <DialogContent className="bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-700">
+        <DialogContent className="bg-white dark:bg-gray-900 border-0">
           <DialogHeader>
             <DialogTitle className="text-gray-900 dark:text-white">
               Password Required
             </DialogTitle>
             <DialogDescription className="text-gray-500 dark:text-gray-400">
-              This file is password protected. Please enter the password to download.
+              This file is password protected. Enter the password to download.
             </DialogDescription>
           </DialogHeader>
-          <div className="space-y-4">
+          <div className="space-y-4 mt-2">
             <Input
               type="password"
               placeholder="Enter password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && handlePasswordSubmit()}
-              className="border bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white"
+              className="h-11 bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700"
             />
             <div className="flex gap-3">
               <Button
@@ -520,14 +465,14 @@ export default function AppPage() {
                   setPassword("");
                 }}
                 variant="outline"
-                className="flex-1 border border-gray-200 dark:border-gray-700"
+                className="flex-1 h-11"
               >
                 Cancel
               </Button>
               <Button
                 onClick={handlePasswordSubmit}
                 disabled={isVerifyingPassword || !password}
-                className="flex-1 bg-green-500 hover:bg-green-600 text-white"
+                className="flex-1 h-11 bg-green-600 hover:bg-green-700 text-white"
               >
                 {isVerifyingPassword ? "Verifying..." : "Download"}
               </Button>
