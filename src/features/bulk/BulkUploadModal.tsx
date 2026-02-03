@@ -359,27 +359,18 @@ export function BulkUploadModal({ open, onOpenChange, onComplete }: BulkUploadMo
       >
         {/* Header - Hidden during processing for full-screen feel */}
         {stage !== "processing" && (
-          <div className="flex-shrink-0 flex items-center justify-between p-4 sm:p-6 border-b border-border/50 bg-background">
+          <div className="flex-shrink-0 flex items-center justify-between px-5 py-4 border-b border-border bg-background">
             <div className="flex items-center gap-2">
-              <div className="p-2 rounded-lg bg-foreground/5">
-                <Scissors className="h-5 w-5 text-foreground" />
-              </div>
-              <div>
-                <h2 className="font-semibold text-foreground">Bulk Shortener</h2>
-                <p className="text-xs text-muted-foreground">
-                  {stage === "input" && "Paste URLs to slice them all at once"}
-                  {stage === "complete" && (progress.success > 0 ? "All done!" : "Processing complete")}
-                </p>
-              </div>
+              <Scissors className="h-5 w-5 text-foreground" />
+              <h2 className="font-semibold text-foreground text-base">Bulk Shortener</h2>
             </div>
             <Button
               variant="ghost"
-              size="icon"
-              className="h-8 w-8 rounded-full hover:bg-muted"
+              size="sm"
+              className="text-muted-foreground hover:text-foreground h-8 px-3"
               onClick={handleClose}
-              aria-label="Close"
             >
-              <X className="h-4 w-4" />
+              Close
             </Button>
           </div>
         )}
