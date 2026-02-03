@@ -1,8 +1,7 @@
 import { useState, useEffect, useMemo } from "react";
-import { Star, User, Edit2, Trash2 } from "lucide-react";
+import { Star, Edit2, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Separator } from "@/components/ui/separator";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -26,7 +25,6 @@ interface RatingsReviewsSectionProps {
   onReviewSubmit: () => void;
 }
 
-// Generate simple browser fingerprint
 const getBrowserFingerprint = (): string => {
   const data = [
     navigator.userAgent,
@@ -44,7 +42,6 @@ const getBrowserFingerprint = (): string => {
   return Math.abs(hash).toString(36);
 };
 
-// Generate random username for anonymous users (consistent per review)
 const generateRandomUsername = (seed: string): string => {
   let hash = 0;
   for (let i = 0; i < seed.length; i++) {
@@ -71,7 +68,6 @@ export function RatingsReviewsSection({
   const [isEditing, setIsEditing] = useState(false);
   const [browserFingerprint] = useState(getBrowserFingerprint);
 
-  // Load user profiles for reviews
   useEffect(() => {
     const loadProfiles = async () => {
       const userIds = reviews.filter(r => r.user_id).map(r => r.user_id as string);
@@ -93,9 +89,7 @@ export function RatingsReviewsSection({
     loadProfiles();
   }, [reviews]);
 
-  // Check if current user/IP already has a review
   useEffect(() => {
-    // Find review by current user
     if (userId) {
       const userReview = reviews.find(r => r.user_id === userId);
       if (userReview) {
@@ -103,7 +97,6 @@ export function RatingsReviewsSection({
         return;
       }
     }
-    // Otherwise check via submit-review API to see if IP has a review
     setMyReview(null);
   }, [reviews, userId]);
 
@@ -131,7 +124,6 @@ export function RatingsReviewsSection({
       }
 
       if (data.action === "existing") {
-        // This IP already has a review - show it and offer to edit
         setMyReview(data.review);
         setReviewRating(data.review.rating);
         setReviewText(data.review.review_text || "");
@@ -245,7 +237,7 @@ export function RatingsReviewsSection({
         dist[r.rating - 1]++;
       }
     });
-    return dist.reverse(); // 5 stars first
+    return dist.reverse();
   }, [reviews]);
 
   const maxRatingCount = Math.max(...ratingDist, 1);
@@ -257,88 +249,71 @@ export function RatingsReviewsSection({
     return generateRandomUsername(review.id);
   };
 
-  const isMyReview = (review: Review): boolean => {
-    return myReview?.id === review.id;
-  };
-
   return (
-    <div className="p-5 rounded-xl bg-gray-50 dark:bg-gray-900">
-      <h2 className="font-semibold mb-5 text-lg text-gray-900 dark:text-white">
-        Ratings and Reviews
+    <div>
+      <h2 className="text-base font-medium text-gray-900 dark:text-white mb-4">
+        Ratings and reviews
       </h2>
 
-      {/* Rating Summary - Play Store style */}
+      {/* Rating Summary */}
       <div className="flex gap-6 mb-6">
         {/* Large average rating */}
-        <div className="text-center min-w-[80px]">
-          <div className="text-5xl font-bold leading-none text-gray-900 dark:text-white">
+        <div className="text-center min-w-[70px]">
+          <div className="text-5xl font-light text-gray-900 dark:text-white leading-none">
             {ratingAvg?.toFixed(1) || "0.0"}
           </div>
           <div className="flex gap-0.5 justify-center mt-2">
             {[1, 2, 3, 4, 5].map(star => (
               <Star
                 key={star}
-                className={`h-3.5 w-3.5 ${star <= Math.round(ratingAvg || 0) ? "fill-current" : ""}`}
-                style={{ color: "#22c55e" }}
+                className={`h-3 w-3 ${star <= Math.round(ratingAvg || 0) ? "fill-current text-gray-900 dark:text-white" : "text-gray-300 dark:text-gray-600"}`}
               />
             ))}
           </div>
-          <p className="text-xs mt-1.5 text-gray-500 dark:text-gray-400">
-            {ratingCount || 0} reviews
+          <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+            {ratingCount || 0}
           </p>
         </div>
 
         {/* Star distribution bars */}
-        <div className="flex-1 space-y-1.5">
+        <div className="flex-1 space-y-1">
           {[5, 4, 3, 2, 1].map((star, index) => (
             <div key={star} className="flex items-center gap-2">
-              <span className="text-xs w-3 text-right text-gray-500 dark:text-gray-400">
-                {star}
-              </span>
-              <div className="flex-1 h-2.5 rounded-full overflow-hidden bg-gray-200 dark:bg-gray-700">
+              <span className="text-xs w-2 text-gray-500 dark:text-gray-400">{star}</span>
+              <div className="flex-1 h-2 rounded-full overflow-hidden bg-gray-200 dark:bg-gray-800">
                 <div
-                  className="h-full rounded-full transition-all duration-300"
-                  style={{ 
-                    backgroundColor: "#22c55e",
-                    width: `${(ratingDist[index] / maxRatingCount) * 100}%`,
-                  }}
+                  className="h-full rounded-full bg-gray-900 dark:bg-white transition-all duration-300"
+                  style={{ width: `${(ratingDist[index] / maxRatingCount) * 100}%` }}
                 />
               </div>
-              <span className="text-xs w-6 text-right text-gray-500 dark:text-gray-400">
-                {ratingDist[index]}
-              </span>
             </div>
           ))}
         </div>
       </div>
 
-      <Separator className="my-5 bg-gray-200 dark:bg-gray-700" />
-
       {/* Write/Edit a review */}
       <div className="mb-6">
         <h3 className="text-sm font-medium mb-3 text-gray-900 dark:text-white">
-          {myReview && !isEditing ? "Your Review" : isEditing ? "Edit Your Review" : "Rate this app"}
+          {myReview && !isEditing ? "Your review" : isEditing ? "Edit your review" : "Rate this app"}
         </h3>
         
         {myReview && !isEditing ? (
-          // Show existing review with edit option
-          <div className="p-4 rounded-xl bg-white dark:bg-gray-800 border-2 border-green-500/30">
+          <div className="py-3">
             <div className="flex items-center justify-between mb-2">
               <div className="flex gap-0.5">
                 {[1, 2, 3, 4, 5].map(star => (
                   <Star
                     key={star}
-                    className={`h-5 w-5 ${star <= myReview.rating ? "fill-current" : ""}`}
-                    style={{ color: "#22c55e" }}
+                    className={`h-4 w-4 ${star <= myReview.rating ? "fill-current text-gray-900 dark:text-white" : "text-gray-300 dark:text-gray-600"}`}
                   />
                 ))}
               </div>
-              <div className="flex gap-2">
+              <div className="flex gap-1">
                 <Button
                   variant="ghost"
                   size="sm"
                   onClick={startEditing}
-                  className="h-8 px-2"
+                  className="h-8 px-2 text-gray-600 dark:text-gray-300"
                 >
                   <Edit2 className="h-4 w-4 mr-1" />
                   Edit
@@ -349,10 +324,9 @@ export function RatingsReviewsSection({
                     size="sm"
                     onClick={handleDeleteReview}
                     disabled={isSubmitting}
-                    className="h-8 px-2 text-red-500 hover:text-red-600"
+                    className="h-8 px-2 text-gray-500 hover:text-red-500"
                   >
-                    <Trash2 className="h-4 w-4 mr-1" />
-                    Delete
+                    <Trash2 className="h-4 w-4" />
                   </Button>
                 )}
               </div>
@@ -364,18 +338,16 @@ export function RatingsReviewsSection({
             )}
           </div>
         ) : (
-          // Show rating input form
           <>
-            <div className="flex gap-1.5 mb-4">
+            <div className="flex gap-1 mb-4">
               {[1, 2, 3, 4, 5].map(star => (
                 <button
                   key={star}
                   onClick={() => setReviewRating(star)}
-                  className="p-1 transition-transform hover:scale-110"
+                  className="p-0.5"
                 >
                   <Star
-                    className={`h-8 w-8 transition-colors ${star <= reviewRating ? "fill-current" : ""}`}
-                    style={{ color: star <= reviewRating ? "#22c55e" : "#d1d5db" }}
+                    className={`h-7 w-7 ${star <= reviewRating ? "fill-current text-gray-900 dark:text-white" : "text-gray-300 dark:text-gray-600"}`}
                   />
                 </button>
               ))}
@@ -384,9 +356,9 @@ export function RatingsReviewsSection({
             <Textarea
               value={reviewText}
               onChange={(e) => setReviewText(e.target.value)}
-              placeholder="Share your thoughts about this app... (optional)"
+              placeholder="Describe your experience (optional)"
               rows={3}
-              className="border resize-none mb-3 bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white"
+              className="resize-none mb-3 bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-800"
             />
             
             <div className="flex gap-2">
@@ -395,14 +367,14 @@ export function RatingsReviewsSection({
                   <Button
                     onClick={handleUpdateReview}
                     disabled={isSubmitting}
-                    className="rounded-xl h-11 px-6 bg-green-500 hover:bg-green-600 text-white"
+                    className="h-10 px-5 bg-green-600 hover:bg-green-700 text-white rounded-lg"
                   >
-                    {isSubmitting ? "Saving..." : "Save Changes"}
+                    {isSubmitting ? "Saving..." : "Save"}
                   </Button>
                   <Button
                     onClick={cancelEditing}
-                    variant="outline"
-                    className="rounded-xl h-11 px-6"
+                    variant="ghost"
+                    className="h-10 px-5 text-gray-600 dark:text-gray-300"
                   >
                     Cancel
                   </Button>
@@ -411,9 +383,9 @@ export function RatingsReviewsSection({
                 <Button
                   onClick={handleSubmitReview}
                   disabled={isSubmitting}
-                  className="rounded-xl h-11 px-6 bg-green-500 hover:bg-green-600 text-white"
+                  className="h-10 px-5 bg-green-600 hover:bg-green-700 text-white rounded-lg"
                 >
-                  {isSubmitting ? "Submitting..." : "Submit Review"}
+                  {isSubmitting ? "Submitting..." : "Submit"}
                 </Button>
               )}
             </div>
@@ -423,54 +395,47 @@ export function RatingsReviewsSection({
 
       {/* Reviews list */}
       {reviews.length > 0 && (
-        <>
-          <Separator className="my-5 bg-gray-200 dark:bg-gray-700" />
-          <div className="space-y-4 max-h-[400px] overflow-y-auto">
-            {reviews.filter(r => r.id !== myReview?.id).map(review => (
-              <div 
-                key={review.id}
-                className="p-4 rounded-xl bg-white dark:bg-gray-800"
-              >
-                <div className="flex items-start gap-3">
-                  {/* Avatar */}
-                  <div className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 bg-gray-100 dark:bg-gray-700">
-                    <User className="h-5 w-5 text-gray-400" />
+        <div className="space-y-4 max-h-[400px] overflow-y-auto">
+          {reviews.filter(r => r.id !== myReview?.id).map(review => (
+            <div key={review.id} className="py-3">
+              <div className="flex items-start gap-3">
+                {/* Avatar */}
+                <div className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 bg-gray-200 dark:bg-gray-800 text-gray-600 dark:text-gray-400 text-xs font-medium">
+                  {getUsername(review).charAt(0).toUpperCase()}
+                </div>
+                
+                <div className="flex-1 min-w-0">
+                  {/* Username and date */}
+                  <div className="flex items-center gap-2 mb-1">
+                    <p className="text-sm font-medium text-gray-900 dark:text-white">
+                      {getUsername(review)}
+                    </p>
+                    <span className="text-xs text-gray-400 dark:text-gray-500">
+                      {new Date(review.created_at).toLocaleDateString()}
+                    </span>
                   </div>
                   
-                  <div className="flex-1 min-w-0">
-                    {/* Username and date */}
-                    <div className="flex items-center justify-between gap-2 mb-1">
-                      <p className="text-sm font-medium truncate text-gray-900 dark:text-white">
-                        {getUsername(review)}
-                      </p>
-                      <span className="text-xs flex-shrink-0 text-gray-500 dark:text-gray-400">
-                        {new Date(review.created_at).toLocaleDateString()}
-                      </span>
-                    </div>
-                    
-                    {/* Stars */}
-                    <div className="flex gap-0.5 mb-2">
-                      {[1, 2, 3, 4, 5].map(star => (
-                        <Star
-                          key={star}
-                          className={`h-3.5 w-3.5 ${star <= review.rating ? "fill-current" : ""}`}
-                          style={{ color: "#22c55e" }}
-                        />
-                      ))}
-                    </div>
-                    
-                    {/* Review text */}
-                    {review.review_text && (
-                      <p className="text-sm leading-relaxed text-gray-600 dark:text-gray-300">
-                        {review.review_text}
-                      </p>
-                    )}
+                  {/* Stars */}
+                  <div className="flex gap-0.5 mb-2">
+                    {[1, 2, 3, 4, 5].map(star => (
+                      <Star
+                        key={star}
+                        className={`h-3 w-3 ${star <= review.rating ? "fill-current text-gray-900 dark:text-white" : "text-gray-300 dark:text-gray-600"}`}
+                      />
+                    ))}
                   </div>
+                  
+                  {/* Review text */}
+                  {review.review_text && (
+                    <p className="text-sm text-gray-600 dark:text-gray-300 leading-relaxed">
+                      {review.review_text}
+                    </p>
+                  )}
                 </div>
               </div>
-            ))}
-          </div>
-        </>
+            </div>
+          ))}
+        </div>
       )}
     </div>
   );
