@@ -1,6 +1,6 @@
 import { useState, useRef } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { Upload, X, Image as ImageIcon, Copy, Check, GripVertical, Share2, RefreshCw } from "lucide-react";
+import { Upload, X, Image as ImageIcon, Copy, Check, GripVertical, Share2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -67,8 +67,6 @@ export default function CreateAppListing() {
   const [copiedLink, setCopiedLink] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
-  const [selectedLinkType, setSelectedLinkType] = useState<"short" | "named">("short");
-  const [isRegeneratingLink, setIsRegeneratingLink] = useState(false);
   const [customSlug, setCustomSlug] = useState("");
   const [isCheckingSlug, setIsCheckingSlug] = useState(false);
   const [slugAvailable, setSlugAvailable] = useState<boolean | null>(null);
@@ -201,7 +199,9 @@ export default function CreateAppListing() {
   const handleCopyLink = async () => {
     if (!publishedApp) return;
     
-    const urlToCopy = selectedLinkType === "short" ? publishedApp.appUrl : publishedApp.slugUrl;
+    const baseUrl = getBaseUrl();
+    const currentSlug = customSlug || publishedApp.shortCode;
+    const urlToCopy = `${baseUrl}/app/${currentSlug}`;
     
     try {
       await navigator.clipboard.writeText(urlToCopy);
@@ -216,7 +216,9 @@ export default function CreateAppListing() {
   const handleShareLink = async () => {
     if (!publishedApp) return;
     
-    const urlToShare = selectedLinkType === "short" ? publishedApp.appUrl : publishedApp.slugUrl;
+    const baseUrl = getBaseUrl();
+    const currentSlug = customSlug || publishedApp.shortCode;
+    const urlToShare = `${baseUrl}/app/${currentSlug}`;
     
     if (navigator.share) {
       try {
@@ -249,53 +251,6 @@ export default function CreateAppListing() {
       result += chars.charAt(Math.floor(Math.random() * chars.length));
     }
     return result;
-  };
-
-  const handleRegenerateLink = async () => {
-    if (!publishedApp) return;
-    
-    setIsRegeneratingLink(true);
-    try {
-      let newShortCode = generateShortCode();
-      
-      // Ensure it's unique
-      let isUnique = false;
-      let attempts = 0;
-      while (!isUnique && attempts < 10) {
-        const { data: existing } = await supabase
-          .from("app_listings")
-          .select("id")
-          .eq("short_code", newShortCode)
-          .maybeSingle();
-        isUnique = !existing;
-        if (!isUnique) {
-          newShortCode = generateShortCode();
-        }
-        attempts++;
-      }
-
-      // Update in database
-      const { error } = await supabase
-        .from("app_listings")
-        .update({ short_code: newShortCode })
-        .eq("id", publishedApp.id);
-
-      if (error) throw error;
-
-      const baseUrl = getBaseUrl();
-      setPublishedApp(prev => prev ? {
-        ...prev,
-        shortCode: newShortCode,
-        appUrl: `${baseUrl}/app/${newShortCode}`,
-      } : null);
-
-      toast.success("New link generated!");
-    } catch (err) {
-      console.error("Failed to regenerate link:", err);
-      toast.error("Failed to generate new link");
-    } finally {
-      setIsRegeneratingLink(false);
-    }
   };
 
   const handleCheckSlugAvailability = async (slug: string) => {
@@ -443,9 +398,18 @@ export default function CreateAppListing() {
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
   };
 
+  // Build current URL based on custom slug
+  const getCurrentAppUrl = () => {
+    if (!publishedApp) return "";
+    const baseUrl = getBaseUrl();
+    const currentSlug = customSlug || publishedApp.shortCode;
+    return `${baseUrl}/app/${currentSlug}`;
+  };
+
   // Show success state after publish
   if (publishedApp) {
-    const currentUrl = selectedLinkType === "short" ? publishedApp.appUrl : publishedApp.slugUrl;
+    const currentUrl = getCurrentAppUrl();
+    const displayDomain = typeof window !== 'undefined' ? window.location.hostname : 'sliceurl.app';
     
     return (
       <div className="min-h-dvh bg-white dark:bg-black">
@@ -465,77 +429,46 @@ export default function CreateAppListing() {
               {publishedApp.appName}
             </p>
 
-            {/* Link type toggle buttons */}
-            <div className="flex gap-2 mb-4">
-              <button
-                onClick={() => setSelectedLinkType("short")}
-                className={`flex-1 h-10 rounded-lg text-sm font-medium transition-colors ${
-                  selectedLinkType === "short"
-                    ? "bg-green-500 text-white"
-                    : "bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400"
-                }`}
-              >
-                Short Link
-              </button>
-              <button
-                onClick={() => setSelectedLinkType("named")}
-                className={`flex-1 h-10 rounded-lg text-sm font-medium transition-colors ${
-                  selectedLinkType === "named"
-                    ? "bg-green-500 text-white"
-                    : "bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400"
-                }`}
-              >
-                Named Link
-              </button>
-            </div>
-
-            {/* Link display */}
+            {/* Editable slug input - paa.ge style */}
             <div className="mb-4">
-              <div className="p-4 rounded-xl font-mono text-sm break-all bg-white dark:bg-gray-800 text-gray-900 dark:text-white border border-gray-200 dark:border-gray-700">
-                {currentUrl}
+              <div className="flex items-center rounded-[12px] border bg-muted/30 overflow-hidden focus-within:ring-2 focus-within:ring-ring border-gray-200 dark:border-gray-700">
+                <span className="px-3 text-[13px] text-gray-500 dark:text-gray-400 whitespace-nowrap bg-gray-100 dark:bg-gray-800 h-11 flex items-center border-r border-gray-200 dark:border-gray-700">
+                  {displayDomain}/app/
+                </span>
+                <Input
+                  value={customSlug}
+                  onChange={(e) => {
+                    const value = e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '');
+                    setCustomSlug(value);
+                    handleCheckSlugAvailability(value);
+                  }}
+                  placeholder={publishedApp.shortCode}
+                  className="text-[14px] h-11 border-0 focus-visible:ring-0 rounded-none bg-white dark:bg-gray-800"
+                />
+                {(isCheckingSlug || slugAvailable !== null) && (
+                  <div className="pr-3 bg-white dark:bg-gray-800">
+                    {isCheckingSlug && (
+                      <div className="h-4 w-4 border-2 border-gray-300 border-t-gray-600 rounded-full animate-spin" />
+                    )}
+                    {!isCheckingSlug && slugAvailable === true && (
+                      <Check className="h-4 w-4 text-green-500" />
+                    )}
+                    {!isCheckingSlug && slugAvailable === false && (
+                      <X className="h-4 w-4 text-red-500" />
+                    )}
+                  </div>
+                )}
               </div>
+              {/* Status text */}
+              {slugAvailable === true && customSlug && (
+                <p className="text-xs text-green-500 mt-2 text-left">Available</p>
+              )}
+              {slugAvailable === false && customSlug && (
+                <p className="text-xs text-red-500 mt-2 text-left">Not available</p>
+              )}
             </div>
 
-            {/* Generate random link button (only for short links) */}
-            {selectedLinkType === "short" && (
-              <Button
-                onClick={handleRegenerateLink}
-                disabled={isRegeneratingLink}
-                variant="outline"
-                className="w-full mb-4 h-10 rounded-lg border-gray-200 dark:border-gray-700"
-              >
-                <RefreshCw className={`h-4 w-4 mr-2 ${isRegeneratingLink ? "animate-spin" : ""}`} />
-                Generate Random Link
-              </Button>
-            )}
-
-            {/* Named link editor (only for named links) */}
-            {selectedLinkType === "named" && publishedApp.canUseSlug && (
-              <div className="mb-4">
-                <div className="flex gap-2">
-                  <Input
-                    value={customSlug}
-                    onChange={(e) => {
-                      setCustomSlug(e.target.value);
-                      handleCheckSlugAvailability(e.target.value);
-                    }}
-                    placeholder="custom-slug"
-                    className="text-sm bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700"
-                  />
-                </div>
-                {isCheckingSlug && (
-                  <p className="text-xs mt-2 text-gray-500">Checking availability...</p>
-                )}
-                {slugAvailable === true && (
-                  <p className="text-xs mt-2 text-green-500">Available</p>
-                )}
-                {slugAvailable === false && (
-                  <p className="text-xs mt-2 text-red-500">Not available</p>
-                )}
-              </div>
-            )}
-
-            {/* Action buttons */}
+            {/* Action buttons - only Copy Link and Share */}
             <div className="flex gap-3">
               <Button
                 onClick={handleCopyLink}
