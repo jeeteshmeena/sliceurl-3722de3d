@@ -1,9 +1,10 @@
 import { useState, useCallback, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Upload, Scissors, Loader2, AlertCircle } from "lucide-react";
+import { Upload, Scissors, Loader2 } from "lucide-react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -40,6 +41,7 @@ type Stage = "input" | "processing" | "complete";
 export function BulkUploadModal({ open, onOpenChange, onComplete }: BulkUploadModalProps) {
   const [stage, setStage] = useState<Stage>("input");
   const [urlText, setUrlText] = useState("");
+  const [title, setTitle] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isExportingQR, setIsExportingQR] = useState(false);
   const [options, setOptions] = useState<BulkOptionsData>({
@@ -386,22 +388,22 @@ export function BulkUploadModal({ open, onOpenChange, onComplete }: BulkUploadMo
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
                 transition={{ duration: 0.2 }}
-                className="p-4 sm:p-6 space-y-4"
+                className="p-4 sm:p-5 space-y-4"
               >
-                {/* URL Input */}
+                {/* 1. Destination URLs - Auto-expanding textarea */}
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
-                    <Label className="text-sm font-medium">URLs</Label>
+                    <Label htmlFor="urls" className="text-[13px] font-medium">Destination URLs</Label>
                     <div className="flex items-center gap-2">
                       {invalidCount > 0 && (
-                        <span className="text-xs text-muted-foreground">
+                        <span className="text-xs text-destructive">
                           {invalidCount} invalid
                         </span>
                       )}
-                      <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${
+                      <span className={`text-xs font-medium ${
                         urlCount > 0 
-                          ? "bg-primary/10 text-primary" 
-                          : "bg-muted text-muted-foreground"
+                          ? "text-primary" 
+                          : "text-muted-foreground"
                       }`}>
                         {urlCount} URL{urlCount !== 1 ? 's' : ''} detected
                       </span>
@@ -409,37 +411,55 @@ export function BulkUploadModal({ open, onOpenChange, onComplete }: BulkUploadMo
                   </div>
                   <Textarea
                     ref={textareaRef}
+                    id="urls"
                     placeholder="https://example.com/page1&#10;https://example.com/page2&#10;https://example.com/page3"
                     value={urlText}
-                    onChange={(e) => setUrlText(e.target.value)}
-                    className="min-h-[140px] font-mono text-sm resize-none text-[14px]"
+                    onChange={(e) => {
+                      setUrlText(e.target.value);
+                      // Auto-expand textarea
+                      const target = e.target;
+                      target.style.height = 'auto';
+                      target.style.height = Math.max(84, Math.min(target.scrollHeight, 200)) + 'px';
+                    }}
+                    className="min-h-[84px] font-mono text-[14px] resize-none"
+                    style={{ overflow: urlText.split('\n').length > 6 ? 'auto' : 'hidden' }}
                     onKeyDown={(e) => {
-                      // Ctrl/Cmd + Enter to submit
                       if ((e.ctrlKey || e.metaKey) && e.key === "Enter" && urlCount > 0 && !isLoading) {
                         e.preventDefault();
                         handleSliceAll();
                       }
                     }}
                   />
-                  <div className="flex items-center gap-3">
-                    <Label
-                      htmlFor="csv-upload"
-                      className="cursor-pointer inline-flex items-center gap-2 text-xs text-muted-foreground hover:text-foreground transition-colors"
-                    >
-                      <Upload className="h-3.5 w-3.5" />
-                      Upload CSV
-                    </Label>
-                    <input
-                      id="csv-upload"
-                      type="file"
-                      accept=".csv,.txt"
-                      className="hidden"
-                      onChange={handleFileUpload}
-                    />
-                  </div>
+                  {/* Upload CSV - compact text button */}
+                  <label
+                    htmlFor="csv-upload"
+                    className="cursor-pointer inline-flex items-center gap-1.5 text-[12px] text-muted-foreground hover:text-foreground transition-colors"
+                  >
+                    <Upload className="h-3 w-3" />
+                    Upload CSV
+                  </label>
+                  <input
+                    id="csv-upload"
+                    type="file"
+                    accept=".csv,.txt"
+                    className="hidden"
+                    onChange={handleFileUpload}
+                  />
                 </div>
 
-                {/* Options */}
+                {/* 2. Title (optional) */}
+                <div className="space-y-2">
+                  <Label htmlFor="bulk-title" className="text-[13px] font-medium">Title (optional)</Label>
+                  <Input
+                    id="bulk-title"
+                    placeholder="Title for all links"
+                    value={title}
+                    onChange={(e) => setTitle(e.target.value)}
+                    className="text-[14px] h-11"
+                  />
+                </div>
+
+                {/* 3. Options (toggles + advanced) */}
                 <BulkOptions options={options} onChange={setOptions} />
               </motion.div>
             )}
@@ -477,12 +497,11 @@ export function BulkUploadModal({ open, onOpenChange, onComplete }: BulkUploadMo
           </AnimatePresence>
         </div>
 
-        {/* Footer - Only for input stage, sticky at bottom with 16px margin */}
+        {/* Footer - Only for input stage */}
         {stage === "input" && (
-          <div className="flex-shrink-0 sticky bottom-0 border-t border-border/50 bg-background p-4 pb-[calc(16px+env(safe-area-inset-bottom))]">
+          <div className="flex-shrink-0 border-t border-border bg-background p-4 sm:p-5">
             <Button
-              className="w-full gap-2 h-12 text-[14px] font-medium"
-              size="lg"
+              className="w-full h-12 text-[14px] font-medium rounded-[12px] gap-2"
               onClick={handleSliceAll}
               disabled={urlCount === 0 || isLoading}
             >

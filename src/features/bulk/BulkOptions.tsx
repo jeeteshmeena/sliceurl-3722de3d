@@ -1,13 +1,10 @@
-import { Calendar, Lock, Hash, MousePointerClick, Settings2, Wand2, Eye } from "lucide-react";
+import { Lock, Settings2, Eye, ChevronDown } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { TextSwitch } from "@/components/ui/text-switch";
 import { SlidingToggle } from "@/components/ui/sliding-toggle";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Calendar as CalendarComponent } from "@/components/ui/calendar";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Button } from "@/components/ui/button";
-import { format } from "date-fns";
-import { cn } from "@/lib/utils";
+import { useState } from "react";
 import { useLinkBehavior } from "@/hooks/useLinkBehavior";
 import { InfoTooltip } from "@/components/InfoTooltip";
 
@@ -28,6 +25,8 @@ interface BulkOptionsProps {
 }
 
 export function BulkOptions({ options, onChange }: BulkOptionsProps) {
+  const [showAdvanced, setShowAdvanced] = useState(false);
+  
   // Get global link preview setting
   const { linkPreviewEnabled: globalLinkPreview } = useLinkBehavior();
   
@@ -36,166 +35,137 @@ export function BulkOptions({ options, onChange }: BulkOptionsProps) {
   };
 
   return (
-    <div className="space-y-4 p-4 rounded-[12px] border border-border bg-muted/30">
-      <h3 className="text-[13px] font-medium text-foreground flex items-center gap-2">
-        <Settings2 className="h-4 w-4 text-muted-foreground" />
-        Batch Settings
-      </h3>
-
+    <div className="space-y-3">
       {/* Link Preview Toggle - Only visible when global setting is OFF */}
       {!globalLinkPreview && (
-        <div className="flex items-center justify-between py-2">
-          <div className="flex items-center gap-2">
+        <div className="flex items-center justify-between py-3 px-4 rounded-[12px] border border-border bg-muted/30">
+          <div className="flex items-center gap-3">
             <Eye className="h-4 w-4 text-muted-foreground" />
             <div className="flex items-center gap-1.5">
-              <Label htmlFor="linkPreview" className="text-[13px] font-medium">
+              <Label htmlFor="bulk-linkPreview" className="cursor-pointer text-[13px] font-medium">
                 Link Preview
               </Label>
               <InfoTooltip content="Show a preview page before redirecting visitors." />
             </div>
           </div>
           <SlidingToggle
-            id="linkPreview"
+            id="bulk-linkPreview"
             checked={options.linkPreviewEnabled}
             onCheckedChange={(checked) => updateOption("linkPreviewEnabled", checked)}
           />
         </div>
       )}
 
-      {/* Batch Name */}
-      <div className="space-y-1.5">
-        <Label htmlFor="batchName" className="text-[13px] font-medium">
-          Batch Name
-        </Label>
-        <Input
-          id="batchName"
-          placeholder="e.g., YouTube Campaign"
-          value={options.batchName}
-          onChange={(e) => updateOption("batchName", e.target.value)}
-          className="h-10"
-        />
-      </div>
-
-      {/* Slug Prefix */}
-      <div className="space-y-1.5">
-        <Label htmlFor="slugPrefix" className="text-[13px] font-medium flex items-center gap-1">
-          <Hash className="h-3 w-3" />
-          Slug Prefix
-        </Label>
-        <div className="flex items-center gap-2">
-          <Input
-            id="slugPrefix"
-            placeholder="yt-"
-            value={options.slugPrefix}
-            onChange={(e) => updateOption("slugPrefix", e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ''))}
-            className="h-10 flex-1"
-          />
-          <span className="text-[12px] text-muted-foreground whitespace-nowrap">
-            → {options.slugPrefix || 'prefix-'}001
-          </span>
-        </div>
-      </div>
-
-      {/* Password Protection */}
-      <div className="space-y-1.5">
-        <div className="flex items-center justify-between py-2">
-          <div className="flex items-center gap-2">
+      {/* Password Protection Toggle */}
+      <div className="rounded-[12px] border border-border bg-muted/30 overflow-hidden">
+        <div className="flex items-center justify-between py-3 px-4">
+          <div className="flex items-center gap-3">
             <Lock className="h-4 w-4 text-muted-foreground" />
             <div className="flex items-center gap-1.5">
-              <Label htmlFor="passwordToggle" className="text-[13px] font-medium">
+              <Label htmlFor="bulk-passwordToggle" className="cursor-pointer text-[13px] font-medium">
                 Password Protection
               </Label>
               <InfoTooltip content="Require visitors to enter a password before accessing the link." />
             </div>
           </div>
-          <TextSwitch
-            id="passwordToggle"
+          <SlidingToggle
+            id="bulk-passwordToggle"
             checked={options.passwordEnabled}
             onCheckedChange={(checked) => updateOption("passwordEnabled", checked)}
           />
         </div>
         {options.passwordEnabled && (
-          <Input
-            type="password"
-            placeholder="Enter password for all links"
-            value={options.password}
-            onChange={(e) => updateOption("password", e.target.value)}
-            className="h-10"
-          />
+          <div className="px-4 pb-4 border-t border-border pt-3 animate-fade-in">
+            <div className="space-y-1.5">
+              <Label htmlFor="bulk-password" className="text-[13px]">Password</Label>
+              <Input
+                id="bulk-password"
+                type="password"
+                placeholder="Password for all links"
+                value={options.password}
+                onChange={(e) => updateOption("password", e.target.value)}
+                className="h-10"
+              />
+            </div>
+            <p className="text-[11px] text-muted-foreground mt-2">
+              All links will require this password to access.
+            </p>
+          </div>
         )}
       </div>
 
-      {/* Expiry Date */}
-      <div className="space-y-1.5">
-        <Label className="text-[13px] font-medium flex items-center gap-1">
-          <Calendar className="h-3 w-3" />
-          Expiry Date
-        </Label>
-        <Popover>
-          <PopoverTrigger asChild>
-            <Button
-              variant="outline"
-              className={cn(
-                "w-full justify-start text-left font-normal h-10 rounded-[12px]",
-                !options.expiry && "text-muted-foreground"
-              )}
-            >
-              {options.expiry ? format(options.expiry, "PPP") : "No expiry"}
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent className="w-auto p-0" align="start">
-            <CalendarComponent
-              mode="single"
-              selected={options.expiry}
-              onSelect={(date) => updateOption("expiry", date)}
-              disabled={(date) => date < new Date()}
-              initialFocus
-            />
-          </PopoverContent>
-        </Popover>
-        {options.expiry && (
-          <Button
-            variant="ghost"
-            size="sm"
-            className="h-6 text-xs"
-            onClick={() => updateOption("expiry", undefined)}
+      {/* Advanced Options (Collapsible) */}
+      <Collapsible open={showAdvanced} onOpenChange={setShowAdvanced}>
+        <CollapsibleTrigger asChild>
+          <Button 
+            type="button" 
+            variant="ghost" 
+            className="w-full justify-between h-11 px-4 rounded-[12px] border border-border bg-muted/30"
           >
-            Clear expiry
+            <span className="flex items-center gap-3">
+              <Settings2 className="h-4 w-4 text-muted-foreground" />
+              <span className="text-[13px] font-medium">Advanced Options</span>
+            </span>
+            <ChevronDown className={`h-4 w-4 text-muted-foreground transition-transform duration-200 ${showAdvanced ? 'rotate-180' : ''}`} />
           </Button>
-        )}
-      </div>
+        </CollapsibleTrigger>
+        <CollapsibleContent className="space-y-3 pt-3 animate-fade-in">
+          {/* Batch Name */}
+          <div className="space-y-1.5">
+            <Label htmlFor="batchName" className="text-[13px]">Batch Name</Label>
+            <Input
+              id="batchName"
+              placeholder="e.g., YouTube Campaign"
+              value={options.batchName}
+              onChange={(e) => updateOption("batchName", e.target.value)}
+              className="h-10"
+            />
+          </div>
 
-      {/* Max Clicks */}
-      <div className="space-y-1.5">
-        <Label htmlFor="maxClicks" className="text-[13px] font-medium flex items-center gap-1">
-          <MousePointerClick className="h-3 w-3" />
-          Max Clicks (optional)
-        </Label>
-        <Input
-          id="maxClicks"
-          type="number"
-          min={1}
-          placeholder="Unlimited"
-          value={options.maxClicks || ""}
-          onChange={(e) => updateOption("maxClicks", e.target.value ? parseInt(e.target.value) : undefined)}
-          className="h-10"
-        />
-      </div>
+          {/* Slug Prefix */}
+          <div className="space-y-1.5">
+            <Label htmlFor="slugPrefix" className="text-[13px]">Slug Prefix</Label>
+            <div className="flex items-center gap-2">
+              <Input
+                id="slugPrefix"
+                placeholder="yt-"
+                value={options.slugPrefix}
+                onChange={(e) => updateOption("slugPrefix", e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ''))}
+                className="h-10 flex-1"
+              />
+              <span className="text-[12px] text-muted-foreground whitespace-nowrap">
+                → {options.slugPrefix || 'prefix-'}001
+              </span>
+            </div>
+          </div>
 
-      {/* Auto Title */}
-      <div className="flex items-center justify-between py-2">
-        <div className="flex items-center gap-2">
-          <Wand2 className="h-4 w-4 text-muted-foreground" />
-          <Label htmlFor="autoTitle" className="text-[13px] font-medium">
-            AI Auto-Title
-          </Label>
-        </div>
-        <TextSwitch
-          id="autoTitle"
-          checked={options.autoTitle}
-          onCheckedChange={(checked) => updateOption("autoTitle", checked)}
-        />
-      </div>
+          {/* Expiration Date */}
+          <div className="space-y-1.5">
+            <Label htmlFor="bulk-expires" className="text-[13px]">Expiration Date</Label>
+            <Input
+              id="bulk-expires"
+              type="datetime-local"
+              value={options.expiry ? options.expiry.toISOString().slice(0, 16) : ""}
+              onChange={(e) => updateOption("expiry", e.target.value ? new Date(e.target.value) : undefined)}
+              className="h-10"
+            />
+          </div>
+
+          {/* Max Clicks */}
+          <div className="space-y-1.5">
+            <Label htmlFor="bulk-maxClicks" className="text-[13px]">Max Clicks</Label>
+            <Input
+              id="bulk-maxClicks"
+              type="number"
+              min={1}
+              placeholder="Unlimited"
+              value={options.maxClicks || ""}
+              onChange={(e) => updateOption("maxClicks", e.target.value ? parseInt(e.target.value) : undefined)}
+              className="h-10"
+            />
+          </div>
+        </CollapsibleContent>
+      </Collapsible>
     </div>
   );
 }
