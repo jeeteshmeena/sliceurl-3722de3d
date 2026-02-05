@@ -1,6 +1,6 @@
 import { useState, useRef } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { Upload, X, Image as ImageIcon, Copy, Check, GripVertical, Share2 } from "lucide-react";
+import { Upload, X, Image as ImageIcon, Copy, Check, GripVertical, Share2, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -201,9 +201,7 @@ export default function CreateAppListing() {
   const handleCopyLink = async () => {
     if (!publishedApp) return;
     
-    const baseUrl = getBaseUrl();
-    const currentSlug = customSlug || publishedApp.shortCode;
-    const urlToCopy = `${baseUrl}/app/${currentSlug}`;
+    const urlToCopy = selectedLinkType === "short" ? publishedApp.appUrl : publishedApp.slugUrl;
     
     try {
       await navigator.clipboard.writeText(urlToCopy);
@@ -218,9 +216,7 @@ export default function CreateAppListing() {
   const handleShareLink = async () => {
     if (!publishedApp) return;
     
-    const baseUrl = getBaseUrl();
-    const currentSlug = customSlug || publishedApp.shortCode;
-    const urlToShare = `${baseUrl}/app/${currentSlug}`;
+    const urlToShare = selectedLinkType === "short" ? publishedApp.appUrl : publishedApp.slugUrl;
     
     if (navigator.share) {
       try {
@@ -449,9 +445,7 @@ export default function CreateAppListing() {
 
   // Show success state after publish
   if (publishedApp) {
-    const baseUrl = getBaseUrl();
-    const currentSlug = customSlug || publishedApp.shortCode;
-    const currentUrl = `${baseUrl}/app/${currentSlug}`;
+    const currentUrl = selectedLinkType === "short" ? publishedApp.appUrl : publishedApp.slugUrl;
     
     return (
       <div className="min-h-dvh bg-white dark:bg-black">
@@ -471,39 +465,75 @@ export default function CreateAppListing() {
               {publishedApp.appName}
             </p>
 
-            {/* Editable slug input */}
+            {/* Link type toggle buttons */}
+            <div className="flex gap-2 mb-4">
+              <button
+                onClick={() => setSelectedLinkType("short")}
+                className={`flex-1 h-10 rounded-lg text-sm font-medium transition-colors ${
+                  selectedLinkType === "short"
+                    ? "bg-green-500 text-white"
+                    : "bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400"
+                }`}
+              >
+                Short Link
+              </button>
+              <button
+                onClick={() => setSelectedLinkType("named")}
+                className={`flex-1 h-10 rounded-lg text-sm font-medium transition-colors ${
+                  selectedLinkType === "named"
+                    ? "bg-green-500 text-white"
+                    : "bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400"
+                }`}
+              >
+                Named Link
+              </button>
+            </div>
+
+            {/* Link display */}
             <div className="mb-4">
-              <div className="flex items-center rounded-xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 overflow-hidden">
-                <span className="px-3 py-3 text-sm text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-gray-900 border-r border-gray-200 dark:border-gray-700 shrink-0">
-                  sliceurl.app/app/
-                </span>
+              <div className="p-4 rounded-xl font-mono text-sm break-all bg-white dark:bg-gray-800 text-gray-900 dark:text-white border border-gray-200 dark:border-gray-700">
+                {currentUrl}
+              </div>
+            </div>
+
+            {/* Generate random link button (only for short links) */}
+            {selectedLinkType === "short" && (
+              <Button
+                onClick={handleRegenerateLink}
+                disabled={isRegeneratingLink}
+                variant="outline"
+                className="w-full mb-4 h-10 rounded-lg border-gray-200 dark:border-gray-700"
+              >
+                <RefreshCw className={`h-4 w-4 mr-2 ${isRegeneratingLink ? "animate-spin" : ""}`} />
+                Generate Random Link
+              </Button>
+            )}
+
+            {/* Named link editor (only for named links) */}
+            {selectedLinkType === "named" && publishedApp.canUseSlug && (
+              <div className="mb-4">
+                <div className="flex gap-2">
                   <Input
                     value={customSlug}
                     onChange={(e) => {
                       setCustomSlug(e.target.value);
                       handleCheckSlugAvailability(e.target.value);
                     }}
-                  placeholder="your-slug"
-                  className="text-sm border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0"
+                    placeholder="custom-slug"
+                    className="text-sm bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700"
                   />
-              </div>
-              {/* Availability status */}
-              <div className="mt-2 text-left">
+                </div>
                 {isCheckingSlug && (
-                  <p className="text-xs text-gray-500">Checking...</p>
+                  <p className="text-xs mt-2 text-gray-500">Checking availability...</p>
                 )}
-                {!isCheckingSlug && slugAvailable === true && customSlug.length >= 2 && (
-                  <p className="text-xs text-green-500 flex items-center gap-1">
-                    <Check className="h-3 w-3" /> Available
-                  </p>
+                {slugAvailable === true && (
+                  <p className="text-xs mt-2 text-green-500">Available</p>
                 )}
-                {!isCheckingSlug && slugAvailable === false && (
-                  <p className="text-xs text-red-500 flex items-center gap-1">
-                    <X className="h-3 w-3" /> Not available
-                  </p>
+                {slugAvailable === false && (
+                  <p className="text-xs mt-2 text-red-500">Not available</p>
                 )}
               </div>
-            </div>
+            )}
 
             {/* Action buttons */}
             <div className="flex gap-3">
