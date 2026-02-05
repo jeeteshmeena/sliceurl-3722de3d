@@ -11,7 +11,7 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const { appId, rating, reviewText, browserFingerprint } = await req.json();
+    const { appId, rating, reviewText, deviceId, displayName } = await req.json();
 
     if (!appId || !rating || rating < 1 || rating > 5) {
       return new Response(
@@ -44,12 +44,35 @@ Deno.serve(async (req) => {
     }
 
     // Check if this IP already has a review for this app
-    const { data: existingReview, error: checkError } = await supabase
+    // Check by device_id (stored in browser_fingerprint column) or IP
+    let existingReview = null;
+    let checkError = null;
+    
+    // First check by device_id if provided
+    if (deviceId) {
+      const { data, error } = await supabase
+        .from("app_reviews")
+        .select("*")
+        .eq("app_id", appId)
+        .eq("browser_fingerprint", deviceId)
+        .maybeSingle();
+      existingReview = data;
+      checkError = error;
+    }
+    
+    // If no device match, check by IP
+    if (!existingReview && !checkError) {
+      const { data, error } = await supabase
       .from("app_reviews")
       .select("*")
       .eq("app_id", appId)
       .eq("ip_address", ipAddress)
       .maybeSingle();
+      if (data && !data.browser_fingerprint) {
+        existingReview = data;
+      }
+      checkError = error;
+    }
 
     if (checkError) {
       console.error("Check error:", checkError);
@@ -81,7 +104,8 @@ Deno.serve(async (req) => {
         review_text: reviewText?.trim() || null,
         user_id: userId,
         ip_address: ipAddress,
-        browser_fingerprint: browserFingerprint || null,
+        browser_fingerprint: deviceId || null,
+        display_name: displayName?.trim() || null,
       })
       .select()
       .single();

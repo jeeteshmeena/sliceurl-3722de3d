@@ -11,7 +11,7 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const { reviewId, browserFingerprint } = await req.json();
+    const { reviewId, deviceId } = await req.json();
 
     if (!reviewId) {
       return new Response(
@@ -57,9 +57,10 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Only logged-in users who own the review can delete
-    // Guest reviews (by IP) cannot be deleted, only edited
-    const canDelete = userId && existingReview.user_id === userId;
+    // Users who own the review can delete (by user_id or device_id)
+    const canDelete = 
+      (userId && existingReview.user_id === userId) ||
+      (deviceId && existingReview.browser_fingerprint === deviceId);
 
     if (!canDelete) {
       return new Response(
