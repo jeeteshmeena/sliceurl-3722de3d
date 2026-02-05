@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { 
-  Moon, Sun, Languages, Menu, X, User, Link2, Settings, LogOut, Search, Check, MessageSquareHeart, Bell
+  Moon, Sun, Languages, Menu, X, User, Link2, Settings, LogOut, Search, Check, MessageSquareHeart, Bell, LayoutGrid
 } from "lucide-react";
 import { useAdminRole } from "@/hooks/useAdminRole";
 import { supabase } from "@/integrations/supabase/client";
@@ -29,6 +29,7 @@ import { useLanguage, Language, languageNames } from "@/lib/i18n";
 import { ProfileModal } from "@/components/ProfileModal";
 import { SliceLine } from "@/components/SliceLine";
 import { getDefaultAvatar } from "@/lib/animeAvatars";
+import { CreateMenu } from "@/components/CreateMenu";
 
 const allLanguages: Language[] = [
   "en", "hinglish", "hi", "ta", "te", "or",
@@ -49,6 +50,7 @@ export function Header() {
   const [langSearch, setLangSearch] = useState("");
   const [langOpen, setLangOpen] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
+  const [createMenuOpen, setCreateMenuOpen] = useState(false);
   
   const { isAdmin } = useAdminRole();
 
@@ -218,6 +220,17 @@ export function Header() {
 
           {user ? (
             <>
+              {/* Create Menu Button - Grid icon */}
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setCreateMenuOpen(true)}
+                className="h-9 w-9 rounded-full hover:bg-muted/50"
+                aria-label="Create"
+              >
+                <LayoutGrid className="h-[18px] w-[18px]" />
+              </Button>
+
               {/* Admin Notification Bell - Clean icon, no pill background */}
               {isAdmin && (
                 <Button
@@ -380,6 +393,7 @@ export function Header() {
       )}
 
       <ProfileModal open={profileOpen} onOpenChange={setProfileOpen} />
+      <CreateMenu open={createMenuOpen} onOpenChange={setCreateMenuOpen} />
     </header>
   );
 }
