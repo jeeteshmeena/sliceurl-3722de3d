@@ -171,8 +171,6 @@ export type Database = {
           app_id: string
           browser_fingerprint: string | null
           created_at: string
-          deleted_at: string | null
-          display_name: string | null
           id: string
           ip_address: string | null
           rating: number
@@ -184,8 +182,6 @@ export type Database = {
           app_id: string
           browser_fingerprint?: string | null
           created_at?: string
-          deleted_at?: string | null
-          display_name?: string | null
           id?: string
           ip_address?: string | null
           rating: number
@@ -197,8 +193,6 @@ export type Database = {
           app_id?: string
           browser_fingerprint?: string | null
           created_at?: string
-          deleted_at?: string | null
-          display_name?: string | null
           id?: string
           ip_address?: string | null
           rating?: number

@@ -11,7 +11,7 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const { reviewId, rating, reviewText, deviceId, displayName } = await req.json();
+    const { reviewId, rating, reviewText, browserFingerprint } = await req.json();
 
     if (!reviewId) {
       return new Response(
@@ -64,11 +64,11 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Check ownership: user owns it OR device_id matches OR IP matches (for guest reviews)
-    const canEdit =
+    // Check ownership: user owns it OR IP matches (for guest reviews)
+    const canEdit = 
       (userId && existingReview.user_id === userId) ||
-      (deviceId && existingReview.browser_fingerprint === deviceId) ||
-      (existingReview.ip_address === ipAddress && !existingReview.browser_fingerprint);
+      (existingReview.ip_address === ipAddress && 
+       (!browserFingerprint || existingReview.browser_fingerprint === browserFingerprint));
 
     if (!canEdit) {
       return new Response(
@@ -81,10 +81,6 @@ Deno.serve(async (req) => {
     const updates: Record<string, unknown> = {};
     if (rating) updates.rating = Math.round(rating);
     if (reviewText !== undefined) updates.review_text = reviewText?.trim() || null;
-    if (displayName !== undefined) updates.display_name = displayName?.trim() || null;
-    if (deviceId && !existingReview.browser_fingerprint) {
-      updates.browser_fingerprint = deviceId;
-    }
 
     const { data: updatedReview, error: updateError } = await supabase
       .from("app_reviews")
