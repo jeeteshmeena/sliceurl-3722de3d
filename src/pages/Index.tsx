@@ -334,8 +334,6 @@ const Index = () => {
             </div>
           </motion.section>
 
-          {/* SliceBox Promo */}
-          <SliceBoxPromo />
 
           {/* Global Stats */}
           <motion.div
