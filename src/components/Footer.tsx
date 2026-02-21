@@ -90,7 +90,7 @@ export function Footer() {
           <p className="text-[11px] text-muted-foreground/60">
             {language === "en" ? (
               <>
-                Made with <span className="heart-beat inline-block text-red-500">❤️</span> by JeetX
+                Built with <span className="heart-beat inline-block text-red-500">❤️</span> by JeetX
               </>
             ) : (
               t("made_with_love")
