@@ -18,7 +18,7 @@ import { FAQSection } from "@/components/FAQSection";
 import { useLanguage } from "@/lib/i18n";
 import { SliceBuddy } from "@/components/SliceBuddy";
 import { SliceCelebration } from "@/components/SliceCelebration";
-import { SliceBoxPromo } from "@/components/SliceBoxPromo";
+
 import { FeatureCard } from "@/components/FeatureCard";
 import { FeatureKey } from "@/components/FeaturePreviewVisuals";
 import { useTone } from "@/hooks/useTone";
@@ -333,10 +333,6 @@ const Index = () => {
               ))}
             </div>
           </motion.section>
-
-          {/* SliceBox Promo */}
-          <SliceBoxPromo />
-
           {/* Global Stats */}
           <motion.div
             initial={{ opacity: 0, y: 8 }}
