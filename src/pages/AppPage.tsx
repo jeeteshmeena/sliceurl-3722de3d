@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
-import { Star, Lock, AlertTriangle } from "lucide-react";
+import { Lock, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -13,7 +13,7 @@ import {
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import { SliceAppsHeader, RatingsReviewsSection } from "@/components/sliceapps";
+import { SliceAppsHeader, RatingsReviewsSection, MetadataStrip } from "@/components/sliceapps";
 
 interface AppListing {
   id: string;
@@ -227,17 +227,17 @@ export default function AppPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-dvh flex items-center justify-center bg-white dark:bg-black">
-        <div className="text-gray-400 dark:text-gray-500">Loading...</div>
+      <div className="min-h-dvh flex items-center justify-center bg-background">
+        <div className="text-muted-foreground">Loading...</div>
       </div>
     );
   }
 
   if (!app) {
     return (
-      <div className="min-h-dvh flex items-center justify-center bg-white dark:bg-black">
+      <div className="min-h-dvh flex items-center justify-center bg-background">
         <div className="text-center">
-          <p className="text-lg mb-4 text-gray-900 dark:text-white">App not found</p>
+          <p className="text-lg mb-4 text-foreground">App not found</p>
           <Link to="/slicebox">
             <Button variant="outline">Go to SliceBox</Button>
           </Link>
@@ -249,41 +249,36 @@ export default function AppPage() {
   const actualDownloads = fileInfo?.download_count || 0;
 
   return (
-    <div className="min-h-dvh bg-white dark:bg-black">
-      <SliceAppsHeader showCreateButton />
+    <div className="min-h-dvh bg-background">
+      <SliceAppsHeader />
 
       <main className="max-w-2xl mx-auto px-4 py-6">
-        {/* Top Section: Icon + Name + Developer + Download Button */}
-        <div className="flex gap-4 mb-6">
-          {/* Large App Icon */}
-          <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl flex-shrink-0 overflow-hidden bg-gray-100 dark:bg-gray-900">
+        {/* Hero Section: Icon + App Name (App Store style) */}
+        <div className="flex gap-4 mb-5">
+          {/* App Icon - rounded square */}
+          <div className="w-[88px] h-[88px] sm:w-[112px] sm:h-[112px] rounded-[22px] flex-shrink-0 overflow-hidden bg-muted shadow-sm">
             {app.icon_url ? (
               <img src={app.icon_url} alt={app.app_name} className="w-full h-full object-cover" loading="lazy" />
             ) : (
-              <div className="w-full h-full flex items-center justify-center text-gray-300 dark:text-gray-600 text-2xl font-bold">
+              <div className="w-full h-full flex items-center justify-center text-muted-foreground text-3xl font-bold">
                 {app.app_name.charAt(0)}
               </div>
             )}
           </div>
 
-          {/* Name + Developer */}
+          {/* App Name only - vertically centered */}
           <div className="flex-1 min-w-0 flex flex-col justify-center">
-            <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white leading-tight">
+            <h1 className="text-xl sm:text-2xl font-bold text-foreground leading-tight">
               {app.app_name}
             </h1>
-            {app.developer_name && (
-              <p className="text-sm text-green-600 dark:text-green-500 mt-1">
-                {app.developer_name}
-              </p>
-            )}
           </div>
         </div>
 
-        {/* Download Button */}
+        {/* Download Button - full width, pill shaped */}
         <Button
           onClick={handleDownload}
           disabled={isDownloading || !fileInfo || !!fileUnavailable}
-          className="w-full h-12 text-base font-medium rounded-lg bg-green-600 hover:bg-green-700 text-white disabled:bg-gray-200 disabled:text-gray-400 dark:disabled:bg-gray-800 dark:disabled:text-gray-500"
+          className="w-full h-[50px] text-base font-semibold rounded-full bg-green-600 hover:bg-green-700 text-white disabled:bg-muted disabled:text-muted-foreground uppercase tracking-wide"
         >
           {fileInfo?.password_hash && <Lock className="h-4 w-4 mr-2" />}
           {isDownloading ? "Downloading..." : "Download"}
@@ -291,76 +286,49 @@ export default function AppPage() {
 
         {/* File Unavailable Warning */}
         {fileUnavailable && (
-          <div className="flex items-center gap-3 mt-4 text-gray-500 dark:text-gray-400">
+          <div className="flex items-center gap-3 mt-4 text-muted-foreground">
             <AlertTriangle className="h-4 w-4 flex-shrink-0" />
             <p className="text-sm">{fileUnavailable}</p>
           </div>
         )}
 
-        {/* Stats Row - Clean text only */}
-        <div className="flex items-center justify-around py-5 mt-4">
-          {/* Rating */}
-          <div className="text-center">
-            <div className="flex items-center justify-center gap-1">
-              <span className="text-base font-medium text-gray-900 dark:text-white">
-                {app.rating_avg?.toFixed(1) || "0.0"}
-              </span>
-              <Star className="h-4 w-4 fill-current text-gray-900 dark:text-white" />
-            </div>
-            <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
-              {(app.rating_count || 0).toLocaleString()} reviews
-            </p>
-          </div>
-
-          {/* Downloads */}
-          <div className="text-center">
-            <p className="text-base font-medium text-gray-900 dark:text-white">
-              {formatDownloads(actualDownloads)}
-            </p>
-            <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
-              Downloads
-            </p>
-          </div>
-
-          {/* Size */}
-          <div className="text-center">
-            <p className="text-base font-medium text-gray-900 dark:text-white">
-              {fileInfo ? formatFileSize(fileInfo.file_size) : "--"}
-            </p>
-            <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
-              Size
-            </p>
-          </div>
+        {/* Metadata Strip - horizontal scroll, App Store style */}
+        <div className="mt-4 border-y border-border/30 py-1">
+          <MetadataStrip
+            ratingAvg={app.rating_avg}
+            ratingCount={app.rating_count}
+            downloads={formatDownloads(actualDownloads)}
+            fileSize={fileInfo ? formatFileSize(fileInfo.file_size) : "--"}
+            category={app.category || "Other"}
+            developer={app.developer_name || "Unknown"}
+          />
         </div>
 
-        {/* Screenshots */}
+        {/* Screenshots - no heading, horizontal scroll */}
         {app.screenshots && app.screenshots.length > 0 && (
-          <section className="mt-6">
-            <h2 className="text-base font-medium text-gray-900 dark:text-white mb-3">
-              Screenshots
-            </h2>
-            <div className="flex gap-3 overflow-x-auto pb-2 -mx-4 px-4 scrollbar-hide">
+          <div className="mt-6 -mx-4 px-4">
+            <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide snap-x snap-mandatory">
               {app.screenshots.map((url, index) => (
                 <img
                   key={index}
                   src={url}
-                  alt={`Screenshot ${index + 1}`}
-                  className="w-32 h-56 object-cover rounded-lg flex-shrink-0 cursor-pointer"
+                  alt={`Preview ${index + 1}`}
+                  className="w-[180px] h-[320px] object-cover rounded-2xl flex-shrink-0 cursor-pointer snap-center"
                   onClick={() => setSelectedScreenshot(index)}
                   loading="lazy"
                 />
               ))}
             </div>
-          </section>
+          </div>
         )}
 
         {/* About this app */}
         {app.full_description && (
           <section className="mt-8">
-            <h2 className="text-base font-medium text-gray-900 dark:text-white mb-3">
+            <h2 className="text-base font-semibold text-foreground mb-3">
               About this app
             </h2>
-            <p className="text-sm text-gray-600 dark:text-gray-300 leading-relaxed whitespace-pre-wrap">
+            <p className="text-sm text-muted-foreground leading-relaxed whitespace-pre-wrap">
               {app.full_description}
             </p>
           </section>
@@ -369,10 +337,10 @@ export default function AppPage() {
         {/* What's New */}
         {app.whats_new && (
           <section className="mt-8">
-            <h2 className="text-base font-medium text-gray-900 dark:text-white mb-3">
+            <h2 className="text-base font-semibold text-foreground mb-3">
               What's new
             </h2>
-            <p className="text-sm text-gray-600 dark:text-gray-300 leading-relaxed whitespace-pre-wrap">
+            <p className="text-sm text-muted-foreground leading-relaxed whitespace-pre-wrap">
               {app.whats_new}
             </p>
           </section>
@@ -380,33 +348,25 @@ export default function AppPage() {
 
         {/* Additional Info */}
         <section className="mt-8">
-          <h2 className="text-base font-medium text-gray-900 dark:text-white mb-4">
+          <h2 className="text-base font-semibold text-foreground mb-4">
             Additional information
           </h2>
           <div className="grid grid-cols-2 gap-y-4 gap-x-8">
             <div>
-              <p className="text-xs text-gray-500 dark:text-gray-400 mb-0.5">Version</p>
-              <p className="text-sm text-gray-900 dark:text-white">
-                {app.version_name || "1.0"}
-              </p>
+              <p className="text-xs text-muted-foreground mb-0.5">Version</p>
+              <p className="text-sm text-foreground">{app.version_name || "1.0"}</p>
             </div>
             <div>
-              <p className="text-xs text-gray-500 dark:text-gray-400 mb-0.5">Category</p>
-              <p className="text-sm text-gray-900 dark:text-white">
-                {app.category || "Other"}
-              </p>
+              <p className="text-xs text-muted-foreground mb-0.5">Category</p>
+              <p className="text-sm text-foreground">{app.category || "Other"}</p>
             </div>
             <div>
-              <p className="text-xs text-gray-500 dark:text-gray-400 mb-0.5">Developer</p>
-              <p className="text-sm text-gray-900 dark:text-white">
-                {app.developer_name || "Unknown"}
-              </p>
+              <p className="text-xs text-muted-foreground mb-0.5">Developer</p>
+              <p className="text-sm text-foreground">{app.developer_name || "Unknown"}</p>
             </div>
             <div>
-              <p className="text-xs text-gray-500 dark:text-gray-400 mb-0.5">Size</p>
-              <p className="text-sm text-gray-900 dark:text-white">
-                {fileInfo ? formatFileSize(fileInfo.file_size) : "--"}
-              </p>
+              <p className="text-xs text-muted-foreground mb-0.5">Size</p>
+              <p className="text-sm text-foreground">{fileInfo ? formatFileSize(fileInfo.file_size) : "--"}</p>
             </div>
           </div>
         </section>
@@ -440,12 +400,12 @@ export default function AppPage() {
 
       {/* Password Dialog */}
       <Dialog open={showPasswordDialog} onOpenChange={setShowPasswordDialog}>
-        <DialogContent className="bg-white dark:bg-gray-900 border-0">
+        <DialogContent className="bg-background border-border">
           <DialogHeader>
-            <DialogTitle className="text-gray-900 dark:text-white">
+            <DialogTitle className="text-foreground">
               Password Required
             </DialogTitle>
-            <DialogDescription className="text-gray-500 dark:text-gray-400">
+            <DialogDescription className="text-muted-foreground">
               This file is password protected. Enter the password to download.
             </DialogDescription>
           </DialogHeader>
@@ -456,7 +416,7 @@ export default function AppPage() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && handlePasswordSubmit()}
-              className="h-11 bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700"
+              className="h-11"
             />
             <div className="flex gap-3">
               <Button

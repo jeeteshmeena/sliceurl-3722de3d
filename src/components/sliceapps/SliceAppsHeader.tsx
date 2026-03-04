@@ -1,50 +1,77 @@
+import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Plus } from "lucide-react";
-
-interface SliceAppsHeaderProps {
-  showCreateButton?: boolean;
-}
+import { Menu, Link2, HardDrive, FileDown } from "lucide-react";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
 
 /**
- * SliceAPPs Header - Clean, compact, consistent across all SliceAPPs pages
- * Text-only branding with custom typography, no back arrow, no breadcrumbs
+ * SliceAPPs Header - Apple App Store inspired
+ * Hamburger menu left, centered title, clean background
  */
-export function SliceAppsHeader({ showCreateButton = false }: SliceAppsHeaderProps) {
+export function SliceAppsHeader() {
   const navigate = useNavigate();
+  const [menuOpen, setMenuOpen] = useState(false);
 
-  const handleCreateClick = () => {
-    navigate("/slicebox");
-  };
+  const menuItems = [
+    { label: "SliceURL", icon: Link2, path: "/" },
+    { label: "SliceBox", icon: HardDrive, path: "/slicebox" },
+    { label: "LittleSlice", icon: FileDown, path: "/littleslice" },
+  ];
 
   return (
-    <header className="sticky top-0 z-50 border-b bg-white dark:bg-black border-gray-200 dark:border-gray-800">
-      <div className="max-w-4xl mx-auto h-14 flex items-center justify-between px-4">
-        {/* Left: Brand Text Only */}
-        <Link to="/" className="flex items-center">
-          <span 
-            className="text-xl font-bold tracking-tight"
-            style={{ 
-              fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
-              letterSpacing: "-0.02em",
-            }}
-          >
-            <span className="text-gray-900 dark:text-white">Slice</span>
-            <span className="text-green-500">APPs</span>
-          </span>
-        </Link>
-        
-        {/* Right: Create button */}
-        {showCreateButton && (
+    <>
+      <header className="sticky top-0 z-50 border-b bg-background border-border/40">
+        <div className="max-w-4xl mx-auto h-14 flex items-center justify-between px-4 relative">
+          {/* Left: Hamburger */}
           <button
-            onClick={handleCreateClick}
-            className="w-9 h-9 rounded-full flex items-center justify-center transition-colors bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700"
-            aria-label="Create App Page"
+            onClick={() => setMenuOpen(true)}
+            className="w-9 h-9 rounded-full flex items-center justify-center transition-colors hover:bg-muted/50"
+            aria-label="Menu"
           >
-            <Plus className="h-5 w-5 text-gray-700 dark:text-gray-300" />
+            <Menu className="h-5 w-5 text-foreground" />
           </button>
-        )}
-      </div>
-    </header>
+
+          {/* Center: Title */}
+          <span
+            className="absolute left-1/2 -translate-x-1/2 text-lg font-semibold tracking-tight text-foreground"
+            style={{ letterSpacing: "-0.02em" }}
+          >
+            SliceAPPs
+          </span>
+
+          {/* Right: spacer for balance */}
+          <div className="w-9" />
+        </div>
+      </header>
+
+      {/* Slide-in Menu */}
+      <Sheet open={menuOpen} onOpenChange={setMenuOpen}>
+        <SheetContent side="left" className="w-[280px] bg-background/95 backdrop-blur-xl border-border/40 p-0">
+          <SheetHeader className="px-6 pt-6 pb-4">
+            <SheetTitle className="text-left text-lg font-semibold text-foreground">SliceAPPs</SheetTitle>
+          </SheetHeader>
+          <nav className="px-3">
+            {menuItems.map((item) => (
+              <button
+                key={item.label}
+                onClick={() => {
+                  setMenuOpen(false);
+                  navigate(item.path);
+                }}
+                className="w-full flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-medium text-foreground hover:bg-muted/50 transition-colors"
+              >
+                <item.icon className="h-5 w-5 text-muted-foreground" strokeWidth={1.8} />
+                <span>{item.label}</span>
+              </button>
+            ))}
+          </nav>
+        </SheetContent>
+      </Sheet>
+    </>
   );
 }
 
