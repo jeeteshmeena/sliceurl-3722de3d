@@ -251,38 +251,39 @@ export function RatingsReviewsSection({
 
   return (
     <div>
-      <h2 className="text-base font-medium text-gray-900 dark:text-white mb-4">
-        Ratings and reviews
+      <h2 className="text-base font-semibold text-foreground mb-5">
+        Ratings & Reviews
       </h2>
 
-      {/* Rating Summary */}
+      {/* Rating Summary - App Store style: large number left, bars right */}
       <div className="flex gap-6 mb-6">
         {/* Large average rating */}
-        <div className="text-center min-w-[70px]">
-          <div className="text-5xl font-light text-gray-900 dark:text-white leading-none">
+        <div className="text-center min-w-[80px] flex flex-col items-center justify-center">
+          <div className="text-[56px] font-bold text-foreground leading-none tracking-tight">
             {ratingAvg?.toFixed(1) || "0.0"}
           </div>
           <div className="flex gap-0.5 justify-center mt-2">
             {[1, 2, 3, 4, 5].map(star => (
               <Star
                 key={star}
-                className={`h-3 w-3 ${star <= Math.round(ratingAvg || 0) ? "fill-current text-gray-900 dark:text-white" : "text-gray-300 dark:text-gray-600"}`}
+                className={`h-3.5 w-3.5 ${star <= Math.round(ratingAvg || 0) ? "fill-current text-foreground" : "text-muted-foreground/30"}`}
+                strokeWidth={0}
               />
             ))}
           </div>
-          <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-            {ratingCount || 0}
+          <p className="text-xs text-muted-foreground mt-1.5">
+            {ratingCount || 0} Ratings
           </p>
         </div>
 
         {/* Star distribution bars */}
-        <div className="flex-1 space-y-1">
+        <div className="flex-1 space-y-1.5 flex flex-col justify-center">
           {[5, 4, 3, 2, 1].map((star, index) => (
             <div key={star} className="flex items-center gap-2">
-              <span className="text-xs w-2 text-gray-500 dark:text-gray-400">{star}</span>
-              <div className="flex-1 h-2 rounded-full overflow-hidden bg-gray-200 dark:bg-gray-800">
+              <span className="text-xs w-3 text-right text-muted-foreground font-medium">{star}</span>
+              <div className="flex-1 h-[6px] rounded-full overflow-hidden bg-muted">
                 <div
-                  className="h-full rounded-full bg-gray-900 dark:bg-white transition-all duration-300"
+                  className="h-full rounded-full bg-foreground/70 transition-all duration-300"
                   style={{ width: `${(ratingDist[index] / maxRatingCount) * 100}%` }}
                 />
               </div>
@@ -293,7 +294,7 @@ export function RatingsReviewsSection({
 
       {/* Write/Edit a review */}
       <div className="mb-6">
-        <h3 className="text-sm font-medium mb-3 text-gray-900 dark:text-white">
+        <h3 className="text-sm font-medium mb-3 text-foreground">
           {myReview && !isEditing ? "Your review" : isEditing ? "Edit your review" : "Rate this app"}
         </h3>
         
@@ -304,7 +305,8 @@ export function RatingsReviewsSection({
                 {[1, 2, 3, 4, 5].map(star => (
                   <Star
                     key={star}
-                    className={`h-4 w-4 ${star <= myReview.rating ? "fill-current text-gray-900 dark:text-white" : "text-gray-300 dark:text-gray-600"}`}
+                    className={`h-4 w-4 ${star <= myReview.rating ? "fill-current text-foreground" : "text-muted-foreground/30"}`}
+                    strokeWidth={0}
                   />
                 ))}
               </div>
@@ -313,7 +315,7 @@ export function RatingsReviewsSection({
                   variant="ghost"
                   size="sm"
                   onClick={startEditing}
-                  className="h-8 px-2 text-gray-600 dark:text-gray-300"
+                  className="h-8 px-2 text-muted-foreground"
                 >
                   <Edit2 className="h-4 w-4 mr-1" />
                   Edit
@@ -324,7 +326,7 @@ export function RatingsReviewsSection({
                     size="sm"
                     onClick={handleDeleteReview}
                     disabled={isSubmitting}
-                    className="h-8 px-2 text-gray-500 hover:text-red-500"
+                    className="h-8 px-2 text-muted-foreground hover:text-destructive"
                   >
                     <Trash2 className="h-4 w-4" />
                   </Button>
@@ -332,7 +334,7 @@ export function RatingsReviewsSection({
               </div>
             </div>
             {myReview.review_text && (
-              <p className="text-sm text-gray-600 dark:text-gray-300">
+              <p className="text-sm text-muted-foreground">
                 {myReview.review_text}
               </p>
             )}
@@ -347,7 +349,8 @@ export function RatingsReviewsSection({
                   className="p-0.5"
                 >
                   <Star
-                    className={`h-7 w-7 ${star <= reviewRating ? "fill-current text-gray-900 dark:text-white" : "text-gray-300 dark:text-gray-600"}`}
+                    className={`h-7 w-7 ${star <= reviewRating ? "fill-current text-foreground" : "text-muted-foreground/30"}`}
+                    strokeWidth={0}
                   />
                 </button>
               ))}
@@ -358,7 +361,7 @@ export function RatingsReviewsSection({
               onChange={(e) => setReviewText(e.target.value)}
               placeholder="Describe your experience (optional)"
               rows={3}
-              className="resize-none mb-3 bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-800"
+              className="resize-none mb-3"
             />
             
             <div className="flex gap-2">
@@ -374,7 +377,7 @@ export function RatingsReviewsSection({
                   <Button
                     onClick={cancelEditing}
                     variant="ghost"
-                    className="h-10 px-5 text-gray-600 dark:text-gray-300"
+                    className="h-10 px-5 text-muted-foreground"
                   >
                     Cancel
                   </Button>
@@ -400,17 +403,17 @@ export function RatingsReviewsSection({
             <div key={review.id} className="py-3">
               <div className="flex items-start gap-3">
                 {/* Avatar */}
-                <div className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 bg-gray-200 dark:bg-gray-800 text-gray-600 dark:text-gray-400 text-xs font-medium">
+                <div className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 bg-muted text-muted-foreground text-xs font-medium">
                   {getUsername(review).charAt(0).toUpperCase()}
                 </div>
                 
                 <div className="flex-1 min-w-0">
                   {/* Username and date */}
                   <div className="flex items-center gap-2 mb-1">
-                    <p className="text-sm font-medium text-gray-900 dark:text-white">
+                    <p className="text-sm font-medium text-foreground">
                       {getUsername(review)}
                     </p>
-                    <span className="text-xs text-gray-400 dark:text-gray-500">
+                    <span className="text-xs text-muted-foreground">
                       {new Date(review.created_at).toLocaleDateString()}
                     </span>
                   </div>
@@ -420,14 +423,15 @@ export function RatingsReviewsSection({
                     {[1, 2, 3, 4, 5].map(star => (
                       <Star
                         key={star}
-                        className={`h-3 w-3 ${star <= review.rating ? "fill-current text-gray-900 dark:text-white" : "text-gray-300 dark:text-gray-600"}`}
+                        className={`h-3 w-3 ${star <= review.rating ? "fill-current text-foreground" : "text-muted-foreground/30"}`}
+                        strokeWidth={0}
                       />
                     ))}
                   </div>
                   
                   {/* Review text */}
                   {review.review_text && (
-                    <p className="text-sm text-gray-600 dark:text-gray-300 leading-relaxed">
+                    <p className="text-sm text-muted-foreground leading-relaxed">
                       {review.review_text}
                     </p>
                   )}
