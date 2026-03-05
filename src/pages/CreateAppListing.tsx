@@ -19,22 +19,12 @@ import { getBaseUrl } from "@/lib/domain";
 import { SliceAppsHeader } from "@/components/sliceapps";
 
 const CATEGORIES = [
-  "Games",
-  "Social",
-  "Productivity",
-  "Entertainment",
-  "Tools",
-  "Education",
-  "Finance",
-  "Health & Fitness",
-  "Music",
-  "Photography",
-  "Shopping",
-  "Travel",
-  "Weather",
-  "News",
-  "Other",
+  "Games", "Social", "Productivity", "Entertainment", "Tools",
+  "Education", "Finance", "Health & Fitness", "Music", "Photography",
+  "Shopping", "Travel", "Weather", "News", "Other",
 ];
+
+const AGE_RATINGS = ["4+", "9+", "12+", "17+", "18+"];
 
 interface PublishedAppData {
   id: string;
@@ -51,7 +41,6 @@ export default function CreateAppListing() {
   const location = useLocation();
   const { user } = useAuth();
   
-  // Get file info from navigation state
   const fileData = location.state as {
     fileId: string;
     fileName: string;
@@ -62,26 +51,23 @@ export default function CreateAppListing() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [iconPreview, setIconPreview] = useState<string | null>(null);
   const [screenshots, setScreenshots] = useState<string[]>([]);
-  const [bannerPreview, setBannerPreview] = useState<string | null>(null);
   const [publishedApp, setPublishedApp] = useState<PublishedAppData | null>(null);
   const [copiedLink, setCopiedLink] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
   const [selectedLinkType, setSelectedLinkType] = useState<"short" | "named">("short");
-  const [isRegeneratingLink, setIsRegeneratingLink] = useState(false);
   const [customSlug, setCustomSlug] = useState("");
   const [isCheckingSlug, setIsCheckingSlug] = useState(false);
   const [slugAvailable, setSlugAvailable] = useState<boolean | null>(null);
   
   const iconInputRef = useRef<HTMLInputElement>(null);
   const screenshotInputRef = useRef<HTMLInputElement>(null);
-  const bannerInputRef = useRef<HTMLInputElement>(null);
 
-  // Form state
   const [formData, setFormData] = useState({
     appName: fileData?.fileName.replace(/\.apk$/i, "") || "",
     developerName: "",
     category: "Other",
+    ageRating: "4+",
     versionName: "1.0",
     versionCode: "1",
     fullDescription: "",
@@ -92,12 +78,7 @@ export default function CreateAppListing() {
       <div className="min-h-dvh flex items-center justify-center bg-background text-foreground">
         <div className="text-center">
           <p className="text-lg mb-4">No APK file selected</p>
-          <Button
-            onClick={() => navigate("/slicebox")}
-            variant="outline"
-          >
-            Go to SliceBox
-          </Button>
+          <Button onClick={() => navigate("/slicebox")} variant="outline">Go to SliceBox</Button>
         </div>
       </div>
     );
@@ -112,39 +93,23 @@ export default function CreateAppListing() {
       toast.error(`Image too large. Max ${type === "screenshot" ? "5MB" : "2MB"}`);
       return null;
     }
-
     const path = `${type}s/${crypto.randomUUID()}-${file.name}`;
-    const { error } = await supabase.storage
-      .from("app-assets")
-      .upload(path, file);
-
-    if (error) {
-      toast.error("Failed to upload image");
-      return null;
-    }
-
-    const { data: { publicUrl } } = supabase.storage
-      .from("app-assets")
-      .getPublicUrl(path);
-
+    const { error } = await supabase.storage.from("app-assets").upload(path, file);
+    if (error) { toast.error("Failed to upload image"); return null; }
+    const { data: { publicUrl } } = supabase.storage.from("app-assets").getPublicUrl(path);
     return publicUrl;
   };
 
   const handleIconChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-
     const url = await handleImageUpload(file, "icon");
     if (url) setIconPreview(url);
   };
 
   const handleScreenshotAdd = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
-    if (screenshots.length + files.length > 8) {
-      toast.error("Maximum 8 screenshots allowed");
-      return;
-    }
-
+    if (screenshots.length + files.length > 8) { toast.error("Maximum 8 screenshots allowed"); return; }
     for (const file of files) {
       const url = await handleImageUpload(file, "screenshot");
       if (url) setScreenshots(prev => [...prev, url]);
@@ -154,39 +119,23 @@ export default function CreateAppListing() {
   const handleScreenshotDrop = async (e: React.DragEvent) => {
     e.preventDefault();
     setIsDragging(false);
-    
     const files = Array.from(e.dataTransfer.files).filter(f => f.type.startsWith('image/'));
-    if (screenshots.length + files.length > 8) {
-      toast.error("Maximum 8 screenshots allowed");
-      return;
-    }
-
+    if (screenshots.length + files.length > 8) { toast.error("Maximum 8 screenshots allowed"); return; }
     for (const file of files) {
       const url = await handleImageUpload(file, "screenshot");
       if (url) setScreenshots(prev => [...prev, url]);
     }
   };
 
-  const handleBannerChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    const url = await handleImageUpload(file, "banner");
-    if (url) setBannerPreview(url);
-  };
-
   const removeScreenshot = (index: number) => {
     setScreenshots(prev => prev.filter((_, i) => i !== index));
   };
 
-  const handleScreenshotDragStart = (index: number) => {
-    setDraggedIndex(index);
-  };
+  const handleScreenshotDragStart = (index: number) => { setDraggedIndex(index); };
 
   const handleScreenshotDragOver = (e: React.DragEvent, index: number) => {
     e.preventDefault();
     if (draggedIndex === null || draggedIndex === index) return;
-    
     const newScreenshots = [...screenshots];
     const [removed] = newScreenshots.splice(draggedIndex, 1);
     newScreenshots.splice(index, 0, removed);
@@ -194,191 +143,96 @@ export default function CreateAppListing() {
     setDraggedIndex(index);
   };
 
-  const handleScreenshotDragEnd = () => {
-    setDraggedIndex(null);
-  };
+  const handleScreenshotDragEnd = () => { setDraggedIndex(null); };
 
   const handleCopyLink = async () => {
     if (!publishedApp) return;
-    
     const urlToCopy = selectedLinkType === "short" ? publishedApp.appUrl : publishedApp.slugUrl;
-    
     try {
       await navigator.clipboard.writeText(urlToCopy);
       setCopiedLink(true);
       toast.success("Link copied!");
       setTimeout(() => setCopiedLink(false), 2000);
-    } catch {
-      toast.error("Failed to copy link");
-    }
+    } catch { toast.error("Failed to copy link"); }
   };
 
   const handleShareLink = async () => {
     if (!publishedApp) return;
-    
     const urlToShare = selectedLinkType === "short" ? publishedApp.appUrl : publishedApp.slugUrl;
-    
     if (navigator.share) {
-      try {
-        await navigator.share({
-          title: publishedApp.appName,
-          url: urlToShare,
-        });
-      } catch {
-        // User cancelled or error
-      }
-    } else {
-      handleCopyLink();
-    }
+      try { await navigator.share({ title: publishedApp.appName, url: urlToShare }); } catch {}
+    } else { handleCopyLink(); }
   };
 
-  // Generate URL-safe slug from app name
   const generateSlug = (name: string): string => {
-    return name
-      .toLowerCase()
-      .replace(/[^a-z0-9]+/g, '-')
-      .replace(/^-|-$/g, '')
-      .substring(0, 50);
+    return name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').substring(0, 50);
   };
 
-  // Generate random short code
   const generateShortCode = (): string => {
     const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
     let result = '';
-    for (let i = 0; i < 4; i++) {
-      result += chars.charAt(Math.floor(Math.random() * chars.length));
-    }
+    for (let i = 0; i < 4; i++) { result += chars.charAt(Math.floor(Math.random() * chars.length)); }
     return result;
   };
 
-  const handleRegenerateLink = async () => {
-    if (!publishedApp) return;
-    
-    setIsRegeneratingLink(true);
-    try {
-      let newShortCode = generateShortCode();
-      
-      // Ensure it's unique
-      let isUnique = false;
-      let attempts = 0;
-      while (!isUnique && attempts < 10) {
-        const { data: existing } = await supabase
-          .from("app_listings")
-          .select("id")
-          .eq("short_code", newShortCode)
-          .maybeSingle();
-        isUnique = !existing;
-        if (!isUnique) {
-          newShortCode = generateShortCode();
-        }
-        attempts++;
-      }
-
-      // Update in database
-      const { error } = await supabase
-        .from("app_listings")
-        .update({ short_code: newShortCode })
-        .eq("id", publishedApp.id);
-
-      if (error) throw error;
-
-      const baseUrl = getBaseUrl();
-      setPublishedApp(prev => prev ? {
-        ...prev,
-        shortCode: newShortCode,
-        appUrl: `${baseUrl}/app/${newShortCode}`,
-      } : null);
-
-      toast.success("New link generated!");
-    } catch (err) {
-      console.error("Failed to regenerate link:", err);
-      toast.error("Failed to generate new link");
-    } finally {
-      setIsRegeneratingLink(false);
-    }
-  };
-
   const handleCheckSlugAvailability = async (slug: string) => {
-    if (!slug || slug.length < 2) {
-      setSlugAvailable(null);
-      return;
-    }
-
+    if (!slug || slug.length < 2) { setSlugAvailable(null); return; }
     setIsCheckingSlug(true);
     try {
       const formattedSlug = generateSlug(slug);
       const { data: existing } = await supabase
-        .from("app_listings")
-        .select("id")
-        .eq("short_code", formattedSlug)
-        .neq("id", publishedApp?.id || "")
-        .maybeSingle();
-      
+        .from("app_listings").select("id").eq("short_code", formattedSlug)
+        .neq("id", publishedApp?.id || "").maybeSingle();
       setSlugAvailable(!existing);
-    } catch {
-      setSlugAvailable(null);
-    } finally {
-      setIsCheckingSlug(false);
-    }
+    } catch { setSlugAvailable(null); }
+    finally { setIsCheckingSlug(false); }
+  };
+
+  const handleSaveSlug = async () => {
+    if (!publishedApp || !customSlug || slugAvailable !== true) return;
+    const formattedSlug = generateSlug(customSlug);
+    try {
+      const { error } = await supabase
+        .from("app_listings").update({ short_code: formattedSlug }).eq("id", publishedApp.id);
+      if (error) throw error;
+      const baseUrl = getBaseUrl();
+      setPublishedApp(prev => prev ? {
+        ...prev,
+        slugCode: formattedSlug,
+        slugUrl: `${baseUrl}/app/${formattedSlug}`,
+      } : null);
+      toast.success("Named link saved!");
+    } catch { toast.error("Failed to save named link"); }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    if (!user) {
-      toast.error("Please sign in to create an app page");
-      return;
-    }
-
-    if (!formData.appName.trim()) {
-      toast.error("App name is required");
-      return;
-    }
-
+    if (!user) { toast.error("Please sign in to create an app page"); return; }
+    if (!formData.appName.trim()) { toast.error("App name is required"); return; }
     setIsSubmitting(true);
 
     try {
-      // First, get the slicebox_files record to get the UUID
       const { data: fileRecord, error: fileError } = await supabase
-        .from("slicebox_files")
-        .select("id, service_type")
-        .eq("file_id", fileData.fileId)
-        .single();
+        .from("slicebox_files").select("id, service_type").eq("file_id", fileData.fileId).single();
+      if (fileError || !fileRecord) throw new Error("File not found");
 
-      if (fileError || !fileRecord) {
-        throw new Error("File not found");
-      }
-
-      // Generate both short code and slug
       const slugCode = generateSlug(formData.appName.trim());
       let shortCode = generateShortCode();
       
-      // Ensure short code is unique
       let isUnique = false;
       let attempts = 0;
       while (!isUnique && attempts < 10) {
         const { data: existing } = await supabase
-          .from("app_listings")
-          .select("id")
-          .eq("short_code", shortCode)
-          .maybeSingle();
+          .from("app_listings").select("id").eq("short_code", shortCode).maybeSingle();
         isUnique = !existing;
-        if (!isUnique) {
-          shortCode = generateShortCode();
-        }
+        if (!isUnique) shortCode = generateShortCode();
         attempts++;
       }
 
-      // Check if slug is available
       const { data: existingWithSlug } = await supabase
-        .from("app_listings")
-        .select("id")
-        .eq("short_code", slugCode)
-        .maybeSingle();
-      
+        .from("app_listings").select("id").eq("short_code", slugCode).maybeSingle();
       const canUseSlug = !existingWithSlug;
 
-      // Create the app listing with short_code
       const { data: listing, error: listingError } = await supabase
         .from("app_listings")
         .insert({
@@ -392,7 +246,7 @@ export default function CreateAppListing() {
           full_description: formData.fullDescription.trim() || null,
           icon_url: iconPreview,
           screenshots: screenshots,
-          promo_banner_url: bannerPreview,
+          promo_banner_url: null,
           short_code: shortCode,
         })
         .select("id, short_code")
@@ -400,30 +254,18 @@ export default function CreateAppListing() {
 
       if (listingError) throw listingError;
 
-      // If this is a LittleSlice file, remove expiry (make it permanent)
       if (fileRecord.service_type === "ls") {
-        await supabase
-          .from("slicebox_files")
-          .update({ expires_at: null })
-          .eq("id", fileRecord.id);
+        await supabase.from("slicebox_files").update({ expires_at: null }).eq("id", fileRecord.id);
       }
 
       const baseUrl = getBaseUrl();
       const appUrl = `${baseUrl}/app/${shortCode}`;
       const slugUrl = canUseSlug ? `${baseUrl}/app/${slugCode}` : appUrl;
-      
-      // Set custom slug for editing
       setCustomSlug(slugCode);
-      
-      // Set published state
+
       setPublishedApp({
-        id: listing.id,
-        shortCode: shortCode,
-        slugCode: canUseSlug ? slugCode : shortCode,
-        appName: formData.appName.trim(),
-        appUrl,
-        slugUrl,
-        canUseSlug,
+        id: listing.id, shortCode, slugCode: canUseSlug ? slugCode : shortCode,
+        appName: formData.appName.trim(), appUrl, slugUrl, canUseSlug,
       });
 
       toast.success("App page published successfully!");
@@ -443,7 +285,7 @@ export default function CreateAppListing() {
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
   };
 
-  // Show success state after publish
+  // Success state
   if (publishedApp) {
     const currentUrl = selectedLinkType === "short" ? publishedApp.appUrl : publishedApp.slugUrl;
     
@@ -457,22 +299,15 @@ export default function CreateAppListing() {
               <Check className="h-8 w-8 text-white" />
             </div>
             
-            <h2 className="text-xl font-bold mb-2 text-foreground">
-              App Page is Live
-            </h2>
-            
-            <p className="text-sm mb-6 text-muted-foreground">
-              {publishedApp.appName}
-            </p>
+            <h2 className="text-xl font-bold mb-2 text-foreground">App Page is Live</h2>
+            <p className="text-sm mb-6 text-muted-foreground">{publishedApp.appName}</p>
 
-            {/* Link type toggle buttons */}
+            {/* Link type tabs */}
             <div className="flex gap-2 mb-4">
               <button
                 onClick={() => setSelectedLinkType("short")}
                 className={`flex-1 h-10 rounded-lg text-sm font-medium transition-colors ${
-                  selectedLinkType === "short"
-                    ? "bg-green-500 text-white"
-                    : "bg-muted text-muted-foreground"
+                  selectedLinkType === "short" ? "bg-green-500 text-white" : "bg-muted text-muted-foreground"
                 }`}
               >
                 Short Link
@@ -480,16 +315,13 @@ export default function CreateAppListing() {
               <button
                 onClick={() => setSelectedLinkType("named")}
                 className={`flex-1 h-10 rounded-lg text-sm font-medium transition-colors ${
-                  selectedLinkType === "named"
-                    ? "bg-green-500 text-white"
-                    : "bg-muted text-muted-foreground"
+                  selectedLinkType === "named" ? "bg-green-500 text-white" : "bg-muted text-muted-foreground"
                 }`}
               >
                 Named Link
               </button>
             </div>
 
-            {/* Editable link display */}
             <div className="mb-4">
               {selectedLinkType === "short" ? (
                 <div className="p-4 rounded-xl font-mono text-sm break-all bg-muted text-foreground">
@@ -507,16 +339,21 @@ export default function CreateAppListing() {
                       placeholder="custom-slug"
                       className="text-sm"
                     />
+                    <Button
+                      onClick={handleSaveSlug}
+                      disabled={slugAvailable !== true || isCheckingSlug}
+                      size="sm"
+                      className="bg-green-500 hover:bg-green-600 text-white px-4"
+                    >
+                      Save
+                    </Button>
                   </div>
-                  {isCheckingSlug && (
-                    <p className="text-xs text-muted-foreground">Checking availability...</p>
-                  )}
-                  {slugAvailable === true && (
-                    <p className="text-xs text-green-500">Available</p>
-                  )}
-                  {slugAvailable === false && (
-                    <p className="text-xs text-destructive">Not available</p>
-                  )}
+                  {isCheckingSlug && <p className="text-xs text-muted-foreground">Checking availability...</p>}
+                  {slugAvailable === true && <p className="text-xs text-green-500">Available</p>}
+                  {slugAvailable === false && <p className="text-xs text-destructive">Not available</p>}
+                  <div className="p-3 rounded-lg font-mono text-xs break-all bg-muted/50 text-muted-foreground">
+                    {`${getBaseUrl()}/app/${generateSlug(customSlug) || "..."}`}
+                  </div>
                 </div>
               )}
             </div>
@@ -528,32 +365,17 @@ export default function CreateAppListing() {
                 className="flex-1 h-12 rounded-xl font-medium bg-green-500 hover:bg-green-600 text-white"
               >
                 {copiedLink ? (
-                  <>
-                    <Check className="h-4 w-4 mr-2" />
-                    Copied
-                  </>
+                  <><Check className="h-4 w-4 mr-2" />Copied</>
                 ) : (
-                  <>
-                    <Copy className="h-4 w-4 mr-2" />
-                    Copy Link
-                  </>
+                  <><Copy className="h-4 w-4 mr-2" />Copy Link</>
                 )}
               </Button>
-              
-              <Button
-                onClick={handleShareLink}
-                variant="outline"
-                className="h-12 rounded-xl font-medium px-4"
-              >
+              <Button onClick={handleShareLink} variant="outline" className="h-12 rounded-xl font-medium px-4">
                 <Share2 className="h-4 w-4" />
               </Button>
             </div>
 
-            <Button
-              onClick={() => navigate(-1)}
-              variant="ghost"
-              className="w-full mt-4 text-muted-foreground"
-            >
+            <Button onClick={() => navigate(-1)} variant="ghost" className="w-full mt-4 text-muted-foreground">
               Done
             </Button>
           </div>
@@ -564,25 +386,20 @@ export default function CreateAppListing() {
 
   return (
     <div className="min-h-dvh bg-background">
-      {/* Header */}
       <SliceAppsHeader />
 
-      {/* Form */}
       <main className="max-w-3xl mx-auto px-4 py-8">
-        {/* File info badge */}
-        <div className="inline-flex items-center gap-2 px-3 py-2 rounded-lg mb-8 bg-muted">
+        {/* File info pill */}
+        <div className="inline-flex items-center gap-2 px-3 py-2 rounded-full mb-8 bg-muted">
           <span className="text-sm text-muted-foreground">
             {fileData.fileName} - {formatFileSize(fileData.fileSize)}
           </span>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-10">
-          
-          {/* App Icon Section */}
+          {/* App Icon */}
           <section className="space-y-4">
-            <Label className="text-base font-medium text-foreground">
-              App Icon
-            </Label>
+            <Label className="text-base font-medium text-foreground">App Icon</Label>
             <div className="flex items-center gap-5">
               <div
                 onClick={() => iconInputRef.current?.click()}
@@ -591,90 +408,76 @@ export default function CreateAppListing() {
                 {iconPreview ? (
                   <img src={iconPreview} alt="Icon" className="w-full h-full object-cover" />
                 ) : (
-                  <ImageIcon className="h-10 w-10 text-gray-400" />
+                  <ImageIcon className="h-10 w-10 text-muted-foreground/50" />
                 )}
               </div>
               <div>
-                <p className="text-sm text-muted-foreground">
-                  512x512 PNG or JPG
-                </p>
-                <p className="text-xs mt-1 text-muted-foreground/70">
-                  Max 2MB
-                </p>
+                <p className="text-sm text-muted-foreground">512x512 PNG or JPG</p>
+                <p className="text-xs mt-1 text-muted-foreground/70">Max 2MB</p>
               </div>
             </div>
-            <input
-              ref={iconInputRef}
-              type="file"
-              accept="image/png,image/jpeg"
-              className="hidden"
-              onChange={handleIconChange}
-            />
+            <input ref={iconInputRef} type="file" accept="image/png,image/jpeg" className="hidden" onChange={handleIconChange} />
           </section>
 
-          {/* App Name Section */}
+          {/* App Name */}
           <section className="space-y-3">
-            <Label className="text-base font-medium text-foreground">
-              App Name *
-            </Label>
+            <Label className="text-base font-medium text-foreground">App Name *</Label>
             <Input
               value={formData.appName}
               onChange={(e) => setFormData(prev => ({ ...prev, appName: e.target.value }))}
               placeholder="My Awesome App"
               required
-                className="h-14 text-base border rounded-xl px-4 bg-muted border-border text-foreground"
+              className="h-14 text-base border rounded-xl px-4 bg-muted border-border text-foreground"
             />
           </section>
 
-          {/* Developer Name Section */}
+          {/* Developer Name */}
           <section className="space-y-3">
-            <Label className="text-base font-medium text-foreground">
-              Developer Name
-            </Label>
+            <Label className="text-base font-medium text-foreground">Developer Name</Label>
             <Input
               value={formData.developerName}
               onChange={(e) => setFormData(prev => ({ ...prev, developerName: e.target.value }))}
               placeholder="Your name or company"
-                className="h-14 text-base border rounded-xl px-4 bg-muted border-border text-foreground"
+              className="h-14 text-base border rounded-xl px-4 bg-muted border-border text-foreground"
             />
           </section>
 
-          {/* Category Section */}
+          {/* Category */}
           <section className="space-y-3">
-            <Label className="text-base font-medium text-foreground">
-              Category
-            </Label>
-            <Select
-              value={formData.category}
-              onValueChange={(value) => setFormData(prev => ({ ...prev, category: value }))}
-            >
+            <Label className="text-base font-medium text-foreground">Category</Label>
+            <Select value={formData.category} onValueChange={(value) => setFormData(prev => ({ ...prev, category: value }))}>
               <SelectTrigger className="h-14 text-base border rounded-xl px-4 bg-muted border-border text-foreground">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent className="bg-popover border-border">
                 {CATEGORIES.map(cat => (
-                  <SelectItem 
-                    key={cat} 
-                    value={cat}
-                    className="text-foreground"
-                  >
-                    {cat}
-                  </SelectItem>
+                  <SelectItem key={cat} value={cat} className="text-foreground">{cat}</SelectItem>
                 ))}
               </SelectContent>
             </Select>
           </section>
 
-          {/* Version Section */}
+          {/* Age Rating (NEW) */}
           <section className="space-y-3">
-            <Label className="text-base font-medium text-foreground">
-              Version
-            </Label>
+            <Label className="text-base font-medium text-foreground">Age Rating</Label>
+            <Select value={formData.ageRating} onValueChange={(value) => setFormData(prev => ({ ...prev, ageRating: value }))}>
+              <SelectTrigger className="h-14 text-base border rounded-xl px-4 bg-muted border-border text-foreground">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent className="bg-popover border-border">
+                {AGE_RATINGS.map(age => (
+                  <SelectItem key={age} value={age} className="text-foreground">{age}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </section>
+
+          {/* Version */}
+          <section className="space-y-3">
+            <Label className="text-base font-medium text-foreground">Version</Label>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label className="text-sm text-muted-foreground">
-                  Version Name
-                </Label>
+                <Label className="text-sm text-muted-foreground">Version Name</Label>
                 <Input
                   value={formData.versionName}
                   onChange={(e) => setFormData(prev => ({ ...prev, versionName: e.target.value }))}
@@ -683,9 +486,7 @@ export default function CreateAppListing() {
                 />
               </div>
               <div className="space-y-2">
-                <Label className="text-sm text-muted-foreground">
-                  Version Code
-                </Label>
+                <Label className="text-sm text-muted-foreground">Version Code</Label>
                 <Input
                   value={formData.versionCode}
                   onChange={(e) => setFormData(prev => ({ ...prev, versionCode: e.target.value }))}
@@ -696,11 +497,9 @@ export default function CreateAppListing() {
             </div>
           </section>
 
-          {/* Full Description Section */}
+          {/* Description */}
           <section className="space-y-3">
-            <Label className="text-base font-medium text-foreground">
-              Description
-            </Label>
+            <Label className="text-base font-medium text-foreground">Description</Label>
             <Textarea
               value={formData.fullDescription}
               onChange={(e) => setFormData(prev => ({ ...prev, fullDescription: e.target.value }))}
@@ -710,66 +509,38 @@ export default function CreateAppListing() {
             />
           </section>
 
-          {/* Screenshots Section */}
+          {/* Screenshots */}
           <section className="space-y-4">
             <div className="flex items-center justify-between">
-            <Label className="text-base font-medium text-foreground">
-                Screenshots
-              </Label>
-              <span className="text-sm text-muted-foreground">
-                {screenshots.length}/8
-              </span>
+              <Label className="text-base font-medium text-foreground">Screenshots</Label>
+              <span className="text-sm text-muted-foreground">{screenshots.length}/8</span>
             </div>
-            
-            {/* Drop zone + horizontal scroll preview */}
             <div
               onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
               onDragLeave={() => setIsDragging(false)}
               onDrop={handleScreenshotDrop}
               className={`rounded-xl border p-4 transition-colors ${
-                isDragging 
-                  ? "border-green-500 bg-green-50 dark:bg-green-900/20" 
-                  : "border-border bg-muted"
+                isDragging ? "border-green-500 bg-green-50 dark:bg-green-900/20" : "border-border bg-muted"
               }`}
             >
               {screenshots.length === 0 ? (
-                <div 
-                  onClick={() => screenshotInputRef.current?.click()}
-                  className="flex flex-col items-center justify-center py-12 cursor-pointer"
-                >
-                  <Upload className="h-10 w-10 mb-3 text-gray-400" />
-                  <p className="text-sm mb-1 text-foreground">
-                    Drop screenshots here or tap to upload
-                  </p>
-                  <p className="text-xs text-muted-foreground">
-                    Up to 8 screenshots, max 5MB each
-                  </p>
+                <div onClick={() => screenshotInputRef.current?.click()} className="flex flex-col items-center justify-center py-12 cursor-pointer">
+                  <Upload className="h-10 w-10 mb-3 text-muted-foreground/50" />
+                  <p className="text-sm mb-1 text-foreground">Drop screenshots here or tap to upload</p>
+                  <p className="text-xs text-muted-foreground">Up to 8 screenshots, max 5MB each</p>
                 </div>
               ) : (
                 <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
                   {screenshots.map((url, index) => (
-                    <div 
-                      key={index} 
-                      className="relative flex-shrink-0 group"
-                      draggable
-                      onDragStart={() => handleScreenshotDragStart(index)}
-                      onDragOver={(e) => handleScreenshotDragOver(e, index)}
-                      onDragEnd={handleScreenshotDragEnd}
+                    <div key={index} className="relative flex-shrink-0 group"
+                      draggable onDragStart={() => handleScreenshotDragStart(index)}
+                      onDragOver={(e) => handleScreenshotDragOver(e, index)} onDragEnd={handleScreenshotDragEnd}
                     >
-                      <img
-                        src={url}
-                        alt={`Screenshot ${index + 1}`}
-                        className="w-32 h-56 object-cover rounded-xl border border-border"
-                        loading="lazy"
-                      />
-                      {/* Drag handle */}
+                      <img src={url} alt={`Screenshot ${index + 1}`} className="w-32 h-56 object-cover rounded-xl border border-border" loading="lazy" />
                       <div className="absolute top-2 left-2 opacity-0 group-hover:opacity-100 transition-opacity cursor-grab text-white">
                         <GripVertical className="h-4 w-4" />
                       </div>
-                      {/* Remove button */}
-                      <button
-                        type="button"
-                        onClick={() => removeScreenshot(index)}
+                      <button type="button" onClick={() => removeScreenshot(index)}
                         className="absolute -top-2 -right-2 w-7 h-7 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-foreground text-background"
                       >
                         <X className="h-4 w-4" />
@@ -777,62 +548,21 @@ export default function CreateAppListing() {
                     </div>
                   ))}
                   {screenshots.length < 8 && (
-                    <div
-                      onClick={() => screenshotInputRef.current?.click()}
+                    <div onClick={() => screenshotInputRef.current?.click()}
                       className="w-32 h-56 rounded-xl border flex flex-col items-center justify-center cursor-pointer flex-shrink-0 transition-colors border-border bg-background hover:border-border/80"
                     >
-                      <Upload className="h-6 w-6 mb-2 text-gray-400" />
-                      <span className="text-xs text-muted-foreground">
-                        Add more
-                      </span>
+                      <Upload className="h-6 w-6 mb-2 text-muted-foreground/50" />
+                      <span className="text-xs text-muted-foreground">Add more</span>
                     </div>
                   )}
                 </div>
               )}
             </div>
-            <input
-              ref={screenshotInputRef}
-              type="file"
-              accept="image/png,image/jpeg"
-              multiple
-              className="hidden"
-              onChange={handleScreenshotAdd}
-            />
+            <input ref={screenshotInputRef} type="file" accept="image/png,image/jpeg" multiple className="hidden" onChange={handleScreenshotAdd} />
           </section>
 
-          {/* Promo Banner Section */}
-          <section className="space-y-4">
-              <Label className="text-base font-medium text-foreground">
-              Promo Banner <span className="text-muted-foreground">(Optional)</span>
-            </Label>
-            <div
-              onClick={() => bannerInputRef.current?.click()}
-              className="h-44 rounded-xl border flex items-center justify-center cursor-pointer overflow-hidden transition-colors bg-muted border-border hover:border-border/80"
-            >
-              {bannerPreview ? (
-                <img src={bannerPreview} alt="Banner" className="w-full h-full object-cover" loading="lazy" />
-              ) : (
-                <div className="text-center">
-                  <Upload className="h-10 w-10 mx-auto mb-3 text-gray-400" />
-                  <p className="text-sm text-muted-foreground">
-                    1024x500 recommended
-                  </p>
-                </div>
-              )}
-            </div>
-            <input
-              ref={bannerInputRef}
-              type="file"
-              accept="image/png,image/jpeg"
-              className="hidden"
-              onChange={handleBannerChange}
-            />
-          </section>
-
-          {/* Submit Button */}
-          <Button
-            type="submit"
-            disabled={isSubmitting}
+          {/* Submit */}
+          <Button type="submit" disabled={isSubmitting}
             className="w-full h-14 text-base font-semibold rounded-2xl bg-green-500 hover:bg-green-600 text-white"
           >
             {isSubmitting ? "Publishing..." : "Publish App Page"}

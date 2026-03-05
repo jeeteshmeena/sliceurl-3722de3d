@@ -4,6 +4,17 @@ import {
   HardDrive,
   UserCheck,
   User,
+  Gamepad2,
+  Briefcase,
+  Wrench,
+  Users,
+  BookOpen,
+  Settings,
+  LayoutGrid,
+  Music,
+  Clapperboard,
+  Camera,
+  ShoppingBag,
 } from "lucide-react";
 
 interface MetadataStripProps {
@@ -16,78 +27,39 @@ interface MetadataStripProps {
   developer: string;
 }
 
-/** Category to icon mapping (filled style) */
+/** Category icon auto-assignment (filled style) */
 function CategoryIcon({ category, className }: { category: string; className?: string }) {
-  // All icons use fill for "filled" style
   const cat = category.toLowerCase();
-  if (cat.includes("music")) return <Star className={className} fill="currentColor" strokeWidth={0} />;
-  if (cat.includes("entertainment")) return <Star className={className} fill="currentColor" strokeWidth={0} />;
-  if (cat.includes("game") || cat.includes("action")) return <Star className={className} fill="currentColor" strokeWidth={0} />;
-  if (cat.includes("productiv") || cat.includes("finance")) return <Star className={className} fill="currentColor" strokeWidth={0} />;
-  if (cat.includes("tool") || cat.includes("utilit")) return <Star className={className} fill="currentColor" strokeWidth={0} />;
-  if (cat.includes("social")) return <User className={className} fill="currentColor" strokeWidth={0} />;
-  if (cat.includes("education")) return <Star className={className} fill="currentColor" strokeWidth={0} />;
-  // Default
-  return <Star className={className} fill="currentColor" strokeWidth={0} />;
-}
-
-/** Custom filled icons using SVG for SF Symbols style */
-function FilledStar({ className }: { className?: string }) {
-  return <Star className={className} fill="currentColor" strokeWidth={0} />;
-}
-
-function FilledDownload({ className }: { className?: string }) {
-  return <ArrowDownCircle className={className} fill="currentColor" strokeWidth={0} />;
-}
-
-function FilledDrive({ className }: { className?: string }) {
-  return <HardDrive className={className} fill="currentColor" strokeWidth={0} />;
-}
-
-function FilledUserCheck({ className }: { className?: string }) {
-  return <UserCheck className={className} fill="currentColor" strokeWidth={0} />;
-}
-
-function FilledUser({ className }: { className?: string }) {
-  return <User className={className} fill="currentColor" strokeWidth={0} />;
+  if (cat.includes("music")) return <Music className={className} fill="currentColor" strokeWidth={0} />;
+  if (cat.includes("entertainment")) return <Clapperboard className={className} fill="currentColor" strokeWidth={0} />;
+  if (cat.includes("game") || cat.includes("action")) return <Gamepad2 className={className} fill="currentColor" strokeWidth={0} />;
+  if (cat.includes("productiv") || cat.includes("finance")) return <Briefcase className={className} fill="currentColor" strokeWidth={0} />;
+  if (cat.includes("tool") || cat.includes("utilit")) return <Wrench className={className} fill="currentColor" strokeWidth={0} />;
+  if (cat.includes("social")) return <Users className={className} fill="currentColor" strokeWidth={0} />;
+  if (cat.includes("education")) return <BookOpen className={className} fill="currentColor" strokeWidth={0} />;
+  if (cat.includes("photo")) return <Camera className={className} fill="currentColor" strokeWidth={0} />;
+  if (cat.includes("shop")) return <ShoppingBag className={className} fill="currentColor" strokeWidth={0} />;
+  return <LayoutGrid className={className} fill="currentColor" strokeWidth={0} />;
 }
 
 interface MetadataItemProps {
   label: string;
   value: string;
-  subValue?: string;
-  icon: React.ReactNode;
-  stars?: number;
+  subElement?: React.ReactNode;
 }
 
-function MetadataItem({ label, value, subValue, icon, stars }: MetadataItemProps) {
+function MetadataItem({ label, value, subElement }: MetadataItemProps) {
   return (
-    <div className="flex flex-col items-center justify-start min-w-[110px] snap-center px-2 py-3">
+    <div className="flex flex-col items-center justify-start py-3 px-1">
       <span className="text-[10px] font-medium tracking-wider text-muted-foreground uppercase mb-1.5">
         {label}
       </span>
-      <div className="flex flex-col items-center gap-1">
-        <span className="text-xl font-bold text-foreground leading-none">
-          {value}
-        </span>
-        {stars !== undefined && stars > 0 ? (
-          <div className="flex gap-0.5 mt-0.5">
-            {[1, 2, 3, 4, 5].map(s => (
-              <Star
-                key={s}
-                className={`h-3 w-3 ${s <= Math.round(stars) ? "fill-current text-foreground" : "text-muted-foreground/30"}`}
-                strokeWidth={0}
-              />
-            ))}
-          </div>
-        ) : subValue ? (
-          <span className="text-[10px] text-muted-foreground leading-tight text-center">
-            {subValue}
-          </span>
-        ) : (
-          <div className="h-3.5 flex items-center">{icon}</div>
-        )}
-      </div>
+      <span className="text-lg font-bold text-foreground leading-none mb-1">
+        {value}
+      </span>
+      {subElement && (
+        <div className="h-4 flex items-center">{subElement}</div>
+      )}
     </div>
   );
 }
@@ -101,54 +73,75 @@ export function MetadataStrip({
   category,
   developer,
 }: MetadataStripProps) {
+  const starIcons = (count: number) => (
+    <div className="flex gap-0.5">
+      {[1, 2, 3, 4, 5].map(s => (
+        <Star
+          key={s}
+          className={`h-3 w-3 ${s <= Math.round(count) ? "fill-current text-foreground" : "text-muted-foreground/30"}`}
+          strokeWidth={0}
+        />
+      ))}
+    </div>
+  );
+
   const formatRatingCount = (count: number | null): string => {
-    if (!count || count === 0) return "No Ratings";
+    if (!count || count === 0) return "";
     if (count >= 1000000) return `${(count / 1000000).toFixed(1)}M Ratings`;
     if (count >= 1000) return `${(count / 1000).toFixed(1)}K Ratings`;
     return `${count} Ratings`;
   };
 
-  return (
-    <div className="overflow-x-auto scrollbar-hide -mx-4 px-4">
-      <div className="flex snap-x snap-mandatory min-w-max">
-        <MetadataItem
-          label="RATINGS"
-          value={ratingAvg?.toFixed(1) || "—"}
-          stars={ratingAvg || 0}
-          icon={<FilledStar className="h-3.5 w-3.5 text-muted-foreground" />}
-        />
-        {ratingCount !== null && ratingCount > 0 && (
-          <div className="flex items-end pb-3 -ml-2 -mr-1">
+  const items = [
+    {
+      label: "RATINGS",
+      value: ratingAvg?.toFixed(1) || "0.0",
+      subElement: (
+        <div className="flex flex-col items-center gap-0.5">
+          {starIcons(ratingAvg || 0)}
+          {ratingCount && ratingCount > 0 && (
             <span className="text-[9px] text-muted-foreground">{formatRatingCount(ratingCount)}</span>
-          </div>
-        )}
+          )}
+        </div>
+      ),
+    },
+    {
+      label: "AGES",
+      value: ageRating,
+      subElement: <span className="text-[10px] text-muted-foreground">Years Old</span>,
+    },
+    {
+      label: "CATEGORY",
+      value: category || "Other",
+      subElement: <CategoryIcon category={category} className="h-3.5 w-3.5 text-muted-foreground" />,
+    },
+    {
+      label: "DEVELOPER",
+      value: developer?.length > 12 ? developer.substring(0, 12) + "…" : (developer || "Unknown"),
+      subElement: <User className="h-3.5 w-3.5 text-muted-foreground" fill="currentColor" strokeWidth={0} />,
+    },
+    {
+      label: "SIZE",
+      value: fileSize,
+      subElement: <HardDrive className="h-3.5 w-3.5 text-muted-foreground" fill="currentColor" strokeWidth={0} />,
+    },
+    {
+      label: "DOWNLOADS",
+      value: downloads,
+      subElement: <ArrowDownCircle className="h-3.5 w-3.5 text-muted-foreground" fill="currentColor" strokeWidth={0} />,
+    },
+  ];
+
+  return (
+    <div className="grid grid-cols-3 gap-y-2">
+      {items.map((item) => (
         <MetadataItem
-          label="DOWNLOADS"
-          value={downloads}
-          icon={<FilledDownload className="h-3.5 w-3.5 text-muted-foreground" />}
+          key={item.label}
+          label={item.label}
+          value={item.value}
+          subElement={item.subElement}
         />
-        <MetadataItem
-          label="SIZE"
-          value={fileSize}
-          icon={<FilledDrive className="h-3.5 w-3.5 text-muted-foreground" />}
-        />
-        <MetadataItem
-          label="AGES"
-          value={ageRating}
-          subValue="Years Old"
-          icon={<FilledUserCheck className="h-3.5 w-3.5 text-muted-foreground" />}
-        />
-        <MetadataItem
-          label="CATEGORY"
-          value={category || "Other"}
-          icon={<CategoryIcon category={category} className="h-3.5 w-3.5 text-muted-foreground" />}
-        />
-        <MetadataItem
-          label="DEVELOPER"
-          value={developer || "Unknown"}
-          icon={<FilledUser className="h-3.5 w-3.5 text-muted-foreground" />}
-        />
-      </div>
+      ))}
     </div>
   );
 }
