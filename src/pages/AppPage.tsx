@@ -274,14 +274,13 @@ export default function AppPage() {
           </div>
         </div>
 
-        {/* Download Button - full width, pill shaped */}
+        {/* Download Button - full width, pill shaped, no icons */}
         <Button
           onClick={handleDownload}
           disabled={isDownloading || !fileInfo || !!fileUnavailable}
-          className="w-full h-[50px] text-base font-semibold rounded-full bg-green-600 hover:bg-green-700 text-white disabled:bg-muted disabled:text-muted-foreground uppercase tracking-wide"
+          className="w-full h-[50px] text-base font-medium rounded-full bg-green-600 hover:bg-green-700 text-white disabled:bg-muted disabled:text-muted-foreground uppercase tracking-wide"
         >
-          {fileInfo?.password_hash && <Lock className="h-4 w-4 mr-2" />}
-          {isDownloading ? "Downloading..." : "Download"}
+          {isDownloading ? "Downloading..." : "DOWNLOAD"}
         </Button>
 
         {/* File Unavailable Warning */}
@@ -292,8 +291,8 @@ export default function AppPage() {
           </div>
         )}
 
-        {/* Metadata Strip - horizontal scroll, App Store style */}
-        <div className="mt-4 border-y border-border/30 py-1">
+        {/* Metadata Grid - 3x2, no borders, no dividers */}
+        <div className="mt-5 mb-2">
           <MetadataStrip
             ratingAvg={app.rating_avg}
             ratingCount={app.rating_count}
