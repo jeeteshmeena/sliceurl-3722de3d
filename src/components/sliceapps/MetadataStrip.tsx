@@ -2,7 +2,6 @@ import {
   Star,
   ArrowDownCircle,
   HardDrive,
-  UserCheck,
   User,
   Gamepad2,
   Briefcase,
@@ -27,7 +26,6 @@ interface MetadataStripProps {
   developer: string;
 }
 
-/** Category icon auto-assignment (filled style) */
 function CategoryIcon({ category, className }: { category: string; className?: string }) {
   const cat = category.toLowerCase();
   if (cat.includes("music")) return <Music className={className} fill="currentColor" strokeWidth={0} />;
@@ -39,6 +37,7 @@ function CategoryIcon({ category, className }: { category: string; className?: s
   if (cat.includes("education")) return <BookOpen className={className} fill="currentColor" strokeWidth={0} />;
   if (cat.includes("photo")) return <Camera className={className} fill="currentColor" strokeWidth={0} />;
   if (cat.includes("shop")) return <ShoppingBag className={className} fill="currentColor" strokeWidth={0} />;
+  if (cat.includes("utilit")) return <Settings className={className} fill="currentColor" strokeWidth={0} />;
   return <LayoutGrid className={className} fill="currentColor" strokeWidth={0} />;
 }
 
@@ -50,15 +49,15 @@ interface MetadataItemProps {
 
 function MetadataItem({ label, value, subElement }: MetadataItemProps) {
   return (
-    <div className="flex flex-col items-center justify-start min-w-[calc(33.333%-8px)] snap-center py-3 px-1">
+    <div className="flex flex-col items-center justify-start w-[calc(100%/3)] flex-shrink-0 snap-start py-3">
       <span className="text-[10px] font-medium tracking-wider text-muted-foreground uppercase mb-1.5">
         {label}
       </span>
-      <span className="text-lg font-bold text-foreground leading-none mb-1">
+      <span className="text-lg font-bold text-foreground leading-none mb-1.5">
         {value}
       </span>
       {subElement && (
-        <div className="h-4 flex items-center">{subElement}</div>
+        <div className="min-h-[18px] flex items-center">{subElement}</div>
       )}
     </div>
   );
@@ -133,8 +132,8 @@ export function MetadataStrip({
   ];
 
   return (
-    <div className="overflow-x-auto scrollbar-hide -mx-4 px-4">
-      <div className="flex snap-x snap-mandatory" style={{ minWidth: "200%" }}>
+    <div className="overflow-x-auto overflow-y-hidden scrollbar-hide -mx-4 px-4 scroll-smooth">
+      <div className="flex w-[200%] snap-x snap-mandatory">
         {items.map((item) => (
           <MetadataItem
             key={item.label}
