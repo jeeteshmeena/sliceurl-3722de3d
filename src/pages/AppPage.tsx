@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { useParams, Link } from "react-router-dom";
-import { Lock, AlertTriangle } from "lucide-react";
+import { Lock, AlertTriangle, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -65,6 +65,7 @@ export default function AppPage() {
   const [reviews, setReviews] = useState<Review[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isDownloading, setIsDownloading] = useState(false);
+  const [downloadSuccess, setDownloadSuccess] = useState(false);
   const [fileUnavailable, setFileUnavailable] = useState<string | null>(null);
   
   const [showPasswordDialog, setShowPasswordDialog] = useState(false);
@@ -155,6 +156,8 @@ export default function AppPage() {
 
       setFileInfo(prev => prev ? { ...prev, download_count: (prev.download_count || 0) + 1 } : null);
 
+      setDownloadSuccess(true);
+      setTimeout(() => setDownloadSuccess(false), 1500);
       toast.success("Download started!");
     } catch (err) {
       console.error("Download failed:", err);
@@ -275,30 +278,45 @@ export default function AppPage() {
           </div>
         </div>
 
-        {/* Download Button - full width, pill shaped, no icons */}
-        <motion.div
-          animate={isDownloading ? { scale: [1, 1.03, 1] } : {}}
-          transition={{ duration: 0.35 }}
-        >
-          <Button
-            onClick={handleDownload}
-            disabled={isDownloading || !fileInfo || !!fileUnavailable}
-            className="w-full h-[50px] text-base font-bold rounded-full bg-green-600 hover:bg-green-700 text-white disabled:bg-muted disabled:text-muted-foreground uppercase tracking-wide shadow-md"
+        {/* Download Button */}
+        <div className="my-4">
+          <motion.div
+            animate={downloadSuccess ? { scale: [1, 1.04, 1] } : {}}
+            transition={{ duration: 0.4, ease: "easeOut" }}
           >
-            {isDownloading ? "Downloading..." : "DOWNLOAD"}
-          </Button>
-        </motion.div>
+            <Button
+              onClick={handleDownload}
+              disabled={isDownloading || !fileInfo || !!fileUnavailable}
+              className="w-full h-[50px] text-base font-medium rounded-full bg-green-600 hover:bg-green-700 text-white disabled:bg-muted disabled:text-muted-foreground uppercase tracking-wide shadow-sm transition-all duration-200"
+            >
+              {downloadSuccess ? (
+                <motion.span
+                  initial={{ opacity: 0, scale: 0.5 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  className="flex items-center gap-2"
+                >
+                  <Check className="h-5 w-5" />
+                  Downloaded
+                </motion.span>
+              ) : isDownloading ? (
+                "Downloading..."
+              ) : (
+                "DOWNLOAD"
+              )}
+            </Button>
+          </motion.div>
+        </div>
 
         {/* File Unavailable Warning */}
         {fileUnavailable && (
-          <div className="flex items-center gap-3 mt-4 text-muted-foreground">
+          <div className="flex items-center gap-3 mt-2 mb-2 text-muted-foreground">
             <AlertTriangle className="h-4 w-4 flex-shrink-0" />
             <p className="text-sm">{fileUnavailable}</p>
           </div>
         )}
 
-        {/* Metadata Grid - 3x2, no borders, no dividers */}
-        <div className="mt-5 mb-2">
+        {/* Metadata - horizontal scroll */}
+        <div className="mt-4 mb-2">
           <MetadataStrip
             ratingAvg={app.rating_avg}
             ratingCount={app.rating_count}

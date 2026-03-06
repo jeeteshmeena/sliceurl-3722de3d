@@ -282,7 +282,7 @@ const Auth = ({ mode: initialMode = "login" }: AuthProps) => {
     `${inputBaseClass} ${hasError ? "border-destructive focus:border-destructive focus:ring-destructive/15" : ""}`;
 
   return (
-    <div className="min-h-dvh bg-background flex flex-col overflow-y-auto">
+    <div className={`min-h-dvh bg-background flex flex-col ${mode === "signup" ? "overflow-y-auto" : "overflow-hidden"}`}>
       {/* Back arrow */}
       <div className="px-4 pt-4">
         <button
