@@ -276,13 +276,13 @@ const Auth = ({ mode: initialMode = "login" }: AuthProps) => {
     );
   }
 
-  const inputBaseClass = "h-12 text-base rounded-xl border bg-muted/50 border-border px-4 transition-all duration-150 focus:border-primary focus:ring-2 focus:ring-primary/15 placeholder:text-muted-foreground/50";
+  const inputBaseClass = "h-12 text-base rounded-xl border bg-muted/50 border-border px-4 transition-all duration-150 focus:border-foreground/30 focus:ring-1 focus:ring-foreground/10 placeholder:text-muted-foreground/50";
 
   const getInputClassName = (hasError: boolean) =>
     `${inputBaseClass} ${hasError ? "border-destructive focus:border-destructive focus:ring-destructive/15" : ""}`;
 
   return (
-    <div className="min-h-dvh bg-background flex flex-col">
+    <div className="min-h-dvh bg-background flex flex-col overflow-y-auto">
       {/* Back arrow */}
       <div className="px-4 pt-4">
         <button
