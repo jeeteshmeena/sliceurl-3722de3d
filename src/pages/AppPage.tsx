@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { motion } from "framer-motion";
 import { useParams, Link } from "react-router-dom";
 import { Lock, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -275,13 +276,18 @@ export default function AppPage() {
         </div>
 
         {/* Download Button - full width, pill shaped, no icons */}
-        <Button
-          onClick={handleDownload}
-          disabled={isDownloading || !fileInfo || !!fileUnavailable}
-          className="w-full h-[50px] text-base font-medium rounded-full bg-green-600 hover:bg-green-700 text-white disabled:bg-muted disabled:text-muted-foreground uppercase tracking-wide"
+        <motion.div
+          animate={isDownloading ? { scale: [1, 1.03, 1] } : {}}
+          transition={{ duration: 0.35 }}
         >
-          {isDownloading ? "Downloading..." : "DOWNLOAD"}
-        </Button>
+          <Button
+            onClick={handleDownload}
+            disabled={isDownloading || !fileInfo || !!fileUnavailable}
+            className="w-full h-[50px] text-base font-bold rounded-full bg-green-600 hover:bg-green-700 text-white disabled:bg-muted disabled:text-muted-foreground uppercase tracking-wide shadow-md"
+          >
+            {isDownloading ? "Downloading..." : "DOWNLOAD"}
+          </Button>
+        </motion.div>
 
         {/* File Unavailable Warning */}
         {fileUnavailable && (

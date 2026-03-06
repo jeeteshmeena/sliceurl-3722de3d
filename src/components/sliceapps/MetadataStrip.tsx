@@ -50,7 +50,7 @@ interface MetadataItemProps {
 
 function MetadataItem({ label, value, subElement }: MetadataItemProps) {
   return (
-    <div className="flex flex-col items-center justify-start py-3 px-1">
+    <div className="flex flex-col items-center justify-start min-w-[calc(33.333%-8px)] snap-center py-3 px-1">
       <span className="text-[10px] font-medium tracking-wider text-muted-foreground uppercase mb-1.5">
         {label}
       </span>
@@ -108,40 +108,42 @@ export function MetadataStrip({
     {
       label: "AGES",
       value: ageRating,
-      subElement: <span className="text-[10px] text-muted-foreground">Years Old</span>,
+      subElement: <span className="text-[10px] text-muted-foreground/60">Years Old</span>,
     },
     {
       label: "CATEGORY",
       value: category || "Other",
-      subElement: <CategoryIcon category={category} className="h-3.5 w-3.5 text-muted-foreground" />,
+      subElement: <CategoryIcon category={category} className="h-5 w-5 text-muted-foreground" />,
     },
     {
       label: "DEVELOPER",
       value: developer?.length > 12 ? developer.substring(0, 12) + "…" : (developer || "Unknown"),
-      subElement: <User className="h-3.5 w-3.5 text-muted-foreground" fill="currentColor" strokeWidth={0} />,
+      subElement: <User className="h-5 w-5 text-muted-foreground" fill="currentColor" strokeWidth={0} />,
     },
     {
       label: "SIZE",
       value: fileSize,
-      subElement: <HardDrive className="h-3.5 w-3.5 text-muted-foreground" fill="currentColor" strokeWidth={0} />,
+      subElement: <HardDrive className="h-5 w-5 text-muted-foreground" fill="currentColor" strokeWidth={0} />,
     },
     {
       label: "DOWNLOADS",
       value: downloads,
-      subElement: <ArrowDownCircle className="h-3.5 w-3.5 text-muted-foreground" fill="currentColor" strokeWidth={0} />,
+      subElement: <ArrowDownCircle className="h-5 w-5 text-muted-foreground" fill="currentColor" strokeWidth={0} />,
     },
   ];
 
   return (
-    <div className="grid grid-cols-3 gap-y-2">
-      {items.map((item) => (
-        <MetadataItem
-          key={item.label}
-          label={item.label}
-          value={item.value}
-          subElement={item.subElement}
-        />
-      ))}
+    <div className="overflow-x-auto scrollbar-hide -mx-4 px-4">
+      <div className="flex snap-x snap-mandatory" style={{ minWidth: "200%" }}>
+        {items.map((item) => (
+          <MetadataItem
+            key={item.label}
+            label={item.label}
+            value={item.value}
+            subElement={item.subElement}
+          />
+        ))}
+      </div>
     </div>
   );
 }
