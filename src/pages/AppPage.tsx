@@ -14,7 +14,7 @@ import {
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import { SliceAppsHeader, RatingsReviewsSection, MetadataStrip } from "@/components/sliceapps";
+import { SliceAppsHeader, RatingsReviewsSection } from "@/components/sliceapps";
 
 interface AppListing {
   id: string;
@@ -257,8 +257,8 @@ export default function AppPage() {
       <SliceAppsHeader />
 
       <main className="max-w-2xl mx-auto px-4 py-6">
-        {/* Hero Section: Icon + App Name (App Store style) */}
-        <div className="flex gap-4 mb-5">
+        {/* Hero Section: Icon + Title + Developer */}
+        <div className="flex gap-4 mb-3">
           {/* App Icon - rounded square */}
           <div className="w-[88px] h-[88px] sm:w-[112px] sm:h-[112px] rounded-[22px] flex-shrink-0 overflow-hidden bg-muted shadow-sm">
             {app.icon_url ? (
@@ -270,16 +270,19 @@ export default function AppPage() {
             )}
           </div>
 
-          {/* App Name only - vertically centered */}
-          <div className="flex-1 min-w-0 flex flex-col justify-center">
+          {/* App Title + Developer Name */}
+          <div className="flex-1 min-w-0 flex flex-col justify-center gap-0.5">
             <h1 className="text-xl sm:text-2xl font-bold text-foreground leading-tight">
               {app.app_name}
             </h1>
+            <p className="text-sm text-muted-foreground">
+              {app.developer_name || "Unknown"}
+            </p>
           </div>
         </div>
 
         {/* Download Button */}
-        <div className="my-4">
+        <div className="mb-4">
           <motion.div
             animate={downloadSuccess ? { scale: [1, 1.04, 1] } : {}}
             transition={{ duration: 0.4, ease: "easeOut" }}
@@ -287,7 +290,7 @@ export default function AppPage() {
             <Button
               onClick={handleDownload}
               disabled={isDownloading || !fileInfo || !!fileUnavailable}
-              className="w-full h-[50px] text-base font-medium rounded-full bg-green-600 hover:bg-green-700 text-white disabled:bg-muted disabled:text-muted-foreground uppercase tracking-wide shadow-sm transition-all duration-200"
+              className="w-full h-[50px] text-base font-bold rounded-full bg-green-600 hover:bg-green-700 text-white disabled:bg-muted disabled:text-muted-foreground uppercase tracking-wide shadow-sm transition-all duration-200"
             >
               {downloadSuccess ? (
                 <motion.span
@@ -314,18 +317,6 @@ export default function AppPage() {
             <p className="text-sm">{fileUnavailable}</p>
           </div>
         )}
-
-        {/* Metadata - horizontal scroll */}
-        <div className="mt-4 mb-2">
-          <MetadataStrip
-            ratingAvg={app.rating_avg}
-            ratingCount={app.rating_count}
-            downloads={formatDownloads(actualDownloads)}
-            fileSize={fileInfo ? formatFileSize(fileInfo.file_size) : "--"}
-            category={app.category || "Other"}
-            developer={app.developer_name || "Unknown"}
-          />
-        </div>
 
         {/* Screenshots - no heading, horizontal scroll */}
         {app.screenshots && app.screenshots.length > 0 && (
