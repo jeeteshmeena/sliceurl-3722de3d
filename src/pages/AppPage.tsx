@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { motion } from "framer-motion";
 import { useParams, Link } from "react-router-dom";
 import { Lock, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
