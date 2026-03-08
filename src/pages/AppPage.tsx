@@ -253,23 +253,20 @@ export default function AppPage() {
         <div
           className="lg:hidden"
           style={{
-            background: 'linear-gradient(135deg, #9ea3aa 0%, #8d9198 40%, #7c8087 100%)',
-            backdropFilter: 'blur(6px)',
-            paddingTop: 28,
-            paddingBottom: 26,
-            paddingLeft: 16,
-            paddingRight: 16,
+            background: 'linear-gradient(135deg, #6f7a83 0%, #a3aab1 100%)',
+            backdropFilter: 'blur(20px)',
+            padding: '24px 20px',
           }}
         >
-          <div style={{ display: 'flex', alignItems: 'center', gap: 18 }}>
-            {/* App Icon — 112px */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+            {/* App Icon — 96px */}
             <div
               className="flex-shrink-0 overflow-hidden"
               style={{
-                width: 112,
-                height: 112,
-                borderRadius: 26,
-                boxShadow: '0 10px 30px rgba(0,0,0,0.15)',
+                width: 96,
+                height: 96,
+                borderRadius: 22,
+                boxShadow: '0 8px 24px rgba(0,0,0,0.12)',
               }}
             >
               {app.icon_url ? (
@@ -285,11 +282,13 @@ export default function AppPage() {
             <div style={{ display: 'flex', flexDirection: 'column', flex: 1, minWidth: 0 }}>
               <h1
                 style={{
-                  fontSize: 26,
-                  fontWeight: 700,
-                  lineHeight: 1.2,
+                  fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Display", system-ui, sans-serif',
+                  fontWeight: 600,
+                  fontSize: 22,
+                  lineHeight: '26px',
+                  letterSpacing: '-0.01em',
                   color: '#ffffff',
-                  marginBottom: 4,
+                  margin: 0,
                 }}
               >
                 {app.app_name}
@@ -297,18 +296,20 @@ export default function AppPage() {
               <p
                 className="line-clamp-2"
                 style={{
-                  fontSize: 15,
+                  fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Text", system-ui, sans-serif',
                   fontWeight: 400,
+                  fontSize: 14,
+                  lineHeight: '20px',
                   color: 'rgba(255,255,255,0.85)',
-                  lineHeight: 1.35,
-                  marginBottom: 14,
+                  marginTop: 6,
+                  marginBottom: 0,
                 }}
               >
                 {app.short_description || `The official app by ${app.developer_name || "Unknown"}`}
               </p>
 
               {/* Button Row */}
-              <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+              <div style={{ display: 'flex', alignItems: 'center', marginTop: 12, gap: 12 }}>
                 <motion.div
                   animate={downloadSuccess ? { scale: [1, 1.02, 1] } : {}}
                   transition={{ duration: 0.2 }}
@@ -318,6 +319,7 @@ export default function AppPage() {
                     disabled={isDownloading || !fileInfo || !!fileUnavailable}
                     className="disabled:opacity-40"
                     style={{
+                      height: 36,
                       padding: '8px 22px',
                       borderRadius: 20,
                       background: '#0A84FF',
@@ -327,6 +329,9 @@ export default function AppPage() {
                       border: 'none',
                       cursor: 'pointer',
                       transition: 'background 0.15s ease, transform 0.12s ease',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
                     }}
                     onPointerDown={(e) => { e.currentTarget.style.background = '#0077ED'; e.currentTarget.style.transform = 'scale(0.96)'; }}
                     onPointerUp={(e) => { e.currentTarget.style.background = '#0A84FF'; e.currentTarget.style.transform = 'scale(1)'; }}
@@ -353,7 +358,7 @@ export default function AppPage() {
                     justifyContent: 'center',
                   }}
                 >
-                  <Share2 style={{ width: 20, height: 20, color: '#0A84FF' }} strokeWidth={1.8} />
+                  <Share2 style={{ width: 22, height: 22, color: '#0A84FF' }} strokeWidth={1.8} />
                 </button>
               </div>
             </div>
