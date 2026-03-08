@@ -31,7 +31,7 @@ interface SharedAnalyticsData {
   views_count: number;
 }
 
-const MONO_COLORS = ["#1a1a1a", "#404040", "#666666", "#888888", "#aaaaaa", "#cccccc"];
+const MONO_COLORS = ["hsl(var(--foreground))", "hsl(var(--foreground) / 0.7)", "hsl(var(--foreground) / 0.5)", "hsl(var(--foreground) / 0.35)", "hsl(var(--foreground) / 0.2)", "hsl(var(--foreground) / 0.1)"];
 
 const SharedAnalytics = () => {
   const { token } = useParams<{ token: string }>();
