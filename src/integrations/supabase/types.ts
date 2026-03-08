@@ -85,10 +85,12 @@ export type Database = {
       }
       app_listings: {
         Row: {
+          age_rating: string | null
           app_name: string
           category: string | null
           created_at: string
           developer_name: string | null
+          developer_url: string | null
           file_id: string
           full_description: string | null
           icon_url: string | null
@@ -109,10 +111,12 @@ export type Database = {
           whats_new: string | null
         }
         Insert: {
+          age_rating?: string | null
           app_name: string
           category?: string | null
           created_at?: string
           developer_name?: string | null
+          developer_url?: string | null
           file_id: string
           full_description?: string | null
           icon_url?: string | null
@@ -133,10 +137,12 @@ export type Database = {
           whats_new?: string | null
         }
         Update: {
+          age_rating?: string | null
           app_name?: string
           category?: string | null
           created_at?: string
           developer_name?: string | null
+          developer_url?: string | null
           file_id?: string
           full_description?: string | null
           icon_url?: string | null
