@@ -547,8 +547,10 @@ export default function AppPage() {
             ratingCount={app.rating_count}
             downloads={formatDownloads(actualDownloads)}
             fileSize={fileInfo ? formatFileSize(fileInfo.file_size) : "--"}
+            ageRating={app.age_rating || "4+"}
             category={app.category || "Productivity"}
             developer={app.developer_name || "Unknown"}
+            developerUrl={app.developer_url}
           />
         </div>
 
