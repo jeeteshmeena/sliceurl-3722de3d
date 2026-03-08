@@ -113,7 +113,7 @@ export function Header() {
   const isOnDashboard = location.pathname === "/dashboard";
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-[100] bg-background border-b border-border/40 safe-top max-w-[100vw] overflow-x-hidden" style={{ height: '64px' }}>
+    <header className="fixed top-0 left-0 right-0 z-[100] bg-background border-b border-border/40 safe-top max-w-[100vw]" style={{ height: '64px' }}>
       <SliceLine />
       <div className="max-w-[1280px] mx-auto h-full flex items-center justify-between flex-nowrap">
         {/* Left Section - Brand */}
@@ -162,8 +162,8 @@ export function Header() {
             </PopoverTrigger>
             <PopoverContent
               align="end"
-              sideOffset={8}
-              className="w-48 p-0 bg-popover border border-border shadow-lg rounded-xl overflow-hidden"
+              sideOffset={12}
+              className="w-48 p-0 bg-popover border border-border shadow-lg rounded-xl overflow-hidden z-[200]"
             >
               {/* Search Input */}
               <div className="border-b border-border/50 p-2">
