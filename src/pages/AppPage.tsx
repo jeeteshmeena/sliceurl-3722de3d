@@ -56,6 +56,7 @@ interface Review {
   review_text: string | null;
   created_at: string;
   user_id: string | null;
+  display_name: string | null;
 }
 
 export default function AppPage() {
