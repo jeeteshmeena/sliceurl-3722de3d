@@ -767,10 +767,10 @@ export default function Settings() {
             {/* Auto Dashboard Refresh Toggle Row */}
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <RefreshCw className="h-4 w-4 text-neutral-500 dark:text-neutral-400" />
+                <RefreshCw className="h-4 w-4 text-muted-foreground" />
                 <div>
-                  <span className="text-sm text-neutral-700 dark:text-neutral-300">Auto Dashboard Refresh</span>
-                  <p className="text-xs text-neutral-400 dark:text-neutral-500">
+                  <span className="text-sm text-secondary-foreground">Auto Dashboard Refresh</span>
+                  <p className="text-xs text-muted-foreground">
                     Automatically refresh dashboard data
                   </p>
                 </div>
