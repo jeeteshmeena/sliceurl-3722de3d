@@ -153,14 +153,12 @@ export function Header() {
           {/* Language Selector - Clean icon, no pill background */}
           <Popover open={langOpen} onOpenChange={setLangOpen}>
             <PopoverTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-9 w-9 rounded-full hover:bg-muted/50"
+              <button
+                className="h-9 w-9 flex items-center justify-center text-foreground"
                 aria-label="Change language"
               >
                 <Languages className="h-[18px] w-[18px]" />
-              </Button>
+              </button>
             </PopoverTrigger>
             <PopoverContent
               align="end"
