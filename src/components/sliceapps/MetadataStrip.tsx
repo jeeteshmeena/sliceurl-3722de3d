@@ -1,16 +1,7 @@
 import {
   Star,
-  CircleUserRound,
-  Gamepad2,
-  Wrench,
-  Users,
-  BookOpen,
-  Settings,
+  UserRound,
   LayoutGrid,
-  Music,
-  Clapperboard,
-  Navigation,
-  Grid2x2,
 } from "lucide-react";
 
 interface MetadataStripProps {
@@ -21,10 +12,6 @@ interface MetadataStripProps {
   ageRating?: string;
   category: string;
   developer: string;
-}
-
-function CategoryIcon({ className }: { className?: string }) {
-  return <Grid2x2 className={className || "h-[22px] w-[22px]"} strokeWidth={1.8} style={{ color: '#8e8e93' }} />;
 }
 
 function StarRow({ rating }: { rating: number }) {
@@ -73,29 +60,29 @@ export function MetadataStrip({
     {
       label: "AGES",
       value: ageRating,
-      bottom: <span style={{ fontSize: 14, fontWeight: 400, color: '#a1a1a6' }} className="leading-none">Years Old</span>,
+      bottom: <span style={{ fontSize: 16, fontWeight: 500, color: '#ffffff' }} className="leading-none">Years Old</span>,
     },
     {
       label: "DOWNLOAD",
       value: downloads || "0",
-      bottom: <span style={{ fontSize: 14, fontWeight: 400, color: '#a1a1a6' }} className="leading-none">Downloads</span>,
+      bottom: <span style={{ fontSize: 16, fontWeight: 500, color: '#ffffff' }} className="leading-none">Downloads</span>,
     },
     {
       label: "DEVELOPER",
       value: null,
-      center: <CircleUserRound className="h-[22px] w-[22px]" strokeWidth={1.8} style={{ color: '#8e8e93' }} />,
-      bottom: <span style={{ fontSize: 14, fontWeight: 400, color: '#a1a1a6' }} className="leading-none truncate max-w-[80px]">{devFirstName}</span>,
+      center: <UserRound className="h-[22px] w-[22px]" fill="#ffffff" strokeWidth={0} style={{ color: '#ffffff' }} />,
+      bottom: <span style={{ fontSize: 16, fontWeight: 500, color: '#ffffff' }} className="leading-none truncate max-w-[80px]">{devFirstName}</span>,
     },
     {
       label: "CATEGORY",
       value: null,
-      center: <CategoryIcon />,
-      bottom: <span style={{ fontSize: 14, fontWeight: 400, color: '#a1a1a6' }} className="leading-none">{category || "Other"}</span>,
+      center: <LayoutGrid className="h-[22px] w-[22px]" fill="#ffffff" strokeWidth={0} style={{ color: '#ffffff' }} />,
+      bottom: <span style={{ fontSize: 16, fontWeight: 500, color: '#ffffff' }} className="leading-none">{category || "Other"}</span>,
     },
     {
       label: "SIZE",
       value: sizeValue,
-      bottom: <span style={{ fontSize: 14, fontWeight: 400, color: '#a1a1a6' }} className="leading-none">{sizeUnit}</span>,
+      bottom: <span style={{ fontSize: 16, fontWeight: 500, color: '#ffffff' }} className="leading-none">{sizeUnit}</span>,
     },
   ];
 
