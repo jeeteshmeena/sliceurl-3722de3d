@@ -856,7 +856,7 @@ export default function Settings() {
                 type="password"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
-                className="bg-white dark:bg-neutral-800"
+                className="bg-card"
               />
             </div>
           </div>
