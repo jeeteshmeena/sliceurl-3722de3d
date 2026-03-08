@@ -119,6 +119,15 @@
     --shadow-xl: 0 16px 40px -8px hsl(0 0% 0% / 0.15);
     --sliceapps-get-bg: rgba(255,255,255,0.95);
     --sliceapps-get-color: #007AFF;
+    --sa-hero-bg: #f5f5f7;
+    --sa-border: rgba(0,0,0,0.06);
+    --sa-icon-bg: #ffffff;
+    --sa-shadow: rgba(0,0,0,0.1);
+    --sa-title: #1d1d1f;
+    --sa-desc: #6e6e73;
+    --sa-get-bg: #0071e3;
+    --sa-get-color: #ffffff;
+    --sa-accent: #0071e3;
   }
 
   .dark {
