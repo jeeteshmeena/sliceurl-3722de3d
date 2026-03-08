@@ -493,7 +493,7 @@ export default function Settings() {
                   <>
                     <Button
                       size="sm"
-                      className="h-9 px-3 bg-neutral-900 dark:bg-neutral-100 text-white dark:text-neutral-900"
+                      className="h-9 px-3 bg-primary text-primary-foreground"
                       onClick={handleSaveEmail}
                       disabled={isSaving}
                     >
