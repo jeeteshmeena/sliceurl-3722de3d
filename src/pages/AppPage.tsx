@@ -1,7 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from "react";
-import { motion } from "framer-motion";
 import { useParams, Link } from "react-router-dom";
-import { Lock, AlertTriangle, Check, Share2, ChevronRight } from "lucide-react";
+import { Lock, AlertTriangle, Share2, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
