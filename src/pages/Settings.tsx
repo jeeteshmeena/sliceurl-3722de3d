@@ -715,8 +715,8 @@ export default function Settings() {
             {/* Theme Toggle Row */}
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <Palette className="h-4 w-4 text-neutral-500 dark:text-neutral-400" />
-                <span className="text-sm text-neutral-700 dark:text-neutral-300">Theme</span>
+                <Palette className="h-4 w-4 text-muted-foreground" />
+                <span className="text-sm text-secondary-foreground">Theme</span>
               </div>
               <ThemeToggle />
             </div>
