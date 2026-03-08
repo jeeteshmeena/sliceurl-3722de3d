@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
 
-type Theme = "dark" | "light" | "system" | "maggie" | "racing" | "meridian" | "designgud" | "supahero";
+type Theme = "dark" | "light" | "system" | "maggie" | "racing" | "meridian" | "designgud" | "supahero" | "opencall";
 
 type ThemeProviderProps = {
   children: React.ReactNode;
@@ -8,7 +8,7 @@ type ThemeProviderProps = {
   storageKey?: string;
 };
 
-type ResolvedTheme = "dark" | "light" | "maggie" | "racing" | "meridian" | "designgud" | "supahero";
+type ResolvedTheme = "dark" | "light" | "maggie" | "racing" | "meridian" | "designgud" | "supahero" | "opencall";
 
 type ThemeProviderState = {
   theme: Theme;
@@ -24,7 +24,7 @@ const initialState: ThemeProviderState = {
 
 const ThemeProviderContext = createContext<ThemeProviderState>(initialState);
 
-const CUSTOM_THEMES = ["maggie", "racing", "meridian", "designgud", "supahero"] as const;
+const CUSTOM_THEMES = ["maggie", "racing", "meridian", "designgud", "supahero", "opencall"] as const;
 
 export function ThemeProvider({
   children,

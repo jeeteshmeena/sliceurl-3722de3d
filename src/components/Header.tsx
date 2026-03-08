@@ -100,10 +100,11 @@ export function Header() {
     else if (resolvedTheme === "racing") setTheme("meridian");
     else if (resolvedTheme === "meridian") setTheme("designgud");
     else if (resolvedTheme === "designgud") setTheme("supahero");
+    else if (resolvedTheme === "supahero") setTheme("opencall");
     else setTheme("light");
   };
 
-  const themeLabelMap: Record<string, string> = { light: "Light", dark: "Dark", maggie: "Maggie", racing: "Racing", meridian: "Meridian", designgud: "Designgud", supahero: "Supahero" };
+  const themeLabelMap: Record<string, string> = { light: "Light", dark: "Dark", maggie: "Maggie", racing: "Racing", meridian: "Meridian", designgud: "Designgud", supahero: "Supahero", opencall: "OpenCall" };
   const themeLabel = themeLabelMap[resolvedTheme] || "Light";
 
   const handleLogout = async () => {
@@ -153,7 +154,9 @@ export function Header() {
             aria-label={`Theme: ${themeLabel}. Click to switch.`}
             title={`Theme: ${themeLabel}`}
           >
-            {resolvedTheme === "supahero" ? (
+            {resolvedTheme === "opencall" ? (
+              <span className="text-base">📞</span>
+            ) : resolvedTheme === "supahero" ? (
               <span className="text-base">🦸</span>
             ) : resolvedTheme === "designgud" ? (
               <span className="text-base">⚡</span>

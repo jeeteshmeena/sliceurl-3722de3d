@@ -434,6 +434,48 @@
     --shadow-lg: 0 8px 24px 0 hsl(0 0% 0% / 0.1);
     --shadow-xl: 0 16px 40px -8px hsl(0 0% 0% / 0.14);
   }
+
+  /* OpenCall Theme - Soft sage green, forest dark accents, lime highlights */
+  .opencall {
+    --background: 130 20% 96%;
+    --foreground: 150 40% 12%;
+    --card: 130 15% 98%;
+    --card-foreground: 150 40% 12%;
+    --popover: 130 15% 98%;
+    --popover-foreground: 150 40% 12%;
+    --primary: 150 45% 16%;
+    --primary-foreground: 80 60% 90%;
+    --secondary: 130 15% 92%;
+    --secondary-foreground: 150 40% 16%;
+    --muted: 130 12% 93%;
+    --muted-foreground: 150 15% 45%;
+    --accent: 80 70% 45%;
+    --accent-foreground: 150 45% 10%;
+    --destructive: 0 72% 50%;
+    --destructive-foreground: 0 0% 100%;
+    --success: 142 72% 42%;
+    --success-foreground: 0 0% 100%;
+    --warning: 38 95% 48%;
+    --warning-foreground: 0 0% 100%;
+    --border: 130 12% 89%;
+    --input: 130 12% 89%;
+    --ring: 150 45% 16%;
+    --radius: 0.875rem;
+    --sidebar-background: 130 18% 95%;
+    --sidebar-foreground: 150 40% 14%;
+    --sidebar-primary: 150 45% 16%;
+    --sidebar-primary-foreground: 80 60% 90%;
+    --sidebar-accent: 130 12% 90%;
+    --sidebar-accent-foreground: 150 40% 12%;
+    --sidebar-border: 130 12% 87%;
+    --sidebar-ring: 150 45% 16%;
+    --glass: 130 20% 96% / 0.9;
+    --glass-border: 150 40% 12% / 0.05;
+    --shadow-sm: 0 1px 2px 0 hsl(150 20% 10% / 0.04);
+    --shadow-md: 0 2px 8px 0 hsl(150 20% 10% / 0.06);
+    --shadow-lg: 0 8px 24px 0 hsl(150 20% 10% / 0.08);
+    --shadow-xl: 0 20px 50px -12px hsl(150 20% 10% / 0.12);
+  }
 }
 
 @layer base {
@@ -1107,6 +1149,28 @@ textarea:focus-visible,
 .designgud [class*="rounded-lg"],
 .designgud [class*="rounded-md"] {
   border-radius: 1rem;
+}
+
+/* OpenCall theme typography & style overrides */
+.opencall body,
+.opencall {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  letter-spacing: -0.01em;
+}
+
+.opencall h1, .opencall h2, .opencall h3 {
+  font-weight: 700;
+  letter-spacing: -0.03em;
+}
+
+.opencall button {
+  font-weight: 600;
+  border-radius: 9999px;
+}
+
+.opencall [class*="rounded-lg"],
+.opencall [class*="rounded-md"] {
+  border-radius: 0.875rem;
 }
 
 /* Header offset for fixed header */
