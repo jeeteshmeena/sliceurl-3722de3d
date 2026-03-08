@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useParams, Link } from "react-router-dom";
 import { Lock, AlertTriangle, Share2, ChevronRight } from "lucide-react";
+import { formatFileSize, formatDownloads } from "@/lib/fileUtils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
