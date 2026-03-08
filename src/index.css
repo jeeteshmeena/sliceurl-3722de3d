@@ -682,34 +682,36 @@
   @apply scale-[0.98];
 }
 
-/* Remove focus rings globally - clean look */
-.btn-micro:focus,
+/* Accessible focus-visible styles */
 .btn-micro:focus-visible,
-button:focus,
 button:focus-visible {
-  outline: none !important;
+  outline: 2px solid hsl(var(--ring));
+  outline-offset: 2px;
 }
 
 /* Theme-based focus glow for inputs */
-.focus-glow:focus,
 .focus-glow:focus-visible {
-  outline: none !important;
-  box-shadow: 0 0 0 2px hsl(var(--background)), 0 0 0 4px hsl(var(--primary) / 0.15) !important;
-  border-color: hsl(var(--primary) / 0.4) !important;
+  outline: none;
+  box-shadow: 0 0 0 2px hsl(var(--background)), 0 0 0 4px hsl(var(--primary) / 0.15);
+  border-color: hsl(var(--primary) / 0.4);
 }
 
-/* Remove default browser focus outlines */
-input:focus,
+/* Accessible focus-visible for form elements */
 input:focus-visible,
-button:focus,
-button:focus-visible,
-select:focus,
 select:focus-visible,
-textarea:focus,
-textarea:focus-visible,
-[tabindex]:focus,
+textarea:focus-visible {
+  outline: 2px solid hsl(var(--ring));
+  outline-offset: 2px;
+}
+
+/* Remove focus ring on mouse click, keep for keyboard */
+[tabindex]:focus:not(:focus-visible) {
+  outline: none;
+}
+
 [tabindex]:focus-visible {
-  outline: none !important;
+  outline: 2px solid hsl(var(--ring));
+  outline-offset: 2px;
 }
 
 /* QR Customizer input styling */

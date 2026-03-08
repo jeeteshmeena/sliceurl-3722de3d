@@ -148,12 +148,12 @@ const Index = () => {
               className={`text-muted-foreground mb-2 ${isHindi ? "font-hindi-decorative" : ""}`}
               style={{ fontSize: 'clamp(16px, 4vw, 18px)' }}
             >
-              The smartest way to share links.
+              {t("tagline")}
             </p>
             
             {/* Description */}
             <p className="text-muted-foreground mb-4 max-w-md mx-auto" style={{ fontSize: '14px' }}>
-              Create beautiful, trackable short links in seconds.
+              {t("hero_desc")}
             </p>
 
             {/* URL Shortener Form */}
