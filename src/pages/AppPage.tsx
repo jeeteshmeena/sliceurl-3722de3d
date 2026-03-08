@@ -134,22 +134,59 @@ export default function AppPage() {
   const initiateDownload = async (passwordForDownload?: string) => {
     if (!fileInfo) return;
     setIsDownloading(true);
+    setDownloadProgress(0);
     try {
       const streamUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/file-stream?fileId=${fileInfo.file_id}${passwordForDownload ? '&verified=true' : ''}`;
-      const a = document.createElement("a");
-      a.href = streamUrl;
-      a.download = fileInfo.original_name;
-      a.style.display = "none";
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
+      const response = await fetch(streamUrl);
+      if (!response.ok) throw new Error("Download failed");
+
+      const contentLength = response.headers.get("content-length");
+      const total = contentLength ? parseInt(contentLength, 10) : 0;
+
+      if (!response.body || !total) {
+        // Fallback: no streaming support or unknown size
+        const blob = await response.blob();
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = fileInfo.original_name;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      } else {
+        const reader = response.body.getReader();
+        const chunks: Uint8Array[] = [];
+        let received = 0;
+
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          chunks.push(value);
+          received += value.length;
+          setDownloadProgress(Math.min(Math.round((received / total) * 100), 100));
+        }
+
+        const blob = new Blob(chunks);
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = fileInfo.original_name;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      }
+
+      setDownloadProgress(100);
       setFileInfo(prev => prev ? { ...prev, download_count: (prev.download_count || 0) + 1 } : null);
       setApp(prev => prev ? { ...prev, total_downloads: (prev.total_downloads || 0) + 1 } : null);
       setDownloadSuccess(true);
-      setTimeout(() => setDownloadSuccess(false), 1500);
-      toast.success("Download started!");
+      setTimeout(() => { setDownloadSuccess(false); setDownloadProgress(0); }, 1500);
+      toast.success("Download complete!");
     } catch (err) {
       console.error("Download failed:", err);
+      setDownloadProgress(0);
       toast.error("This file is temporarily unavailable. Please try again later.");
     } finally {
       setIsDownloading(false);
