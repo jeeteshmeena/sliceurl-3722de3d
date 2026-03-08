@@ -222,7 +222,7 @@ export function useLinks() {
       if (result.link?.id) {
         supabase
           .from('links')
-          .update({ slice_duration_ms: sliceDurationMs } as any)
+          .update({ slice_duration_ms: sliceDurationMs })
           .eq('id', result.link.id)
           .then(() => {
             console.log(`Slice duration recorded: ${sliceDurationMs}ms`);
