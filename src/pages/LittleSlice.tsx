@@ -2,10 +2,11 @@ import { useState, useRef, useCallback, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
-  Upload, Link as LinkIcon, Copy, Check, FileText, Image, Video, Music, 
-  Archive, File, ExternalLink, Share2, Clock, Lock, Eye, EyeOff, Gauge, Store
+  Upload, Link as LinkIcon, Copy, Check,
+  ExternalLink, Share2, Clock, Lock, Eye, EyeOff, Gauge, Store
 } from "lucide-react";
 import { IsolatedButton, LITTLESLICE_COLORS } from "@/components/slicebox/IsolatedButton";
+import { formatFileSize, formatSpeed, formatTime, getFileIcon, isExecutableFile, isApkFile } from "@/lib/fileUtils";
 import { IsolatedInput } from "@/components/slicebox/IsolatedInput";
 import { Label } from "@/components/ui/label";
 import {
