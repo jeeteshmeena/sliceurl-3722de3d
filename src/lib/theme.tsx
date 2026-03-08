@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
 
-type Theme = "dark" | "light" | "system" | "maggie" | "racing" | "meridian" | "designgud" | "supahero" | "opencall" | "shuttle";
+type Theme = "dark" | "light" | "system";
 
 type ThemeProviderProps = {
   children: React.ReactNode;
@@ -8,12 +8,10 @@ type ThemeProviderProps = {
   storageKey?: string;
 };
 
-type ResolvedTheme = "dark" | "light" | "maggie" | "racing" | "meridian" | "designgud" | "supahero" | "opencall" | "shuttle";
-
 type ThemeProviderState = {
   theme: Theme;
   setTheme: (theme: Theme) => void;
-  resolvedTheme: ResolvedTheme;
+  resolvedTheme: "dark" | "light";
 };
 
 const initialState: ThemeProviderState = {
@@ -23,8 +21,6 @@ const initialState: ThemeProviderState = {
 };
 
 const ThemeProviderContext = createContext<ThemeProviderState>(initialState);
-
-const CUSTOM_THEMES = ["maggie", "racing", "meridian", "designgud", "supahero", "opencall", "shuttle"] as const;
 
 export function ThemeProvider({
   children,
@@ -36,25 +32,30 @@ export function ThemeProvider({
     () => (localStorage.getItem(storageKey) as Theme) || defaultTheme
   );
 
-  const [resolvedTheme, setResolvedTheme] = useState<ResolvedTheme>("light");
+  const [resolvedTheme, setResolvedTheme] = useState<"dark" | "light">("light");
 
   useEffect(() => {
     const root = window.document.documentElement;
-    root.classList.add("theme-transitioning");
-    root.classList.remove("light", "dark", ...CUSTOM_THEMES);
 
-    if ((CUSTOM_THEMES as readonly string[]).includes(theme)) {
-      root.classList.add(theme);
-      setResolvedTheme(theme as ResolvedTheme);
-    } else if (theme === "system") {
-      const systemTheme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+    // Add transition-disabling class
+    root.classList.add("theme-transitioning");
+
+    root.classList.remove("light", "dark");
+
+    if (theme === "system") {
+      const systemTheme = window.matchMedia("(prefers-color-scheme: dark)")
+        .matches
+        ? "dark"
+        : "light";
+
       root.classList.add(systemTheme);
       setResolvedTheme(systemTheme);
     } else {
       root.classList.add(theme);
-      setResolvedTheme(theme as ResolvedTheme);
+      setResolvedTheme(theme);
     }
 
+    // Remove transition-disabling class after repaint using double rAF
     requestAnimationFrame(() => {
       requestAnimationFrame(() => {
         root.classList.remove("theme-transitioning");
@@ -64,15 +65,17 @@ export function ThemeProvider({
 
   useEffect(() => {
     const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
+    
     const handleChange = () => {
       if (theme === "system") {
         const root = window.document.documentElement;
-        root.classList.remove("light", "dark", ...CUSTOM_THEMES);
+        root.classList.remove("light", "dark");
         const systemTheme = mediaQuery.matches ? "dark" : "light";
         root.classList.add(systemTheme);
         setResolvedTheme(systemTheme);
       }
     };
+
     mediaQuery.addEventListener("change", handleChange);
     return () => mediaQuery.removeEventListener("change", handleChange);
   }, [theme]);
@@ -95,7 +98,9 @@ export function ThemeProvider({
 
 export const useTheme = () => {
   const context = useContext(ThemeProviderContext);
+
   if (context === undefined)
     throw new Error("useTheme must be used within a ThemeProvider");
+
   return context;
 };

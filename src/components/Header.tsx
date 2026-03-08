@@ -93,20 +93,9 @@ export function Header() {
     };
   }, [isAdmin]);
 
-  const themeOptions = [
-    { value: "light", label: "Light", swatch: "hsl(0,0%,100%)" },
-    { value: "dark", label: "Dark", swatch: "hsl(240,6%,10%)" },
-    { value: "maggie", label: "Maggie", swatch: "hsl(330,80%,75%)" },
-    { value: "racing", label: "Racing", swatch: "hsl(55,100%,50%)" },
-    { value: "meridian", label: "Meridian", swatch: "hsl(30,80%,55%)" },
-    { value: "designgud", label: "Designgud", swatch: "hsl(52,100%,70%)" },
-    { value: "supahero", label: "Supahero", swatch: "hsl(0,0%,96%)" },
-    { value: "opencall", label: "OpenCall", swatch: "hsl(130,30%,80%)" },
-    { value: "shuttle", label: "Shuttle", swatch: "linear-gradient(135deg, hsl(25,95%,55%), hsl(20,10%,7%))" },
-  ];
-
-  const themeLabelMap: Record<string, string> = { light: "Light", dark: "Dark", maggie: "Maggie", racing: "Racing", meridian: "Meridian", designgud: "Designgud", supahero: "Supahero", opencall: "OpenCall", shuttle: "Shuttle" };
-  const themeLabel = themeLabelMap[resolvedTheme] || "Light";
+  const handleThemeToggle = () => {
+    setTheme(resolvedTheme === "dark" ? "light" : "dark");
+  };
 
   const handleLogout = async () => {
     await signOut();
@@ -135,7 +124,7 @@ export function Header() {
                 src="/favicon.png"
                 alt="SliceURL"
                 className={`h-8 w-8 rounded-lg object-contain shrink-0 ${
-                  (resolvedTheme === "dark" || resolvedTheme === "racing") ? "invert brightness-110" : ""
+                  resolvedTheme === "dark" ? "invert brightness-110" : ""
                 }`}
               />
               <span className="text-xl font-bold tracking-tight">
@@ -148,66 +137,18 @@ export function Header() {
 
         {/* Right Section - Apple-style icon controls */}
         <div className="flex items-center gap-1.5 shrink-0 flex-nowrap">
-          {/* Theme Picker Dropdown */}
-          <Popover>
-            <PopoverTrigger asChild>
-              <button
-                className="h-[42px] w-[42px] flex items-center justify-center rounded-full text-foreground/70 hover:text-foreground hover:bg-foreground/[0.06] active:scale-[0.96] transition-all duration-150"
-                aria-label={`Theme: ${themeLabel}. Click to change.`}
-                title={`Theme: ${themeLabel}`}
-              >
-                {resolvedTheme === "shuttle" ? (
-                  <span className="text-base">🚀</span>
-                ) : resolvedTheme === "opencall" ? (
-                  <span className="text-base">📞</span>
-                ) : resolvedTheme === "supahero" ? (
-                  <span className="text-base">🦸</span>
-                ) : resolvedTheme === "designgud" ? (
-                  <span className="text-base">⚡</span>
-                ) : resolvedTheme === "meridian" ? (
-                  <span className="text-base">🧭</span>
-                ) : resolvedTheme === "racing" ? (
-                  <span className="text-base">🏁</span>
-                ) : resolvedTheme === "maggie" ? (
-                  <span className="text-base">🩷</span>
-                ) : resolvedTheme === "dark" ? (
-                  <Sun className="h-5 w-5" strokeWidth={1.7} />
-                ) : (
-                  <Moon className="h-5 w-5" strokeWidth={1.7} />
-                )}
-              </button>
-            </PopoverTrigger>
-            <PopoverContent
-              align="end"
-              sideOffset={12}
-              className="w-52 p-1.5 border-0 z-[200] bg-popover/95 backdrop-blur-xl rounded-2xl overflow-hidden"
-              style={{
-                boxShadow: '0 8px 40px -8px rgba(0,0,0,0.16), 0 2px 12px -4px rgba(0,0,0,0.08)',
-                animation: 'scale-in 120ms ease-out',
-              }}
-            >
-              {themeOptions.map((opt) => (
-                <button
-                  key={opt.value}
-                  onClick={() => setTheme(opt.value as any)}
-                  className={`w-full flex items-center gap-3 px-3 py-2.5 text-[13px] rounded-xl transition-colors cursor-pointer ${
-                    resolvedTheme === opt.value
-                      ? "bg-foreground/[0.06] text-foreground font-medium"
-                      : "hover:bg-foreground/[0.04] text-foreground/80"
-                  }`}
-                >
-                  <span
-                    className="h-5 w-5 rounded-full shrink-0 border border-foreground/10"
-                    style={{ background: opt.swatch }}
-                  />
-                  <span className="flex-1 text-left">{opt.label}</span>
-                  {resolvedTheme === opt.value && (
-                    <Check className="h-3.5 w-3.5 text-foreground/50 shrink-0" />
-                  )}
-                </button>
-              ))}
-            </PopoverContent>
-          </Popover>
+          {/* Theme Toggle */}
+          <button
+            onClick={handleThemeToggle}
+            className="h-[42px] w-[42px] flex items-center justify-center rounded-full text-foreground/70 hover:text-foreground hover:bg-foreground/[0.06] active:scale-[0.96] transition-all duration-150"
+            aria-label={`Switch to ${resolvedTheme === "dark" ? "light" : "dark"} mode`}
+          >
+            {resolvedTheme === "dark" ? (
+              <Sun className="h-5 w-5" strokeWidth={1.7} />
+            ) : (
+              <Moon className="h-5 w-5" strokeWidth={1.7} />
+            )}
+          </button>
 
           {/* Language Selector - Apple-style floating panel */}
           <Popover open={langOpen} onOpenChange={(open) => { setLangOpen(open); if (!open) setLangSearch(""); }}>
