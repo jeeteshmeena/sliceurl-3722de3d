@@ -358,28 +358,33 @@ export default function AppPage() {
                     className="disabled:opacity-40"
                     style={{
                       height: 36,
+                      minWidth: 120,
                       padding: '8px 22px',
                       borderRadius: 20,
-                      background: '#0A84FF',
+                      background: isDownloading
+                        ? `linear-gradient(90deg, #0077ED ${downloadProgress}%, #0A84FF ${downloadProgress}%)`
+                        : '#0A84FF',
                       color: '#ffffff',
                       fontSize: 16,
                       fontWeight: 600,
                       border: 'none',
                       cursor: 'pointer',
-                      transition: 'background 0.15s ease, transform 0.12s ease',
+                      transition: 'transform 0.12s ease',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
+                      position: 'relative',
+                      overflow: 'hidden',
                     }}
-                    onPointerDown={(e) => { e.currentTarget.style.background = '#0077ED'; e.currentTarget.style.transform = 'scale(0.96)'; }}
-                    onPointerUp={(e) => { e.currentTarget.style.background = '#0A84FF'; e.currentTarget.style.transform = 'scale(1)'; }}
-                    onPointerLeave={(e) => { e.currentTarget.style.background = '#0A84FF'; e.currentTarget.style.transform = 'scale(1)'; }}
+                    onPointerDown={(e) => { if (!isDownloading) { e.currentTarget.style.transform = 'scale(0.96)'; } }}
+                    onPointerUp={(e) => { e.currentTarget.style.transform = 'scale(1)'; }}
+                    onPointerLeave={(e) => { e.currentTarget.style.transform = 'scale(1)'; }}
                   >
                     {downloadSuccess ? (
                       <motion.span initial={{ opacity: 0, scale: 0.5 }} animate={{ opacity: 1, scale: 1 }} className="flex items-center justify-center gap-1.5">
                         <Check style={{ width: 16, height: 16 }} /> Done
                       </motion.span>
-                    ) : isDownloading ? "..." : "DOWNLOAD"}
+                    ) : isDownloading ? `${downloadProgress}%` : "DOWNLOAD"}
                   </button>
                 </motion.div>
               </div>
