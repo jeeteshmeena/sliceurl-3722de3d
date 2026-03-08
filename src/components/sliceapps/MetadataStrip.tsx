@@ -3,15 +3,48 @@ import {
   Download,
   User,
   Gamepad2,
-  Briefcase,
   Wrench,
   Users,
-  BookOpen,
-  Settings,
-  LayoutGrid,
+  GraduationCap,
+  Camera,
+  Popcorn,
+  Send,
+  Wallet,
+  Navigation,
+  Armchair,
+  Sparkles,
   Music,
-  Clapperboard,
+  ShoppingBag,
+  HeartPulse,
+  Newspaper,
+  LayoutGrid,
+  type LucideIcon,
 } from "lucide-react";
+
+const CATEGORY_ICONS: Record<string, LucideIcon> = {
+  photography: Camera,
+  social: Users,
+  entertainment: Popcorn,
+  education: GraduationCap,
+  productivity: Send,
+  finance: Wallet,
+  navigation: Navigation,
+  lifestyle: Armchair,
+  action: Sparkles,
+  game: Gamepad2,
+  music: Music,
+  shopping: ShoppingBag,
+  health: HeartPulse,
+  utilities: Wrench,
+  news: Newspaper,
+};
+
+function CategoryIcon({ category }: { category: string }) {
+  const cat = category.toLowerCase();
+  const matched = Object.entries(CATEGORY_ICONS).find(([key]) => cat.includes(key));
+  const Icon = matched ? matched[1] : LayoutGrid;
+  return <Icon className="h-6 w-6 text-muted-foreground" strokeWidth={1.8} />;
+}
 
 interface MetadataStripProps {
   ratingAvg: number | null;
@@ -21,20 +54,6 @@ interface MetadataStripProps {
   ageRating?: string;
   category: string;
   developer: string;
-}
-
-function CategoryIcon({ category }: { category: string }) {
-  const cls = "h-6 w-6 text-foreground fill-foreground";
-  const cat = category.toLowerCase();
-  if (cat.includes("music")) return <Music className={cls} strokeWidth={0} />;
-  if (cat.includes("entertainment")) return <Clapperboard className={cls} strokeWidth={0} />;
-  if (cat.includes("game") || cat.includes("action")) return <Gamepad2 className={cls} strokeWidth={0} />;
-  if (cat.includes("productiv")) return <Briefcase className={cls} strokeWidth={0} />;
-  if (cat.includes("tool")) return <Wrench className={cls} strokeWidth={0} />;
-  if (cat.includes("social")) return <Users className={cls} strokeWidth={0} />;
-  if (cat.includes("education")) return <BookOpen className={cls} strokeWidth={0} />;
-  if (cat.includes("utilit")) return <Settings className={cls} strokeWidth={0} />;
-  return <LayoutGrid className={cls} strokeWidth={0} />;
 }
 
 function StarRow({ rating }: { rating: number }) {
