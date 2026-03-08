@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { 
-  Moon, Sun, Languages, Menu, X, User, Link2, Settings, LogOut, Search, Check, MessageSquareHeart, Bell
+  Moon, Sun, Languages, Menu, X, User, Link2, Settings, LogOut, Search, Check, MessageSquareHeart, Bell, Zap
 } from "lucide-react";
 import { useAdminRole } from "@/hooks/useAdminRole";
 import { supabase } from "@/integrations/supabase/client";
