@@ -240,136 +240,121 @@ export default function AppPage() {
 
       {/* Main Content */}
       <div className="flex-1 min-w-0">
-        {/* Mobile Sticky Header Wrapper */}
-        <div className="sticky top-0 z-[999] bg-background lg:relative lg:z-auto">
-          {/* Layer 1: Navigation bar */}
-          <SliceAppsHeader />
+        {/* Navigation bar — self-sticky */}
+        <SliceAppsHeader />
 
-          {/* Layer 2: Hero Section (mobile only) — App Store style */}
-          <div
-            data-theme-transition
-            className="lg:hidden bg-gradient-to-b from-[#b0b0b4] to-[#8e8e93] dark:from-[#2c2c2e] dark:to-[#1c1c1e] transition-all duration-500 ease-out"
-            style={{
-              paddingTop: 32,
-              paddingBottom: 28,
-              paddingLeft: 20,
-              paddingRight: 20,
-            }}
-          >
-            <div className="flex items-start" style={{ gap: 18 }}>
-              {/* App Icon — 128px like App Store */}
-              <div
-                className="flex-shrink-0 overflow-hidden"
+        {/* Hero Section (mobile only) — Apple App Store style */}
+        <div
+          data-theme-transition
+          className="lg:hidden transition-all duration-500 ease-out"
+          style={{
+            paddingTop: 24,
+            paddingBottom: 24,
+            paddingLeft: 20,
+            paddingRight: 20,
+            background: '#f5f5f7',
+          }}
+        >
+          {/* Dark mode background layer */}
+          <div className="dark:hidden" style={{ position: 'absolute', inset: 0, background: '#f5f5f7' }} />
+
+          <div className="flex items-start relative" style={{ gap: 16 }}>
+            {/* App Icon — 104px */}
+            <div
+              className="flex-shrink-0 overflow-hidden"
+              style={{
+                width: 104,
+                height: 104,
+                borderRadius: 24,
+                background: '#fff',
+                boxShadow: '0 2px 12px rgba(0,0,0,0.1)',
+              }}
+            >
+              {app.icon_url ? (
+                <img src={app.icon_url} alt={app.app_name} className="w-full h-full object-cover" loading="lazy" />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center text-3xl font-bold text-muted-foreground bg-muted">
+                  {app.app_name.charAt(0)}
+                </div>
+              )}
+            </div>
+
+            {/* App Info + Button row */}
+            <div className="flex-1 min-w-0 flex flex-col" style={{ paddingTop: 2 }}>
+              {/* Title */}
+              <h1
                 style={{
-                  width: 128,
-                  height: 128,
-                  borderRadius: 28,
-                  background: '#fff',
-                  boxShadow: '0 4px 20px rgba(0,0,0,0.15)',
+                  fontSize: 22,
+                  fontWeight: 700,
+                  lineHeight: 1.25,
+                  color: '#1d1d1f',
+                  marginBottom: 4,
+                }}
+                className="dark:text-[#f5f5f7]"
+              >
+                {app.app_name}
+              </h1>
+
+              {/* Description */}
+              <p
+                className="line-clamp-2"
+                style={{
+                  fontSize: 14,
+                  fontWeight: 400,
+                  color: '#6e6e73',
+                  lineHeight: 1.35,
+                  marginBottom: 14,
                 }}
               >
-                {app.icon_url ? (
-                  <img src={app.icon_url} alt={app.app_name} className="w-full h-full object-cover" loading="lazy" />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center text-4xl font-bold text-muted-foreground bg-muted">
-                    {app.app_name.charAt(0)}
-                  </div>
-                )}
-              </div>
+                {app.short_description || `The official app by ${app.developer_name || "Unknown"}`}
+              </p>
 
-              {/* App Info */}
-              <div className="flex-1 min-w-0 flex flex-col" style={{ paddingTop: 4 }}>
-                <h1
-                  style={{
-                    fontSize: 22,
-                    fontWeight: 700,
-                    lineHeight: 1.2,
-                    letterSpacing: '-0.3px',
-                    color: '#ffffff',
-                    marginBottom: 4,
-                  }}
+              {/* GET button + Share icon row */}
+              <div className="flex items-center" style={{ gap: 12 }}>
+                <motion.div
+                  animate={downloadSuccess ? { scale: [1, 1.02, 1] } : {}}
+                  transition={{ duration: 0.2 }}
                 >
-                  {app.app_name}
-                </h1>
-                <p
-                  className="line-clamp-2"
-                  style={{
-                    fontSize: 14,
-                    fontWeight: 400,
-                    color: 'rgba(255,255,255,0.85)',
-                    lineHeight: 1.35,
-                    marginBottom: 4,
-                  }}
-                >
-                  {app.short_description || `The official app by ${app.developer_name || "Unknown"}`}
-                </p>
-                <p
-                  style={{
-                    fontSize: 13,
-                    fontWeight: 400,
-                    color: 'rgba(255,255,255,0.7)',
-                    marginBottom: 14,
-                  }}
-                >
-                  Free · {app.category || "App"}
-                </p>
+                  <button
+                    data-theme-transition
+                    onClick={handleDownload}
+                    disabled={isDownloading || !fileInfo || !!fileUnavailable}
+                    className="disabled:opacity-40 active:scale-[0.96] transition-transform duration-[120ms] ease-out"
+                    style={{
+                      height: 38,
+                      paddingLeft: 26,
+                      paddingRight: 26,
+                      borderRadius: 20,
+                      background: '#0071e3',
+                      color: '#ffffff',
+                      fontSize: 16,
+                      fontWeight: 600,
+                      border: 'none',
+                      cursor: 'pointer',
+                    }}
+                  >
+                    {downloadSuccess ? (
+                      <motion.span initial={{ opacity: 0, scale: 0.5 }} animate={{ opacity: 1, scale: 1 }} className="flex items-center justify-center gap-1.5">
+                        <Check style={{ width: 16, height: 16 }} /> Done
+                      </motion.span>
+                    ) : isDownloading ? "..." : "GET"}
+                  </button>
+                </motion.div>
 
-                {/* Share button — pill style like App Store */}
+                {/* Share icon */}
                 <button
                   onClick={handleShare}
                   className="flex items-center justify-center active:opacity-70 transition-opacity"
                   style={{
-                    height: 32,
-                    paddingLeft: 14,
-                    paddingRight: 16,
-                    borderRadius: 16,
-                    background: 'rgba(255,255,255,0.25)',
-                    color: '#ffffff',
-                    fontSize: 15,
-                    fontWeight: 500,
-                    gap: 6,
-                    width: 'fit-content',
-                    backdropFilter: 'blur(8px)',
-                    WebkitBackdropFilter: 'blur(8px)',
+                    width: 36,
+                    height: 36,
+                    borderRadius: '50%',
                   }}
+                  aria-label="Share"
                 >
-                  <Share2 style={{ width: 16, height: 16 }} strokeWidth={2} />
-                  Share
+                  <Share2 style={{ width: 20, height: 20, color: '#0071e3' }} strokeWidth={2} />
                 </button>
               </div>
-            </div>
-
-            {/* GET button row — full width below icon+info like some App Store layouts */}
-            <div style={{ marginTop: 20 }}>
-              <motion.div
-                animate={downloadSuccess ? { scale: [1, 1.02, 1] } : {}}
-                transition={{ duration: 0.2 }}
-              >
-                <button
-                  data-theme-transition
-                  onClick={handleDownload}
-                  disabled={isDownloading || !fileInfo || !!fileUnavailable}
-                  className="disabled:opacity-40 active:opacity-80 transition-all duration-500 ease-out"
-                  style={{
-                    width: '100%',
-                    height: 44,
-                    borderRadius: 12,
-                    background: 'var(--sliceapps-get-bg, rgba(255,255,255,0.95))',
-                    color: 'var(--sliceapps-get-color, #007AFF)',
-                    fontSize: 17,
-                    fontWeight: 700,
-                    letterSpacing: '-0.2px',
-                    border: 'none',
-                    cursor: 'pointer',
-                  }}
-                >
-                  {downloadSuccess ? (
-                    <motion.span initial={{ opacity: 0, scale: 0.5 }} animate={{ opacity: 1, scale: 1 }} className="flex items-center justify-center gap-1.5">
-                      <Check style={{ width: 18, height: 18 }} /> Done
-                    </motion.span>
-                  ) : isDownloading ? "..." : "GET"}
-                </button>
-              </motion.div>
             </div>
           </div>
         </div>
