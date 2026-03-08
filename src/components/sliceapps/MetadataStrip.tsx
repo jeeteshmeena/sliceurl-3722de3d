@@ -141,7 +141,7 @@ export function MetadataStrip({
               scrollSnapAlign: 'start',
               paddingLeft: 14,
               paddingRight: 14,
-              borderRight: index < items.length - 1 ? '1px solid hsl(var(--border) / 0.2)' : 'none',
+              borderRight: 'none',
             }}
           >
             {/* Top label */}
