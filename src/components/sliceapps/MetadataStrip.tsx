@@ -89,7 +89,7 @@ export function MetadataStrip({
       label: "CATEGORY",
       value: null,
       center: <CategoryIcon category={category} className="h-[18px] w-[18px] text-[#8e8e93]" />,
-      bottom: <span style={{ fontSize: 13, color: '#6e6e73' }} className="leading-none">{category || "Other"}</span>,
+      bottom: <span style={{ fontSize: 13, fontWeight: 400, color: '#a1a1a6' }} className="leading-none">{category || "Other"}</span>,
     },
     {
       label: "DEVELOPER",
