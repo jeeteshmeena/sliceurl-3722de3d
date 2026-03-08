@@ -14,6 +14,7 @@ export interface Link {
   is_favorite: boolean;
   is_pinned: boolean;
   is_password_protected: boolean;
+  is_private: boolean;
   expires_at: string | null;
   max_clicks: number | null;
   facebook_pixel: string | null;
@@ -27,13 +28,28 @@ export interface Link {
   created_at: string;
   updated_at: string;
   // UTM fields
-  utm_enabled?: boolean;
-  utm_source?: string | null;
-  utm_medium?: string | null;
-  utm_campaign?: string | null;
-  utm_term?: string | null;
-  utm_content?: string | null;
-  final_utm_url?: string | null;
+  utm_enabled: boolean;
+  utm_source: string | null;
+  utm_medium: string | null;
+  utm_campaign: string | null;
+  utm_term: string | null;
+  utm_content: string | null;
+  final_utm_url: string | null;
+  // Health & metadata
+  health_status: string | null;
+  is_broken: boolean;
+  last_health_check: string | null;
+  api_source: boolean;
+  api_key_id: string | null;
+  order_index: number | null;
+  slice_duration_ms: number | null;
+  is_creepy: boolean;
+  creepy_style: string | null;
+  creepy_extension: string | null;
+  batch_id: string | null;
+  safety_status: string | null;
+  last_scanned_at: string | null;
+  notify_on_broken: boolean;
 }
 
 export interface Folder {
