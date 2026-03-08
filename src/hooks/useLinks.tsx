@@ -36,7 +36,7 @@ export interface Link {
   utm_content: string | null;
   final_utm_url: string | null;
   // Health & metadata
-  health_status: string | null;
+  health_status: "active" | "low_activity" | "inactive" | "broken" | null;
   is_broken: boolean;
   last_health_check: string | null;
   api_source: boolean;
