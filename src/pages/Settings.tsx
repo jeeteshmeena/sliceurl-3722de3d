@@ -547,7 +547,7 @@ export default function Settings() {
               <div className="flex items-center gap-3">
                 <Lock className="h-4 w-4 text-muted-foreground" />
                 <div>
-                  <span className="text-sm text-neutral-700 dark:text-neutral-300">Password</span>
+                  <span className="text-sm text-secondary-foreground">Password</span>
                   {!hasPassword && googleIdentity && (
                     <p className="text-xs text-amber-600 dark:text-amber-400">
                       No password set - using Google login
