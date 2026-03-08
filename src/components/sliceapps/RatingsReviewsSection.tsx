@@ -14,6 +14,7 @@ interface Review {
   user_id: string | null;
   ip_address?: string | null;
   browser_fingerprint?: string | null;
+  display_name?: string | null;
   username?: string;
 }
 
