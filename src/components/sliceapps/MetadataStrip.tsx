@@ -105,7 +105,7 @@ export function MetadataStrip({
     {
       label: "SIZE",
       value: sizeValue,
-      bottom: <span style={{ fontSize: 13, color: '#6e6e73' }} className="leading-none">{sizeUnit}</span>,
+      bottom: <span style={{ fontSize: 13, fontWeight: 400, color: '#a1a1a6' }} className="leading-none">{sizeUnit}</span>,
     },
   ];
 
