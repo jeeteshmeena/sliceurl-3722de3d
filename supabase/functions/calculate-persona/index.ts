@@ -15,22 +15,9 @@ function classifyPersona(
   folderCount: number,
   linksThisWeek: number
 ): UserPersona {
-  // Influencer: >50 links + >1000 clicks total
-  if (totalLinks > 50 && totalClicks > 1000) {
-    return 'influencer';
-  }
-
-  // Agency: multiple folders + >10 links per week
-  if (folderCount >= 3 && linksThisWeek > 10) {
-    return 'agency';
-  }
-
-  // Marketer: uses UTM/referral heavy (high UTM usage ratio)
-  if (totalLinks > 10 && utmUsageCount > totalLinks * 0.5) {
-    return 'marketer';
-  }
-
-  // Casual: <10 total links (default)
+  if (totalLinks > 50 && totalClicks > 1000) return 'influencer';
+  if (folderCount >= 3 && linksThisWeek > 10) return 'agency';
+  if (totalLinks > 10 && utmUsageCount > totalLinks * 0.5) return 'marketer';
   return 'casual';
 }
 
@@ -40,18 +27,36 @@ serve(async (req) => {
   }
 
   try {
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    const supabase = createClient(supabaseUrl, supabaseKey);
-
-    const { user_id } = await req.json();
-
-    if (!user_id) {
+    // Validate JWT and extract user_id
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader?.startsWith('Bearer ')) {
       return new Response(
-        JSON.stringify({ error: 'user_id is required' }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        JSON.stringify({ error: 'Unauthorized' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
+
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+    const anonKey = Deno.env.get('SUPABASE_ANON_KEY')!;
+    const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+
+    // Verify the JWT using anon client
+    const anonClient = createClient(supabaseUrl, anonKey, {
+      global: { headers: { Authorization: authHeader } }
+    });
+    const token = authHeader.replace('Bearer ', '');
+    const { data: claimsData, error: claimsError } = await anonClient.auth.getClaims(token);
+    if (claimsError || !claimsData?.claims?.sub) {
+      return new Response(
+        JSON.stringify({ error: 'Invalid or expired token' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    const user_id = claimsData.claims.sub;
+
+    // Use service role client for data queries
+    const supabase = createClient(supabaseUrl, serviceKey);
 
     // Count total links
     const { count: totalLinks } = await supabase
