@@ -14,7 +14,7 @@ import {
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import { SliceAppsHeader, RatingsReviewsSection } from "@/components/sliceapps";
+import { SliceAppsHeader, SliceAppsSidebar, RatingsReviewsSection } from "@/components/sliceapps";
 import { MetadataStrip } from "@/components/sliceapps/MetadataStrip";
 
 interface AppListing {
@@ -57,42 +57,6 @@ interface Review {
   user_id: string | null;
 }
 
-// Expandable Section Component
-function ExpandableSection({ 
-  title, 
-  children, 
-  defaultExpanded = false,
-  maxLines = 4
-}: { 
-  title: string; 
-  children: React.ReactNode;
-  defaultExpanded?: boolean;
-  maxLines?: number;
-}) {
-  const [expanded, setExpanded] = useState(defaultExpanded);
-  
-  return (
-    <div className="py-5 border-t border-border/30">
-      <div className="flex items-center justify-between mb-3">
-        <div className="flex items-center gap-1">
-          <h2 className="text-[22px] font-bold text-foreground">{title}</h2>
-          <ChevronRight className="h-5 w-5 text-muted-foreground" />
-        </div>
-      </div>
-      <div className={`text-[15px] text-foreground leading-relaxed ${!expanded ? `line-clamp-${maxLines}` : ''}`}>
-        {children}
-      </div>
-      <button 
-        onClick={() => setExpanded(!expanded)}
-        className="text-[#007AFF] text-[15px] font-medium mt-2 flex items-center gap-0.5"
-      >
-        {expanded ? "Less" : "More"}
-        {expanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-      </button>
-    </div>
-  );
-}
-
 export default function AppPage() {
   const { id } = useParams<{ id: string }>();
   const { user } = useAuth();
@@ -118,28 +82,19 @@ export default function AppPage() {
 
   const loadAppData = async () => {
     if (!id) return;
-
     try {
       const response = await fetch(
         `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/public-app-info?id=${encodeURIComponent(id)}`,
-        {
-          method: "GET",
-          headers: { "Content-Type": "application/json" },
-          credentials: "omit",
-        }
+        { method: "GET", headers: { "Content-Type": "application/json" }, credentials: "omit" }
       );
-
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
         toast.error(errorData.error || "Failed to load app");
         setIsLoading(false);
         return;
       }
-
       const data = await response.json();
-
       setApp(data.app);
-      
       if (data.fileUnavailable) {
         setFileUnavailable(data.fileUnavailable);
       } else if (data.fileInfo) {
@@ -154,10 +109,7 @@ export default function AppPage() {
           download_count: data.fileInfo.download_count,
         });
       }
-
-      if (data.reviews) {
-        setReviews(data.reviews);
-      }
+      if (data.reviews) setReviews(data.reviews);
     } catch (err) {
       console.error("Failed to load app:", err);
       toast.error("This page is temporarily unavailable. Please try again later.");
@@ -168,22 +120,15 @@ export default function AppPage() {
 
   const handleDownload = async () => {
     if (!fileInfo || !app) return;
-
-    if (fileInfo.password_hash) {
-      setShowPasswordDialog(true);
-      return;
-    }
-
+    if (fileInfo.password_hash) { setShowPasswordDialog(true); return; }
     await initiateDownload();
   };
 
   const initiateDownload = async (passwordForDownload?: string) => {
     if (!fileInfo) return;
-
     setIsDownloading(true);
     try {
       const streamUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/file-stream?fileId=${fileInfo.file_id}${passwordForDownload ? '&verified=true' : ''}`;
-      
       const a = document.createElement("a");
       a.href = streamUrl;
       a.download = fileInfo.original_name;
@@ -191,9 +136,7 @@ export default function AppPage() {
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
-
       setFileInfo(prev => prev ? { ...prev, download_count: (prev.download_count || 0) + 1 } : null);
-
       setDownloadSuccess(true);
       setTimeout(() => setDownloadSuccess(false), 1500);
       toast.success("Download started!");
@@ -207,28 +150,16 @@ export default function AppPage() {
 
   const handlePasswordSubmit = async () => {
     if (!fileInfo || !password) return;
-
     setIsVerifyingPassword(true);
     try {
       const { data, error } = await supabase.functions.invoke("slicebox-verify-password", {
-        body: { 
-          fileId: fileInfo.file_id,
-          password,
-        },
+        body: { fileId: fileInfo.file_id, password },
       });
-
       if (error) throw error;
-      
-      if (!data.success) {
-        toast.error(data.error || "Invalid password");
-        return;
-      }
-
+      if (!data.success) { toast.error(data.error || "Invalid password"); return; }
       setShowPasswordDialog(false);
       setPassword("");
-
       const streamUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/file-stream?fileId=${fileInfo.file_id}&verified=true`;
-      
       const a = document.createElement("a");
       a.href = streamUrl;
       a.download = fileInfo.original_name;
@@ -236,9 +167,7 @@ export default function AppPage() {
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
-
       setFileInfo(prev => prev ? { ...prev, download_count: (prev.download_count || 0) + 1 } : null);
-
       toast.success("Download started!");
     } catch (err) {
       console.error("Password verification failed:", err);
@@ -251,15 +180,7 @@ export default function AppPage() {
   const handleShare = async () => {
     const shareUrl = window.location.href;
     if (navigator.share) {
-      try {
-        await navigator.share({
-          title: app?.app_name || "SliceAPPs",
-          text: app?.short_description || "Check out this app!",
-          url: shareUrl,
-        });
-      } catch (err) {
-        // User cancelled or share failed
-      }
+      try { await navigator.share({ title: app?.app_name || "SliceAPPs", text: app?.short_description || "Check out this app!", url: shareUrl }); } catch { }
     } else {
       await navigator.clipboard.writeText(shareUrl);
       toast.success("Link copied!");
@@ -298,9 +219,7 @@ export default function AppPage() {
       <div className="min-h-dvh flex items-center justify-center bg-background">
         <div className="text-center">
           <p className="text-lg mb-4 text-foreground">App not found</p>
-          <Link to="/slicebox">
-            <Button variant="outline">Go to SliceBox</Button>
-          </Link>
+          <Link to="/slicebox"><Button variant="outline">Go to SliceBox</Button></Link>
         </div>
       </div>
     );
@@ -309,214 +228,220 @@ export default function AppPage() {
   const actualDownloads = fileInfo?.download_count || 0;
 
   return (
-    <div className="min-h-dvh bg-background">
-      <SliceAppsHeader />
+    <div className="min-h-dvh bg-background flex">
+      {/* Desktop Sidebar */}
+      <SliceAppsSidebar />
 
-      {/* App Store Hero Section - Grey gradient background */}
-      <div className="bg-gradient-to-b from-muted/60 to-muted/20 px-4 py-6">
-        <div className="max-w-4xl mx-auto">
-          <div className="flex gap-4">
-            {/* App Icon - Large rounded square like App Store */}
-            <div className="w-[128px] h-[128px] rounded-[28px] flex-shrink-0 overflow-hidden bg-background shadow-lg">
-              {app.icon_url ? (
-                <img src={app.icon_url} alt={app.app_name} className="w-full h-full object-cover" loading="lazy" />
-              ) : (
-                <div className="w-full h-full flex items-center justify-center text-muted-foreground text-4xl font-bold bg-muted">
-                  {app.app_name.charAt(0)}
+      {/* Main Content */}
+      <div className="flex-1 min-w-0">
+        {/* Mobile Header */}
+        <SliceAppsHeader />
+
+        {/* Hero Section - App Store style dark banner on desktop, grey on mobile */}
+        <div className="bg-gradient-to-b from-muted/60 to-muted/20 lg:from-[hsl(var(--foreground)/0.08)] lg:to-[hsl(var(--foreground)/0.03)] px-4 lg:px-10 py-6 lg:py-10">
+          <div className="max-w-5xl mx-auto">
+            <div className="flex gap-4 lg:gap-8">
+              {/* App Icon */}
+              <div className="w-[128px] h-[128px] lg:w-[170px] lg:h-[170px] rounded-[28px] lg:rounded-[36px] flex-shrink-0 overflow-hidden bg-background shadow-lg">
+                {app.icon_url ? (
+                  <img src={app.icon_url} alt={app.app_name} className="w-full h-full object-cover" loading="lazy" />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center text-muted-foreground text-4xl lg:text-5xl font-bold bg-muted">
+                    {app.app_name.charAt(0)}
+                  </div>
+                )}
+              </div>
+
+              {/* App Info */}
+              <div className="flex-1 min-w-0 flex flex-col justify-center">
+                <h1 className="text-[22px] lg:text-[32px] font-bold text-foreground leading-tight mb-1">
+                  {app.app_name}
+                </h1>
+                <p className="text-[15px] lg:text-[17px] text-muted-foreground mb-1">
+                  {app.short_description || `The official app by ${app.developer_name || "Unknown"}`}
+                </p>
+                <p className="text-[13px] lg:text-[15px] text-muted-foreground">
+                  Free • In-App Purchases
+                </p>
+
+                {/* Desktop: Download + Share inline */}
+                <div className="hidden lg:flex items-center gap-3 mt-5">
+                  <motion.div
+                    animate={downloadSuccess ? { scale: [1, 1.02, 1] } : {}}
+                    transition={{ duration: 0.3 }}
+                  >
+                    <Button
+                      onClick={handleDownload}
+                      disabled={isDownloading || !fileInfo || !!fileUnavailable}
+                      className="h-[40px] px-8 text-[15px] font-semibold rounded-full bg-[#007AFF] hover:bg-[#0066CC] text-white disabled:bg-muted disabled:text-muted-foreground"
+                    >
+                      {downloadSuccess ? (
+                        <motion.span initial={{ opacity: 0, scale: 0.5 }} animate={{ opacity: 1, scale: 1 }} className="flex items-center gap-1.5">
+                          <Check className="h-4 w-4" /> Downloaded
+                        </motion.span>
+                      ) : isDownloading ? "Downloading..." : "DOWNLOAD"}
+                    </Button>
+                  </motion.div>
+                  <button
+                    onClick={handleShare}
+                    className="w-10 h-10 flex items-center justify-center rounded-full bg-muted/60 hover:bg-muted text-foreground"
+                  >
+                    <Share2 className="h-[18px] w-[18px]" />
+                  </button>
                 </div>
-              )}
-            </div>
 
-            {/* App Info - Right side */}
-            <div className="flex-1 min-w-0 flex flex-col justify-center">
-              <h1 className="text-[22px] font-bold text-foreground leading-tight mb-1">
-                {app.app_name}
-              </h1>
-              <p className="text-[15px] text-muted-foreground mb-1">
-                {app.short_description || `The official app by ${app.developer_name || "Unknown"}`}
-              </p>
-              <p className="text-[13px] text-muted-foreground">
-                Free • In-App Purchases
-              </p>
-
-              {/* Share Button - App Store style pill */}
-              <button
-                onClick={handleShare}
-                className="mt-3 flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-muted/80 hover:bg-muted w-fit text-[13px] font-medium text-foreground"
-              >
-                <Share2 className="h-4 w-4" />
-                Share
-              </button>
+                {/* Mobile: Share button */}
+                <button
+                  onClick={handleShare}
+                  className="mt-3 flex lg:hidden items-center gap-1.5 px-4 py-1.5 rounded-full bg-muted/80 hover:bg-muted w-fit text-[13px] font-medium text-foreground"
+                >
+                  <Share2 className="h-4 w-4" />
+                  Share
+                </button>
+              </div>
             </div>
           </div>
         </div>
-      </div>
 
-      {/* Content Area */}
-      <main className="max-w-4xl mx-auto px-4">
-        {/* Metadata Strip - Horizontal scrollable */}
-        <MetadataStrip
-          ratingAvg={app.rating_avg}
-          ratingCount={app.rating_count}
-          downloads={formatDownloads(actualDownloads)}
-          fileSize={fileInfo ? formatFileSize(fileInfo.file_size) : "--"}
-          category={app.category || "Productivity"}
-          developer={app.developer_name || "Unknown"}
-        />
-
-        {/* File Unavailable Warning */}
-        {fileUnavailable && (
-          <div className="flex items-center gap-3 mt-4 text-muted-foreground">
-            <AlertTriangle className="h-4 w-4 flex-shrink-0" />
-            <p className="text-sm">{fileUnavailable}</p>
-          </div>
-        )}
-
-        {/* Screenshots - Horizontal scroll with light cyan/blue backgrounds like App Store */}
-        {app.screenshots && app.screenshots.length > 0 && (
-          <div className="py-6 -mx-4 px-4 overflow-x-auto scrollbar-hide">
-            <div className="flex gap-3 pb-2">
-              {app.screenshots.map((url, index) => (
-                <div
-                  key={index}
-                  className="relative min-w-[200px] h-[360px] rounded-2xl overflow-hidden flex-shrink-0 cursor-pointer bg-[#E3F4F9]"
-                  onClick={() => setSelectedScreenshot(index)}
-                >
-                  <img
-                    src={url}
-                    alt={`Screenshot ${index + 1}`}
-                    className="w-full h-full object-cover"
-                    loading="lazy"
-                  />
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* About Section - Expandable like App Store */}
-        {app.full_description && (
-          <div className="py-5 border-t border-border/30">
-            <div className="flex items-center justify-between mb-3">
-              <div className="flex items-center gap-1">
-                <h2 className="text-[22px] font-bold text-foreground">About this app</h2>
-                <ChevronRight className="h-5 w-5 text-muted-foreground" />
-              </div>
-            </div>
-            <div className={`text-[15px] text-foreground leading-relaxed whitespace-pre-wrap ${!aboutExpanded ? 'line-clamp-4' : ''}`}>
-              {app.full_description}
-            </div>
-            {app.full_description.length > 200 && (
-              <button 
-                onClick={() => setAboutExpanded(!aboutExpanded)}
-                className="text-[#007AFF] text-[15px] font-medium mt-2"
-              >
-                {aboutExpanded ? "Less" : "More"}
-              </button>
-            )}
-          </div>
-        )}
-
-        {/* Ratings & Reviews Section */}
-        <div className="py-5 border-t border-border/30">
-          <RatingsReviewsSection
-            appId={app.id}
+        {/* Content Area */}
+        <main className="max-w-5xl mx-auto px-4 lg:px-10">
+          {/* Metadata Strip */}
+          <MetadataStrip
             ratingAvg={app.rating_avg}
             ratingCount={app.rating_count}
-            reviews={reviews}
-            userId={user?.id || null}
-            onReviewSubmit={loadAppData}
+            downloads={formatDownloads(actualDownloads)}
+            fileSize={fileInfo ? formatFileSize(fileInfo.file_size) : "--"}
+            category={app.category || "Productivity"}
+            developer={app.developer_name || "Unknown"}
           />
-        </div>
 
-        {/* What's New Section */}
-        {app.whats_new && (
-          <div className="py-5 border-t border-border/30">
-            <div className="flex items-center justify-between mb-3">
-              <div className="flex items-center gap-1">
-                <h2 className="text-[22px] font-bold text-foreground">What's New</h2>
-                <ChevronRight className="h-5 w-5 text-muted-foreground" />
+          {/* File Unavailable Warning */}
+          {fileUnavailable && (
+            <div className="flex items-center gap-3 mt-4 text-muted-foreground">
+              <AlertTriangle className="h-4 w-4 flex-shrink-0" />
+              <p className="text-sm">{fileUnavailable}</p>
+            </div>
+          )}
+
+          {/* Screenshots */}
+          {app.screenshots && app.screenshots.length > 0 && (
+            <div className="py-6 -mx-4 lg:mx-0 px-4 lg:px-0 overflow-x-auto scrollbar-hide">
+              <div className="flex gap-3 lg:gap-4 pb-2">
+                {app.screenshots.map((url, index) => (
+                  <div
+                    key={index}
+                    className="relative min-w-[200px] lg:min-w-[230px] h-[360px] lg:h-[420px] rounded-2xl overflow-hidden flex-shrink-0 cursor-pointer bg-[#E3F4F9]"
+                    onClick={() => setSelectedScreenshot(index)}
+                  >
+                    <img src={url} alt={`Screenshot ${index + 1}`} className="w-full h-full object-cover" loading="lazy" />
+                  </div>
+                ))}
               </div>
-              <div className="text-right">
-                <p className="text-[13px] text-muted-foreground">Version</p>
-                <p className="text-[13px] text-foreground">{app.version_name || "1.0"}</p>
-              </div>
             </div>
-            <p className="text-[15px] text-foreground leading-relaxed">
-              {app.whats_new}
-            </p>
-          </div>
-        )}
+          )}
 
-        {/* Information Section - App Store exact layout */}
-        <div className="py-5 border-t border-border/30">
-          <h2 className="text-[22px] font-bold text-foreground mb-4">Information</h2>
-          
-          <div className="space-y-4">
-            <div className="flex justify-between py-2 border-b border-border/20">
-              <span className="text-[15px] text-muted-foreground">Size</span>
-              <span className="text-[15px] text-foreground">{fileInfo ? formatFileSize(fileInfo.file_size) : "--"}</span>
-            </div>
-            <div className="flex justify-between py-2 border-b border-border/20">
-              <span className="text-[15px] text-muted-foreground">Category</span>
-              <span className="text-[15px] text-foreground">{app.category || "Productivity"}</span>
-            </div>
-            <div className="flex justify-between py-2 border-b border-border/20">
-              <span className="text-[15px] text-muted-foreground">Developer</span>
-              <span className="text-[15px] text-foreground">{app.developer_name || "Unknown"}</span>
-            </div>
-            <div className="flex justify-between py-2 border-b border-border/20">
-              <span className="text-[15px] text-muted-foreground">Version</span>
-              <span className="text-[15px] text-foreground">{app.version_name || "1.0"}</span>
-            </div>
-            <div className="flex justify-between py-2 border-b border-border/20">
-              <span className="text-[15px] text-muted-foreground">Downloads</span>
-              <span className="text-[15px] text-foreground">{formatDownloads(actualDownloads)}</span>
-            </div>
-          </div>
-        </div>
-
-        {/* Download Button - Fixed at bottom on mobile */}
-        <div className="py-6 pb-8">
-          <motion.div
-            animate={downloadSuccess ? { scale: [1, 1.02, 1] } : {}}
-            transition={{ duration: 0.3 }}
-          >
-            <Button
-              onClick={handleDownload}
-              disabled={isDownloading || !fileInfo || !!fileUnavailable}
-              className="w-full h-[52px] text-[17px] font-semibold rounded-2xl bg-[#34C759] hover:bg-[#2DB84D] text-white disabled:bg-muted disabled:text-muted-foreground shadow-sm"
-            >
-              {downloadSuccess ? (
-                <motion.span
-                  initial={{ opacity: 0, scale: 0.5 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  className="flex items-center gap-2"
-                >
-                  <Check className="h-5 w-5" />
-                  Downloaded
-                </motion.span>
-              ) : isDownloading ? (
-                "Downloading..."
-              ) : (
-                "DOWNLOAD"
+          {/* Desktop: Two-column layout for description + info */}
+          <div className="lg:flex lg:gap-12">
+            {/* Left column - Description content */}
+            <div className="lg:flex-1 lg:min-w-0">
+              {/* About Section */}
+              {app.full_description && (
+                <div className="py-5 border-t border-border/30">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center gap-1">
+                      <h2 className="text-[22px] font-bold text-foreground">About this app</h2>
+                      <ChevronRight className="h-5 w-5 text-muted-foreground" />
+                    </div>
+                  </div>
+                  <div className={`text-[15px] text-foreground leading-relaxed whitespace-pre-wrap ${!aboutExpanded ? 'line-clamp-4' : ''}`}>
+                    {app.full_description}
+                  </div>
+                  {app.full_description.length > 200 && (
+                    <button onClick={() => setAboutExpanded(!aboutExpanded)} className="text-[#007AFF] text-[15px] font-medium mt-2">
+                      {aboutExpanded ? "Less" : "More"}
+                    </button>
+                  )}
+                </div>
               )}
-            </Button>
-          </motion.div>
-        </div>
-      </main>
+
+              {/* Ratings & Reviews */}
+              <div className="py-5 border-t border-border/30">
+                <RatingsReviewsSection
+                  appId={app.id}
+                  ratingAvg={app.rating_avg}
+                  ratingCount={app.rating_count}
+                  reviews={reviews}
+                  userId={user?.id || null}
+                  onReviewSubmit={loadAppData}
+                />
+              </div>
+
+              {/* What's New */}
+              {app.whats_new && (
+                <div className="py-5 border-t border-border/30">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center gap-1">
+                      <h2 className="text-[22px] font-bold text-foreground">What's New</h2>
+                      <ChevronRight className="h-5 w-5 text-muted-foreground" />
+                    </div>
+                    <div className="text-right">
+                      <p className="text-[13px] text-muted-foreground">Version</p>
+                      <p className="text-[13px] text-foreground">{app.version_name || "1.0"}</p>
+                    </div>
+                  </div>
+                  <p className="text-[15px] text-foreground leading-relaxed">{app.whats_new}</p>
+                </div>
+              )}
+            </div>
+
+            {/* Right column - Information (desktop only sidebar-style) */}
+            <div className="lg:w-[260px] lg:flex-shrink-0">
+              <div className="py-5 border-t border-border/30">
+                <h2 className="text-[22px] font-bold text-foreground mb-4">Information</h2>
+                <div className="space-y-4">
+                  {[
+                    { label: "Size", value: fileInfo ? formatFileSize(fileInfo.file_size) : "--" },
+                    { label: "Category", value: app.category || "Productivity" },
+                    { label: "Developer", value: app.developer_name || "Unknown" },
+                    { label: "Version", value: app.version_name || "1.0" },
+                    { label: "Downloads", value: formatDownloads(actualDownloads) },
+                  ].map((row) => (
+                    <div key={row.label} className="flex justify-between py-2 border-b border-border/20">
+                      <span className="text-[15px] text-muted-foreground">{row.label}</span>
+                      <span className="text-[15px] text-foreground">{row.value}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Mobile Download Button */}
+          <div className="py-6 pb-8 lg:hidden">
+            <motion.div
+              animate={downloadSuccess ? { scale: [1, 1.02, 1] } : {}}
+              transition={{ duration: 0.3 }}
+            >
+              <Button
+                onClick={handleDownload}
+                disabled={isDownloading || !fileInfo || !!fileUnavailable}
+                className="w-full h-[52px] text-[17px] font-semibold rounded-2xl bg-[#34C759] hover:bg-[#2DB84D] text-white disabled:bg-muted disabled:text-muted-foreground shadow-sm"
+              >
+                {downloadSuccess ? (
+                  <motion.span initial={{ opacity: 0, scale: 0.5 }} animate={{ opacity: 1, scale: 1 }} className="flex items-center gap-2">
+                    <Check className="h-5 w-5" /> Downloaded
+                  </motion.span>
+                ) : isDownloading ? "Downloading..." : "DOWNLOAD"}
+              </Button>
+            </motion.div>
+          </div>
+        </main>
+      </div>
 
       {/* Screenshot Modal */}
       {selectedScreenshot !== null && app.screenshots && (
-        <div 
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/90"
-          onClick={() => setSelectedScreenshot(null)}
-        >
-          <img
-            src={app.screenshots[selectedScreenshot]}
-            alt="Screenshot"
-            className="max-w-full max-h-full object-contain rounded-xl"
-          />
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/90" onClick={() => setSelectedScreenshot(null)}>
+          <img src={app.screenshots[selectedScreenshot]} alt="Screenshot" className="max-w-full max-h-full object-contain rounded-xl" />
         </div>
       )}
 
@@ -524,12 +449,8 @@ export default function AppPage() {
       <Dialog open={showPasswordDialog} onOpenChange={setShowPasswordDialog}>
         <DialogContent className="bg-background border-border rounded-2xl">
           <DialogHeader>
-            <DialogTitle className="text-foreground text-lg">
-              Password Required
-            </DialogTitle>
-            <DialogDescription className="text-muted-foreground">
-              This file is password protected. Enter the password to download.
-            </DialogDescription>
+            <DialogTitle className="text-foreground text-lg">Password Required</DialogTitle>
+            <DialogDescription className="text-muted-foreground">This file is password protected. Enter the password to download.</DialogDescription>
           </DialogHeader>
           <div className="space-y-4 mt-2">
             <Input
@@ -541,23 +462,12 @@ export default function AppPage() {
               className="h-12 rounded-xl"
             />
             <div className="flex gap-3">
-              <Button
-                onClick={() => {
-                  setShowPasswordDialog(false);
-                  setPassword("");
-                }}
-                variant="outline"
-                className="flex-1 h-12 rounded-xl"
-              >
-                Cancel
-              </Button>
+              <Button onClick={() => { setShowPasswordDialog(false); setPassword(""); }} variant="outline" className="flex-1 h-12 rounded-xl">Cancel</Button>
               <Button
                 onClick={handlePasswordSubmit}
                 disabled={isVerifyingPassword || !password}
                 className="flex-1 h-12 rounded-xl bg-[#34C759] hover:bg-[#2DB84D] text-white"
-              >
-                {isVerifyingPassword ? "Verifying..." : "Download"}
-              </Button>
+              >{isVerifyingPassword ? "Verifying..." : "Download"}</Button>
             </div>
           </div>
         </DialogContent>
