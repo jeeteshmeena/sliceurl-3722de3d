@@ -23,6 +23,20 @@ interface MetadataStripProps {
   developer: string;
 }
 
+function CategoryIcon({ category, className }: { category: string; className?: string }) {
+  const cls = className || "h-6 w-6 text-muted-foreground";
+  const cat = category.toLowerCase();
+  if (cat.includes("music")) return <Music className={cls} strokeWidth={1.5} />;
+  if (cat.includes("entertainment")) return <Clapperboard className={cls} strokeWidth={1.5} />;
+  if (cat.includes("game") || cat.includes("action")) return <Gamepad2 className={cls} strokeWidth={1.5} />;
+  if (cat.includes("productiv")) return <Navigation className={cls} strokeWidth={1.5} />;
+  if (cat.includes("tool")) return <Wrench className={cls} strokeWidth={1.5} />;
+  if (cat.includes("social")) return <Users className={cls} strokeWidth={1.5} />;
+  if (cat.includes("education")) return <BookOpen className={cls} strokeWidth={1.5} />;
+  if (cat.includes("utilit")) return <Settings className={cls} strokeWidth={1.5} />;
+  return <LayoutGrid className={cls} strokeWidth={1.5} />;
+}
+
 function StarRow({ rating }: { rating: number }) {
   const rounded = Math.round(rating);
   return (
@@ -30,7 +44,7 @@ function StarRow({ rating }: { rating: number }) {
       {[1, 2, 3, 4, 5].map((s) => (
         <Star
           key={s}
-          className={`h-[11px] w-[11px] ${s <= rounded ? "fill-muted-foreground text-muted-foreground" : "fill-muted-foreground/25 text-muted-foreground/25"}`}
+          className={`h-[9px] w-[9px] ${s <= rounded ? "fill-muted-foreground text-muted-foreground" : "fill-muted-foreground/25 text-muted-foreground/25"}`}
           strokeWidth={0}
         />
       ))}
@@ -60,96 +74,68 @@ export function MetadataStrip({
   const sizeValue = sizeMatch ? sizeMatch[1] : fileSize;
   const sizeUnit = sizeMatch ? sizeMatch[2] : "";
 
-  const rows = [
-    [
-      {
-        label: formatRatingCount(ratingCount).toUpperCase(),
-        value: ratingAvg?.toFixed(1) || "0.0",
-        sub: <StarRow rating={ratingAvg || 0} />,
-      },
-      {
-        label: "AGES",
-        value: ageRating,
-        sub: <span style={{ fontSize: 13, color: '#6e6e73' }}>Years Old</span>,
-      },
-    ],
-    [
-      {
-        label: "CATEGORY",
-        value: category || "Other",
-        sub: null,
-      },
-      {
-        label: "DEVELOPER",
-        value: devFirstName,
-        sub: null,
-      },
-    ],
-    [
-      {
-        label: "LANGUAGE",
-        value: "EN",
-        sub: null,
-      },
-      {
-        label: "SIZE",
-        value: sizeValue + (sizeUnit ? ` ${sizeUnit}` : ""),
-        sub: null,
-      },
-    ],
+  const items = [
+    {
+      label: formatRatingCount(ratingCount),
+      value: ratingAvg?.toFixed(1) || "0.0",
+      bottom: <StarRow rating={ratingAvg || 0} />,
+    },
+    {
+      label: "AGE",
+      value: ageRating,
+      bottom: <span className="text-[10px] text-muted-foreground leading-none">Years Old</span>,
+    },
+    {
+      label: "CATEGORY",
+      value: null,
+      center: <CategoryIcon category={category} className="h-[22px] w-[22px] text-muted-foreground" />,
+      bottom: <span className="text-[10px] text-muted-foreground leading-none">{category || "Other"}</span>,
+    },
+    {
+      label: "DEVELOPER",
+      value: null,
+      center: <User className="h-[22px] w-[22px] text-muted-foreground" strokeWidth={1.5} />,
+      bottom: <span className="text-[10px] text-muted-foreground leading-none truncate max-w-[80px]">{devFirstName}</span>,
+    },
+    {
+      label: "LANGUAGE",
+      value: "EN",
+      bottom: <span className="text-[10px] text-muted-foreground leading-none">+ More</span>,
+    },
+    {
+      label: "SIZE",
+      value: sizeValue,
+      bottom: <span className="text-[10px] text-muted-foreground leading-none">{sizeUnit}</span>,
+    },
   ];
 
   return (
-    <div
-      style={{
-        paddingLeft: 16,
-        paddingRight: 16,
-        paddingTop: 16,
-        paddingBottom: 18,
-      }}
-    >
-      <div
-        style={{
-          display: 'grid',
-          gridTemplateColumns: 'auto auto',
-          rowGap: 18,
-          columnGap: 32,
-        }}
-      >
-        {rows.flat().map((item, index) => (
-          <div key={index} className="flex flex-col items-start">
-            {/* Label */}
-            <span
-              style={{
-                fontSize: 12,
-                fontWeight: 600,
-                letterSpacing: '0.06em',
-                color: '#6e6e73',
-                marginBottom: 4,
-              }}
-            >
+    <div className="border-t border-b border-border/30 overflow-x-auto overflow-y-hidden scrollbar-hide scroll-smooth bg-background">
+      <div className="flex min-w-max lg:justify-center">
+        {items.map((item, index) => (
+          <div
+            key={index}
+            className={`flex flex-col items-center justify-between min-w-[95px] lg:min-w-[130px] py-3 lg:py-4 px-2 lg:px-4 ${
+              index < items.length - 1 ? "border-r border-border/20" : ""
+            }`}
+          >
+            {/* Top label */}
+            <span className="text-[10px] lg:text-[11px] font-medium text-muted-foreground uppercase tracking-wider leading-none">
               {item.label}
             </span>
 
-            {/* Value */}
-            <span
-              className="dark:text-[#f5f5f7]"
-              style={{
-                fontSize: 20,
-                fontWeight: 700,
-                color: '#1d1d1f',
-                lineHeight: 1.2,
-              }}
-            >
-              {item.value}
-            </span>
+            {/* Center: value or icon */}
+            <div className="my-1.5 flex items-center justify-center min-h-[26px]">
+              {item.value && (
+                <span className="text-[22px] lg:text-[26px] font-bold text-foreground leading-none tracking-tight">
+                  {item.value}
+                </span>
+              )}
+              {item.center && item.center}
+            </div>
 
-            {/* Optional subtext */}
-            {item.sub && (
-              <div style={{ marginTop: 3 }}>
-                {item.sub}
-              </div>
-            )}
+            {/* Bottom */}
+            <div className="flex items-center justify-center">{item.bottom}</div>
           </div>
         ))}
       </div>
