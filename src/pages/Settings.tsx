@@ -700,8 +700,8 @@ export default function Settings() {
                         }}
                         className={`w-full text-left px-3 py-2 text-sm rounded-md transition-colors ${
                           language === lang.code
-                            ? "bg-neutral-100 dark:bg-neutral-800 text-neutral-900 dark:text-neutral-100"
-                            : "text-neutral-600 dark:text-neutral-400 hover:bg-neutral-50 dark:hover:bg-neutral-800"
+                            ? "bg-muted text-foreground"
+                            : "text-muted-foreground hover:bg-muted/50"
                         }`}
                       >
                         {lang.name}
