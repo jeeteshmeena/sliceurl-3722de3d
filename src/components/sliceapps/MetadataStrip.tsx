@@ -94,8 +94,8 @@ export function MetadataStrip({
     {
       label: "DEVELOPER",
       value: null,
-      center: <User className="h-[18px] w-[18px] text-[#8e8e93]" strokeWidth={1.5} />,
-      bottom: <span style={{ fontSize: 13, color: '#6e6e73' }} className="leading-none truncate max-w-[80px]">{devFirstName}</span>,
+      center: <User className="h-[18px] w-[18px] text-[#8e8e93]" strokeWidth={0} fill="#8e8e93" />,
+      bottom: <span style={{ fontSize: 13, fontWeight: 400, color: '#a1a1a6' }} className="leading-none truncate max-w-[80px]">{devFirstName}</span>,
     },
     {
       label: "LANGUAGE",
