@@ -598,7 +598,7 @@ export default function Settings() {
                     )}
                   </div>
                   <div>
-                    <p className="text-sm font-medium text-neutral-900 dark:text-neutral-100">
+                    <p className="text-sm font-medium text-foreground">
                       {/Mobile|Android|iPhone|iPad|iPod/i.test(navigator.userAgent) ? "Mobile" : "Desktop"} • Active now
                     </p>
                     <p className="text-xs text-green-600 dark:text-green-400">Current session</p>
