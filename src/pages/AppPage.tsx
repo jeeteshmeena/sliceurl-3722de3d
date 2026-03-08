@@ -400,7 +400,7 @@ export default function AppPage() {
                     <button
                       onClick={handleDownload}
                       disabled={isDownloading || !fileInfo || !!fileUnavailable}
-                      className="h-[38px] px-8 text-[16px] font-semibold rounded-full bg-[#007AFF] text-white disabled:opacity-40 active:opacity-80 transition-opacity"
+                      className="h-[38px] px-8 text-[16px] font-semibold rounded-full bg-primary text-primary-foreground disabled:opacity-40 active:opacity-80 transition-opacity"
                     >
                       {downloadSuccess ? (
                         <motion.span initial={{ opacity: 0, scale: 0.5 }} animate={{ opacity: 1, scale: 1 }} className="flex items-center gap-1">
