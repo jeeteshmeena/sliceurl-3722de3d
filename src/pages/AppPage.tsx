@@ -242,8 +242,8 @@ export default function AppPage() {
       <div className="flex-1 min-w-0">
         {/* Mobile Sticky Navbar — always visible */}
         <div
-          className="sticky top-0 z-[999] lg:relative lg:z-auto"
-          style={{ background: '#f5f5f7', borderBottom: '1px solid rgba(0,0,0,0.06)' }}
+          className="sticky top-0 z-[999] lg:relative lg:z-auto bg-[var(--sa-hero-bg)] transition-colors duration-500"
+          style={{ borderBottom: '1px solid var(--sa-border)' }}
         >
           <SliceAppsHeader />
         </div>
@@ -251,14 +251,13 @@ export default function AppPage() {
         {/* Mobile Hero Section — App Store style */}
         <div
           data-theme-transition
-          className="lg:hidden transition-all duration-500 ease-out"
+          className="lg:hidden transition-all duration-500 ease-out bg-[var(--sa-hero-bg)]"
           style={{
             paddingTop: 24,
             paddingBottom: 24,
             paddingLeft: 20,
             paddingRight: 20,
-            background: '#f5f5f7',
-            borderBottom: '1px solid rgba(0,0,0,0.06)',
+            borderBottom: '1px solid var(--sa-border)',
           }}
         >
           <div className="flex items-start" style={{ gap: 16 }}>
@@ -269,14 +268,14 @@ export default function AppPage() {
                 width: 104,
                 height: 104,
                 borderRadius: 24,
-                background: '#fff',
-                boxShadow: '0 2px 12px rgba(0,0,0,0.1)',
+                background: 'var(--sa-icon-bg)',
+                boxShadow: '0 2px 12px var(--sa-shadow)',
               }}
             >
               {app.icon_url ? (
                 <img src={app.icon_url} alt={app.app_name} className="w-full h-full object-cover" loading="lazy" />
               ) : (
-                <div className="w-full h-full flex items-center justify-center text-3xl font-bold" style={{ color: '#8e8e93', background: '#e5e5ea' }}>
+                <div className="w-full h-full flex items-center justify-center text-3xl font-bold text-muted-foreground bg-muted">
                   {app.app_name.charAt(0)}
                 </div>
               )}
@@ -285,22 +284,23 @@ export default function AppPage() {
             {/* App Info + Actions */}
             <div className="flex-1 min-w-0 flex flex-col">
               <h1
+                className="transition-colors duration-500"
                 style={{
                   fontSize: 22,
                   fontWeight: 700,
                   lineHeight: 1.2,
-                  color: '#1d1d1f',
+                  color: 'var(--sa-title)',
                   marginBottom: 2,
                 }}
               >
                 {app.app_name}
               </h1>
               <p
-                className="line-clamp-2"
+                className="line-clamp-2 transition-colors duration-500"
                 style={{
                   fontSize: 14,
                   fontWeight: 400,
-                  color: '#6e6e73',
+                  color: 'var(--sa-desc)',
                   lineHeight: 1.35,
                   marginTop: 2,
                   marginBottom: 12,
@@ -324,8 +324,8 @@ export default function AppPage() {
                       paddingLeft: 22,
                       paddingRight: 22,
                       borderRadius: 19,
-                      background: '#0071e3',
-                      color: '#ffffff',
+                      background: 'var(--sa-get-bg)',
+                      color: 'var(--sa-get-color)',
                       fontSize: 16,
                       fontWeight: 600,
                       border: 'none',
@@ -357,7 +357,7 @@ export default function AppPage() {
                   }}
                   aria-label="Share"
                 >
-                  <Share2 style={{ width: 20, height: 20, color: '#0071e3' }} strokeWidth={1.8} />
+                  <Share2 style={{ width: 20, height: 20, color: 'var(--sa-accent)' }} strokeWidth={1.8} />
                 </button>
               </div>
             </div>
