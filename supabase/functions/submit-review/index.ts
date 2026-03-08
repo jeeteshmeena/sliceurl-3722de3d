@@ -11,7 +11,7 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const { appId, rating, reviewText, browserFingerprint } = await req.json();
+    const { appId, rating, reviewText, browserFingerprint, displayName } = await req.json();
 
     if (!appId || !rating || rating < 1 || rating > 5) {
       return new Response(
@@ -82,6 +82,7 @@ Deno.serve(async (req) => {
         user_id: userId,
         ip_address: ipAddress,
         browser_fingerprint: browserFingerprint || null,
+        display_name: displayName?.trim() || null,
       })
       .select()
       .single();

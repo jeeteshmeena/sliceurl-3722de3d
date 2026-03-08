@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
+import { Input } from "@/components/ui/input";
 import { Star, Edit2, Trash2, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -13,6 +14,7 @@ interface Review {
   user_id: string | null;
   ip_address?: string | null;
   browser_fingerprint?: string | null;
+  display_name?: string | null;
   username?: string;
 }
 
@@ -62,6 +64,7 @@ export function RatingsReviewsSection({
 }: RatingsReviewsSectionProps) {
   const [reviewRating, setReviewRating] = useState(5);
   const [reviewText, setReviewText] = useState("");
+  const [displayName, setDisplayName] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [userProfiles, setUserProfiles] = useState<Record<string, string>>({});
   const [myReview, setMyReview] = useState<Review | null>(null);
@@ -111,6 +114,7 @@ export function RatingsReviewsSection({
           rating: reviewRating,
           reviewText: reviewText.trim() || null,
           browserFingerprint,
+          displayName: !userId && displayName.trim() ? displayName.trim() : undefined,
         },
       });
 
@@ -246,7 +250,10 @@ export function RatingsReviewsSection({
     if (review.user_id && userProfiles[review.user_id]) {
       return userProfiles[review.user_id];
     }
-    return generateRandomUsername(review.id);
+    if (review.display_name) {
+      return review.display_name;
+    }
+    return review.username || generateRandomUsername(review.id);
   };
 
   return (
@@ -428,6 +435,16 @@ export function RatingsReviewsSection({
               ))}
             </div>
             
+            {!userId && !isEditing && (
+              <Input
+                value={displayName}
+                onChange={(e) => setDisplayName(e.target.value)}
+                placeholder="Your display name (required)"
+                className="mb-3 text-[15px] bg-muted/30 border-0 rounded-xl h-11"
+                maxLength={30}
+              />
+            )}
+
             <Textarea
               value={reviewText}
               onChange={(e) => setReviewText(e.target.value)}
@@ -457,7 +474,7 @@ export function RatingsReviewsSection({
               ) : (
                 <Button
                   onClick={handleSubmitReview}
-                  disabled={isSubmitting}
+                  disabled={isSubmitting || (!userId && !displayName.trim())}
                   className="h-11 px-6 bg-[#007AFF] hover:bg-[#0066CC] text-white rounded-full text-[15px] font-medium"
                 >
                   {isSubmitting ? "Submitting..." : "Submit Review"}
