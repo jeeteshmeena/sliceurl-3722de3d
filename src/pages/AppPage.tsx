@@ -352,40 +352,52 @@ export default function AppPage() {
                   animate={downloadSuccess ? { scale: [1, 1.02, 1] } : {}}
                   transition={{ duration: 0.2 }}
                 >
-                  <button
-                    onClick={handleDownload}
-                    disabled={isDownloading || !fileInfo || !!fileUnavailable}
-                    className="disabled:opacity-40"
-                    style={{
-                      height: 36,
-                      minWidth: 120,
-                      padding: '8px 22px',
-                      borderRadius: 20,
-                      background: isDownloading
-                        ? `linear-gradient(90deg, #0077ED ${downloadProgress}%, #0A84FF ${downloadProgress}%)`
-                        : '#0A84FF',
-                      color: '#ffffff',
-                      fontSize: 16,
-                      fontWeight: 600,
-                      border: 'none',
-                      cursor: 'pointer',
-                      transition: 'transform 0.12s ease',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      position: 'relative',
-                      overflow: 'hidden',
-                    }}
-                    onPointerDown={(e) => { if (!isDownloading) { e.currentTarget.style.transform = 'scale(0.96)'; } }}
-                    onPointerUp={(e) => { e.currentTarget.style.transform = 'scale(1)'; }}
-                    onPointerLeave={(e) => { e.currentTarget.style.transform = 'scale(1)'; }}
-                  >
-                    {downloadSuccess ? (
-                      <motion.span initial={{ opacity: 0, scale: 0.5 }} animate={{ opacity: 1, scale: 1 }} className="flex items-center justify-center gap-1.5">
-                        <Check style={{ width: 16, height: 16 }} /> Done
-                      </motion.span>
-                    ) : isDownloading ? `${downloadProgress}%` : "DOWNLOAD"}
-                  </button>
+                  {isDownloading ? (
+                    <div style={{ width: 36, height: 36, position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      <svg width={36} height={36} style={{ transform: 'rotate(-90deg)' }}>
+                        <circle cx={18} cy={18} r={15} fill="none" stroke="rgba(255,255,255,0.2)" strokeWidth={3} />
+                        <circle
+                          cx={18} cy={18} r={15} fill="none"
+                          stroke="#0A84FF" strokeWidth={3}
+                          strokeLinecap="round"
+                          strokeDasharray={2 * Math.PI * 15}
+                          strokeDashoffset={2 * Math.PI * 15 * (1 - downloadProgress / 100)}
+                          style={{ transition: 'stroke-dashoffset 0.2s ease' }}
+                        />
+                      </svg>
+                      <div style={{ position: 'absolute', width: 10, height: 10, borderRadius: 2, background: '#0A84FF' }} />
+                    </div>
+                  ) : (
+                    <button
+                      onClick={handleDownload}
+                      disabled={!fileInfo || !!fileUnavailable}
+                      className="disabled:opacity-40"
+                      style={{
+                        height: 36,
+                        padding: '8px 22px',
+                        borderRadius: 20,
+                        background: '#0A84FF',
+                        color: '#ffffff',
+                        fontSize: 16,
+                        fontWeight: 600,
+                        border: 'none',
+                        cursor: 'pointer',
+                        transition: 'background 0.15s ease, transform 0.12s ease',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                      }}
+                      onPointerDown={(e) => { e.currentTarget.style.background = '#0077ED'; e.currentTarget.style.transform = 'scale(0.96)'; }}
+                      onPointerUp={(e) => { e.currentTarget.style.background = '#0A84FF'; e.currentTarget.style.transform = 'scale(1)'; }}
+                      onPointerLeave={(e) => { e.currentTarget.style.background = '#0A84FF'; e.currentTarget.style.transform = 'scale(1)'; }}
+                    >
+                      {downloadSuccess ? (
+                        <motion.span initial={{ opacity: 0, scale: 0.5 }} animate={{ opacity: 1, scale: 1 }} className="flex items-center justify-center gap-1.5">
+                          <Check style={{ width: 16, height: 16 }} /> Done
+                        </motion.span>
+                      ) : "DOWNLOAD"}
+                    </button>
+                  )}
                 </motion.div>
               </div>
             </div>
