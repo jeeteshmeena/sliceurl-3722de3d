@@ -22,7 +22,9 @@ interface AppListing {
   short_code: string | null;
   app_name: string;
   developer_name: string | null;
+  developer_url: string | null;
   category: string | null;
+  age_rating: string | null;
   version_name: string | null;
   version_code: string | null;
   short_description: string | null;
@@ -545,8 +547,10 @@ export default function AppPage() {
             ratingCount={app.rating_count}
             downloads={formatDownloads(actualDownloads)}
             fileSize={fileInfo ? formatFileSize(fileInfo.file_size) : "--"}
+            ageRating={app.age_rating || "4+"}
             category={app.category || "Productivity"}
             developer={app.developer_name || "Unknown"}
+            developerUrl={app.developer_url}
           />
         </div>
 
