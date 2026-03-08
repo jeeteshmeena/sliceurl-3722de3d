@@ -1151,6 +1151,28 @@ textarea:focus-visible,
   border-radius: 1rem;
 }
 
+/* OpenCall theme typography & style overrides */
+.opencall body,
+.opencall {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  letter-spacing: -0.01em;
+}
+
+.opencall h1, .opencall h2, .opencall h3 {
+  font-weight: 700;
+  letter-spacing: -0.03em;
+}
+
+.opencall button {
+  font-weight: 600;
+  border-radius: 9999px;
+}
+
+.opencall [class*="rounded-lg"],
+.opencall [class*="rounded-md"] {
+  border-radius: 0.875rem;
+}
+
 /* Header offset for fixed header */
 .pt-header-lg {
   padding-top: 5rem;

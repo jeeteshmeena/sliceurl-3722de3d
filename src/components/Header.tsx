@@ -154,7 +154,9 @@ export function Header() {
             aria-label={`Theme: ${themeLabel}. Click to switch.`}
             title={`Theme: ${themeLabel}`}
           >
-            {resolvedTheme === "supahero" ? (
+            {resolvedTheme === "opencall" ? (
+              <span className="text-base">📞</span>
+            ) : resolvedTheme === "supahero" ? (
               <span className="text-base">🦸</span>
             ) : resolvedTheme === "designgud" ? (
               <span className="text-base">⚡</span>
