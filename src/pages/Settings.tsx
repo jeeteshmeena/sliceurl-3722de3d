@@ -575,7 +575,7 @@ export default function Settings() {
                 variant="outline"
                 size="sm"
                 onClick={() => setForgotPasswordDialogOpen(true)}
-                className="h-8 px-3 text-xs border-neutral-300 dark:border-neutral-600 text-neutral-700 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-800"
+                className="h-8 px-3 text-xs border-border text-secondary-foreground hover:bg-muted"
               >
                 Send Reset Email
               </Button>
