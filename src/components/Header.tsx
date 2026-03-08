@@ -96,10 +96,11 @@ export function Header() {
   const handleThemeCycle = () => {
     if (resolvedTheme === "light") setTheme("dark");
     else if (resolvedTheme === "dark") setTheme("maggie");
+    else if (resolvedTheme === "maggie") setTheme("racing");
     else setTheme("light");
   };
 
-  const themeLabel = resolvedTheme === "maggie" ? "Maggie" : resolvedTheme === "dark" ? "Dark" : "Light";
+  const themeLabel = resolvedTheme === "racing" ? "Racing" : resolvedTheme === "maggie" ? "Maggie" : resolvedTheme === "dark" ? "Dark" : "Light";
 
   const handleLogout = async () => {
     await signOut();
