@@ -349,26 +349,12 @@ export default function AppPage() {
 
         {/* About this app */}
         {app.full_description && (
-          <section className="mt-8">
-            <h2 className="text-base font-semibold text-foreground mb-3">
-              About this app
-            </h2>
-            <p className="text-sm text-muted-foreground leading-relaxed whitespace-pre-wrap">
-              {app.full_description}
-            </p>
-          </section>
+          <ExpandableSection title="About this app" text={app.full_description} />
         )}
 
         {/* What's New */}
         {app.whats_new && (
-          <section className="mt-8">
-            <h2 className="text-base font-semibold text-foreground mb-3">
-              What's new
-            </h2>
-            <p className="text-sm text-muted-foreground leading-relaxed whitespace-pre-wrap">
-              {app.whats_new}
-            </p>
-          </section>
+          <ExpandableSection title="What's new" text={app.whats_new} />
         )}
 
         {/* Additional Info */}
