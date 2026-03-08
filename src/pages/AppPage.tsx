@@ -365,14 +365,16 @@ export default function AppPage() {
         </div>
 
         {/* ===== METADATA STRIP ===== */}
-        <MetadataStrip
-          ratingAvg={app.rating_avg}
-          ratingCount={app.rating_count}
-          downloads={formatDownloads(actualDownloads)}
-          fileSize={fileInfo ? formatFileSize(fileInfo.file_size) : "--"}
-          category={app.category || "Productivity"}
-          developer={app.developer_name || "Unknown"}
-        />
+        <div className="mt-4">
+          <MetadataStrip
+            ratingAvg={app.rating_avg}
+            ratingCount={app.rating_count}
+            downloads={formatDownloads(actualDownloads)}
+            fileSize={fileInfo ? formatFileSize(fileInfo.file_size) : "--"}
+            category={app.category || "Productivity"}
+            developer={app.developer_name || "Unknown"}
+          />
+        </div>
 
         {/* ===== CONTENT ===== */}
         <main className="max-w-5xl mx-auto">
