@@ -46,6 +46,16 @@ function CategoryIcon({ category }: { category: string }) {
   return <Icon className="h-6 w-6 text-muted-foreground" strokeWidth={1.8} />;
 }
 
+interface MetadataStripProps {
+  ratingAvg: number | null;
+  ratingCount: number | null;
+  downloads: string;
+  fileSize: string;
+  ageRating?: string;
+  category: string;
+  developer: string;
+}
+
 function StarRow({ rating }: { rating: number }) {
   const rounded = Math.round(rating);
   return (
