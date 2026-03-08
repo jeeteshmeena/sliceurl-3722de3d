@@ -308,7 +308,7 @@ export default function AppPage() {
               </p>
 
               {/* Button Row */}
-              <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                 <motion.div
                   animate={downloadSuccess ? { scale: [1, 1.02, 1] } : {}}
                   transition={{ duration: 0.2 }}
@@ -318,21 +318,19 @@ export default function AppPage() {
                     disabled={isDownloading || !fileInfo || !!fileUnavailable}
                     className="disabled:opacity-40"
                     style={{
-                      height: 40,
-                      paddingLeft: 26,
-                      paddingRight: 26,
+                      padding: '8px 22px',
                       borderRadius: 20,
-                      background: '#ffffff',
-                      color: '#0071e3',
+                      background: '#0A84FF',
+                      color: '#ffffff',
                       fontSize: 16,
                       fontWeight: 600,
                       border: 'none',
                       cursor: 'pointer',
-                      transition: 'transform 0.12s ease',
+                      transition: 'background 0.15s ease, transform 0.12s ease',
                     }}
-                    onPointerDown={(e) => (e.currentTarget.style.transform = 'scale(0.96)')}
-                    onPointerUp={(e) => (e.currentTarget.style.transform = 'scale(1)')}
-                    onPointerLeave={(e) => (e.currentTarget.style.transform = 'scale(1)')}
+                    onPointerDown={(e) => { e.currentTarget.style.background = '#0077ED'; e.currentTarget.style.transform = 'scale(0.96)'; }}
+                    onPointerUp={(e) => { e.currentTarget.style.background = '#0A84FF'; e.currentTarget.style.transform = 'scale(1)'; }}
+                    onPointerLeave={(e) => { e.currentTarget.style.background = '#0A84FF'; e.currentTarget.style.transform = 'scale(1)'; }}
                   >
                     {downloadSuccess ? (
                       <motion.span initial={{ opacity: 0, scale: 0.5 }} animate={{ opacity: 1, scale: 1 }} className="flex items-center justify-center gap-1.5">
@@ -346,19 +344,16 @@ export default function AppPage() {
                   onClick={handleShare}
                   aria-label="Share"
                   style={{
-                    width: 38,
-                    height: 38,
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    borderRadius: '50%',
-                    background: 'rgba(255,255,255,0.2)',
+                    background: 'none',
                     border: 'none',
                     cursor: 'pointer',
                     padding: 0,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
                   }}
                 >
-                  <Share2 style={{ width: 20, height: 20, color: '#ffffff' }} strokeWidth={1.8} />
+                  <Share2 style={{ width: 20, height: 20, color: '#0A84FF' }} strokeWidth={1.8} />
                 </button>
               </div>
             </div>
