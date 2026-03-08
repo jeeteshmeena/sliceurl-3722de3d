@@ -791,6 +791,32 @@ textarea:focus-visible,
   transition: none !important;
 }
 
+/* Maggie theme typography override */
+.maggie body,
+.maggie {
+  font-family: 'Nunito', -apple-system, BlinkMacSystemFont, sans-serif;
+  letter-spacing: -0.01em;
+}
+
+.maggie h1, .maggie h2, .maggie h3, .maggie h4, .maggie h5, .maggie h6 {
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+.maggie button {
+  font-weight: 700;
+  border-radius: 9999px;
+}
+
+.maggie [class*="rounded-lg"],
+.maggie [class*="rounded-md"] {
+  border-radius: 1rem;
+}
+
+.maggie [class*="rounded-xl"] {
+  border-radius: 1.25rem;
+}
+
 /* Header offset for fixed header */
 .pt-header-lg {
   padding-top: 5rem;
