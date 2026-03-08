@@ -389,7 +389,7 @@ export default function AppPage() {
                 <h1 className="text-[32px] font-bold text-foreground leading-[1.2]">
                   {app.app_name}
                 </h1>
-                <p className="text-[17px] text-[#6e6e73] mt-0.5 mb-3 line-clamp-2">
+                <p className="text-[17px] text-muted-foreground mt-0.5 mb-3 line-clamp-2">
                   {app.short_description || `The official app by ${app.developer_name || "Unknown"}`}
                 </p>
                 <div className="flex items-center gap-3">
