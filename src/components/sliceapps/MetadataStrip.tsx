@@ -86,10 +86,9 @@ export function MetadataStrip({
       bottom: <span style={{ fontSize: 13, color: '#6e6e73' }} className="leading-none">Years Old</span>,
     },
     {
-      label: "CATEGORY",
-      value: null,
-      center: <CategoryIcon category={category} className="h-[18px] w-[18px] text-[#8e8e93]" />,
-      bottom: <span style={{ fontSize: 13, color: '#6e6e73' }} className="leading-none">{category || "Other"}</span>,
+      label: "LANGUAGE",
+      value: "EN",
+      bottom: <span style={{ fontSize: 13, color: '#6e6e73' }} className="leading-none">+ More</span>,
     },
     {
       label: "DEVELOPER",
@@ -98,9 +97,10 @@ export function MetadataStrip({
       bottom: <span style={{ fontSize: 13, color: '#6e6e73' }} className="leading-none truncate max-w-[80px]">{devFirstName}</span>,
     },
     {
-      label: "LANGUAGE",
-      value: "EN",
-      bottom: <span style={{ fontSize: 13, color: '#6e6e73' }} className="leading-none">+ More</span>,
+      label: "CATEGORY",
+      value: null,
+      center: <CategoryIcon category={category} className="h-[18px] w-[18px] text-[#8e8e93]" />,
+      bottom: <span style={{ fontSize: 13, color: '#6e6e73' }} className="leading-none">{category || "Other"}</span>,
     },
     {
       label: "SIZE",
@@ -141,7 +141,7 @@ export function MetadataStrip({
               scrollSnapAlign: 'start',
               paddingLeft: 14,
               paddingRight: 14,
-              borderRight: index < items.length - 1 ? '1px solid hsl(var(--border) / 0.2)' : 'none',
+              borderRight: 'none',
             }}
           >
             {/* Top label */}
