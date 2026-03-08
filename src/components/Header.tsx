@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { 
-  Moon, Sun, Languages, Menu, X, User, Link2, Settings, LogOut, Search, Check, MessageSquareHeart, Bell
+  Moon, Sun, Languages, Menu, X, User, Link2, Settings, LogOut, Search, Check, MessageSquareHeart, Bell, Zap
 } from "lucide-react";
 import { useAdminRole } from "@/hooks/useAdminRole";
 import { supabase } from "@/integrations/supabase/client";
@@ -93,8 +93,19 @@ export function Header() {
     };
   }, [isAdmin]);
 
+  const { productTheme, setProductTheme } = useTheme();
+
   const handleThemeToggle = () => {
-    setTheme(resolvedTheme === "dark" ? "light" : "dark");
+    if (productTheme === "norris") {
+      // Switch back to default (light)
+      setProductTheme("default");
+      setTheme("light");
+    } else if (resolvedTheme === "light") {
+      setTheme("dark");
+    } else {
+      // From dark, go to norris
+      setProductTheme("norris");
+    }
   };
 
   const handleLogout = async () => {
@@ -140,10 +151,12 @@ export function Header() {
           {/* Theme Toggle */}
           <button
             onClick={handleThemeToggle}
-            className="h-[42px] w-[42px] flex items-center justify-center rounded-full text-foreground/70 hover:text-foreground hover:bg-foreground/[0.06] active:scale-[0.96] transition-all duration-150"
-            aria-label={`Switch to ${resolvedTheme === "dark" ? "light" : "dark"} mode`}
+            className={`h-[42px] w-[42px] flex items-center justify-center rounded-full text-foreground/70 hover:text-foreground hover:bg-foreground/[0.06] active:scale-[0.96] transition-all duration-150 ${productTheme === 'norris' ? 'text-primary' : ''}`}
+            aria-label="Switch theme"
           >
-            {resolvedTheme === "dark" ? (
+            {productTheme === "norris" ? (
+              <Zap className="h-5 w-5" strokeWidth={1.7} />
+            ) : resolvedTheme === "dark" ? (
               <Sun className="h-5 w-5" strokeWidth={1.7} />
             ) : (
               <Moon className="h-5 w-5" strokeWidth={1.7} />
