@@ -347,7 +347,7 @@ export default function AppPage() {
                 <button
                   onClick={handleDownload}
                   disabled={isDownloading || !fileInfo || !!fileUnavailable}
-                  className="disabled:opacity-40 active:opacity-80 transition-opacity"
+                  className="disabled:opacity-40 active:opacity-80 transition-all duration-500 ease-out"
                   style={{
                     width: '100%',
                     height: 44,
