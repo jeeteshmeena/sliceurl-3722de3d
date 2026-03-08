@@ -14,6 +14,7 @@ export interface Link {
   is_favorite: boolean;
   is_pinned: boolean;
   is_password_protected: boolean;
+  is_private: boolean;
   expires_at: string | null;
   max_clicks: number | null;
   facebook_pixel: string | null;
@@ -27,13 +28,28 @@ export interface Link {
   created_at: string;
   updated_at: string;
   // UTM fields
-  utm_enabled?: boolean;
-  utm_source?: string | null;
-  utm_medium?: string | null;
-  utm_campaign?: string | null;
-  utm_term?: string | null;
-  utm_content?: string | null;
-  final_utm_url?: string | null;
+  utm_enabled: boolean;
+  utm_source: string | null;
+  utm_medium: string | null;
+  utm_campaign: string | null;
+  utm_term: string | null;
+  utm_content: string | null;
+  final_utm_url: string | null;
+  // Health & metadata
+  health_status: "active" | "low_activity" | "inactive" | "broken" | null;
+  is_broken: boolean;
+  last_health_check: string | null;
+  api_source: boolean;
+  api_key_id: string | null;
+  order_index: number | null;
+  slice_duration_ms: number | null;
+  is_creepy: boolean;
+  creepy_style: string | null;
+  creepy_extension: string | null;
+  batch_id: string | null;
+  safety_status: string | null;
+  last_scanned_at: string | null;
+  notify_on_broken: boolean;
 }
 
 export interface Folder {
@@ -206,7 +222,7 @@ export function useLinks() {
       if (result.link?.id) {
         supabase
           .from('links')
-          .update({ slice_duration_ms: sliceDurationMs } as any)
+          .update({ slice_duration_ms: sliceDurationMs })
           .eq('id', result.link.id)
           .then(() => {
             console.log(`Slice duration recorded: ${sliceDurationMs}ms`);
@@ -274,7 +290,7 @@ export function useLinks() {
   const togglePin = async (id: string) => {
     const link = links.find((l) => l.id === id);
     if (link) {
-      await updateLink(id, { is_pinned: !link.is_pinned } as any);
+      await updateLink(id, { is_pinned: !link.is_pinned });
     }
   };
 
@@ -372,7 +388,7 @@ export function useLinks() {
 
       setLinks((prev) =>
         prev.map((link) =>
-          ids.includes(link.id) ? { ...link, is_pinned: pin } as Link : link
+          ids.includes(link.id) ? { ...link, is_pinned: pin } : link
         )
       );
 

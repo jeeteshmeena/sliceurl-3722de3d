@@ -97,13 +97,13 @@ const Dashboard = () => {
     }
 
     if (filters.pinned) {
-      result = result.filter(l => (l as any).is_pinned);
+      result = result.filter(l => l.is_pinned);
     }
 
     // Sort: pinned first, then by created_at
     result.sort((a, b) => {
-      const aPinned = (a as any).is_pinned ? 1 : 0;
-      const bPinned = (b as any).is_pinned ? 1 : 0;
+      const aPinned = a.is_pinned ? 1 : 0;
+      const bPinned = b.is_pinned ? 1 : 0;
       if (bPinned !== aPinned) return bPinned - aPinned;
       return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
     });

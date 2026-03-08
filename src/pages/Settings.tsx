@@ -358,7 +358,7 @@ export default function Settings() {
   // ═══════════════════════════════════════════════════════════════════════════
 
   return (
-    <div className="min-h-dvh bg-white dark:bg-neutral-950 flex flex-col">
+    <div className="min-h-dvh bg-background flex flex-col">
       <Header />
 
       <main className="flex-1 pt-24 pb-16 px-4">
@@ -368,7 +368,7 @@ export default function Settings() {
             variant="ghost"
             size="sm"
             onClick={() => navigate("/dashboard")}
-            className="gap-2 text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-neutral-100 -ml-2"
+            className="gap-2 text-muted-foreground hover:text-foreground -ml-2"
           >
             <ArrowLeft className="h-4 w-4" />
             Back
@@ -376,10 +376,10 @@ export default function Settings() {
 
           {/* Page Header */}
           <div>
-            <h1 className="text-2xl font-semibold text-neutral-900 dark:text-neutral-100">
+            <h1 className="text-2xl font-semibold text-foreground">
               Settings
             </h1>
-            <p className="text-sm text-neutral-500 dark:text-neutral-400 mt-1">
+            <p className="text-sm text-muted-foreground mt-1">
               Manage your account and preferences
             </p>
           </div>
@@ -420,15 +420,15 @@ export default function Settings() {
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.05 }}
-            className="bg-neutral-50 dark:bg-neutral-900 rounded-xl border border-neutral-200 dark:border-neutral-800 p-5 space-y-5"
+            className="bg-secondary rounded-xl border border-border p-5 space-y-5"
           >
-            <h2 className="text-sm font-medium text-neutral-900 dark:text-neutral-100 uppercase tracking-wide">
+            <h2 className="text-sm font-medium text-foreground uppercase tracking-wide">
               Profile Information
             </h2>
 
             {/* Name Field */}
             <div className="space-y-1.5">
-              <Label className="text-xs text-neutral-500 dark:text-neutral-400 flex items-center gap-1.5">
+              <Label className="text-xs text-muted-foreground flex items-center gap-1.5">
                 <User className="h-3.5 w-3.5" />
                 Name
               </Label>
@@ -438,13 +438,13 @@ export default function Settings() {
                   onChange={(e) => setDisplayName(e.target.value)}
                   placeholder="Your name"
                   disabled={!editingName}
-                  className="bg-white dark:bg-neutral-800 border-neutral-200 dark:border-neutral-700 text-neutral-900 dark:text-neutral-100 h-9 text-sm flex-1"
+                  className="bg-card border-input text-foreground h-9 text-sm flex-1"
                 />
                 {editingName ? (
                   <>
                     <Button
                       size="sm"
-                      className="h-9 px-3 bg-neutral-900 dark:bg-neutral-100 text-white dark:text-neutral-900"
+                       className="h-9 px-3 bg-primary text-primary-foreground"
                       onClick={handleSaveName}
                       disabled={isSaving}
                     >
@@ -452,7 +452,7 @@ export default function Settings() {
                     </Button>
                     <button
                       type="button"
-                      className="text-sm text-neutral-500 hover:text-neutral-900 dark:hover:text-neutral-100 px-2"
+                      className="text-sm text-muted-foreground hover:text-foreground px-2"
                       onClick={() => {
                         setDisplayName(profile?.display_name || user?.user_metadata?.full_name || "");
                         setEditingName(false);
@@ -476,7 +476,7 @@ export default function Settings() {
 
             {/* Email Field */}
             <div className="space-y-1.5">
-              <Label className="text-xs text-neutral-500 dark:text-neutral-400 flex items-center gap-1.5">
+              <Label className="text-xs text-muted-foreground flex items-center gap-1.5">
                 <Mail className="h-3.5 w-3.5" />
                 Email
               </Label>
@@ -487,13 +487,13 @@ export default function Settings() {
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="your@email.com"
                   disabled={!editingEmail}
-                  className="bg-white dark:bg-neutral-800 border-neutral-200 dark:border-neutral-700 text-neutral-900 dark:text-neutral-100 h-9 text-sm flex-1"
+                  className="bg-card border-input text-foreground h-9 text-sm flex-1"
                 />
                 {editingEmail ? (
                   <>
                     <Button
                       size="sm"
-                      className="h-9 px-3 bg-neutral-900 dark:bg-neutral-100 text-white dark:text-neutral-900"
+                      className="h-9 px-3 bg-primary text-primary-foreground"
                       onClick={handleSaveEmail}
                       disabled={isSaving}
                     >
@@ -501,7 +501,7 @@ export default function Settings() {
                     </Button>
                     <button
                       type="button"
-                      className="text-sm text-neutral-500 hover:text-neutral-900 dark:hover:text-neutral-100 px-2"
+                      className="text-sm text-muted-foreground hover:text-foreground px-2"
                       onClick={() => {
                         setEmail(originalEmail);
                         setEditingEmail(false);
@@ -536,18 +536,18 @@ export default function Settings() {
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
-            className="bg-neutral-50 dark:bg-neutral-900 rounded-xl border border-neutral-200 dark:border-neutral-800 p-5 space-y-5"
+            className="bg-secondary rounded-xl border border-border p-5 space-y-5"
           >
-            <h2 className="text-sm font-medium text-neutral-900 dark:text-neutral-100 uppercase tracking-wide">
+            <h2 className="text-sm font-medium text-foreground uppercase tracking-wide">
               Security
             </h2>
 
             {/* Password Row */}
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <Lock className="h-4 w-4 text-neutral-500 dark:text-neutral-400" />
+                <Lock className="h-4 w-4 text-muted-foreground" />
                 <div>
-                  <span className="text-sm text-neutral-700 dark:text-neutral-300">Password</span>
+                  <span className="text-sm text-secondary-foreground">Password</span>
                   {!hasPassword && googleIdentity && (
                     <p className="text-xs text-amber-600 dark:text-amber-400">
                       No password set - using Google login
@@ -559,7 +559,7 @@ export default function Settings() {
                 variant="outline"
                 size="sm"
                 onClick={() => setPasswordDialogOpen(true)}
-                className="h-8 px-3 text-xs border-neutral-300 dark:border-neutral-600 text-neutral-700 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-800"
+                className="h-8 px-3 text-xs border-border text-secondary-foreground hover:bg-muted"
               >
                 {hasPassword ? "Change Password" : "Set Password"}
               </Button>
@@ -568,27 +568,27 @@ export default function Settings() {
             {/* Forgot Password Row */}
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <KeyRound className="h-4 w-4 text-neutral-500 dark:text-neutral-400" />
-                <span className="text-sm text-neutral-700 dark:text-neutral-300">Forgot Password</span>
+                <KeyRound className="h-4 w-4 text-muted-foreground" />
+                <span className="text-sm text-secondary-foreground">Forgot Password</span>
               </div>
               <Button
                 variant="outline"
                 size="sm"
                 onClick={() => setForgotPasswordDialogOpen(true)}
-                className="h-8 px-3 text-xs border-neutral-300 dark:border-neutral-600 text-neutral-700 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-800"
+                className="h-8 px-3 text-xs border-border text-secondary-foreground hover:bg-muted"
               >
                 Send Reset Email
               </Button>
             </div>
 
             {/* Sessions Subsection */}
-            <div className="pt-3 border-t border-neutral-200 dark:border-neutral-700">
-              <h3 className="text-xs font-medium text-neutral-500 dark:text-neutral-400 uppercase tracking-wide mb-3">
+            <div className="pt-3 border-t border-border">
+              <h3 className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-3">
                 Sessions
               </h3>
 
               {/* Current Device Card */}
-              <div className="flex items-center justify-between p-3 bg-white dark:bg-neutral-800 rounded-lg border border-neutral-200 dark:border-neutral-700 mb-3">
+              <div className="flex items-center justify-between p-3 bg-card rounded-lg border border-border mb-3">
                 <div className="flex items-center gap-3">
                   <div className="h-8 w-8 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center">
                     {/Mobile|Android|iPhone|iPad|iPod/i.test(navigator.userAgent) ? (
@@ -598,7 +598,7 @@ export default function Settings() {
                     )}
                   </div>
                   <div>
-                    <p className="text-sm font-medium text-neutral-900 dark:text-neutral-100">
+                    <p className="text-sm font-medium text-foreground">
                       {/Mobile|Android|iPhone|iPad|iPod/i.test(navigator.userAgent) ? "Mobile" : "Desktop"} • Active now
                     </p>
                     <p className="text-xs text-green-600 dark:text-green-400">Current session</p>
@@ -610,7 +610,7 @@ export default function Settings() {
                 variant="outline"
                 onClick={handleSignOutAllDevices}
                 disabled={isSigningOutAll}
-                className="w-full h-8 text-xs border-neutral-300 dark:border-neutral-600 text-neutral-700 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-800"
+                className="w-full h-8 text-xs border-border text-secondary-foreground hover:bg-muted"
               >
                 {isSigningOutAll ? "Signing out..." : "Sign out from all devices"}
               </Button>
@@ -618,14 +618,14 @@ export default function Settings() {
 
             {/* Connected Accounts Subsection */}
             {googleIdentity && (
-              <div className="pt-3 border-t border-neutral-200 dark:border-neutral-700">
-                <h3 className="text-xs font-medium text-neutral-500 dark:text-neutral-400 uppercase tracking-wide mb-3">
+              <div className="pt-3 border-t border-border">
+                <h3 className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-3">
                   Connected Accounts
                 </h3>
 
-                <div className="flex items-center justify-between p-3 bg-white dark:bg-neutral-800 rounded-lg border border-neutral-200 dark:border-neutral-700">
+                <div className="flex items-center justify-between p-3 bg-card rounded-lg border border-border">
                   <div className="flex items-center gap-3">
-                    <div className="h-8 w-8 rounded-full bg-white dark:bg-neutral-700 flex items-center justify-center border border-neutral-200 dark:border-neutral-600">
+                    <div className="h-8 w-8 rounded-full bg-card flex items-center justify-center border border-border">
                       <svg className="h-4 w-4" viewBox="0 0 24 24">
                         <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
                         <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
@@ -634,8 +634,8 @@ export default function Settings() {
                       </svg>
                     </div>
                     <div>
-                      <p className="text-sm font-medium text-neutral-900 dark:text-neutral-100">Google</p>
-                      <p className="text-xs text-neutral-500 dark:text-neutral-400">
+                      <p className="text-sm font-medium text-foreground">Google</p>
+                      <p className="text-xs text-muted-foreground">
                         {googleIdentity.identity_data?.email || 'Connected'}
                       </p>
                     </div>
@@ -663,24 +663,24 @@ export default function Settings() {
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.15 }}
-            className="bg-neutral-50 dark:bg-neutral-900 rounded-xl border border-neutral-200 dark:border-neutral-800 p-5 space-y-5"
+            className="bg-secondary rounded-xl border border-border p-5 space-y-5"
           >
-            <h2 className="text-sm font-medium text-neutral-900 dark:text-neutral-100 uppercase tracking-wide">
+            <h2 className="text-sm font-medium text-foreground uppercase tracking-wide">
               Preferences
             </h2>
 
             {/* Language Row */}
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <Globe className="h-4 w-4 text-neutral-500 dark:text-neutral-400" />
-                <span className="text-sm text-neutral-700 dark:text-neutral-300">Language</span>
+                <Globe className="h-4 w-4 text-muted-foreground" />
+                <span className="text-sm text-secondary-foreground">Language</span>
               </div>
               <Popover open={langOpen} onOpenChange={setLangOpen}>
                 <PopoverTrigger asChild>
                   <Button
                     variant="outline"
                     size="sm"
-                    className="h-8 px-3 text-xs border-neutral-300 dark:border-neutral-600 text-neutral-700 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-800"
+                    className="h-8 px-3 text-xs border-border text-secondary-foreground hover:bg-muted"
                   >
                     {currentLangLabel}
                   </Button>
@@ -688,7 +688,7 @@ export default function Settings() {
                 <PopoverContent 
                   align="end" 
                   sideOffset={4}
-                  className="w-44 p-1 bg-white dark:bg-neutral-900 border-neutral-200 dark:border-neutral-700"
+                  className="w-44 p-1 bg-popover border-border"
                 >
                   <ScrollArea className="h-48">
                     {LANGUAGES.map((lang) => (
@@ -700,8 +700,8 @@ export default function Settings() {
                         }}
                         className={`w-full text-left px-3 py-2 text-sm rounded-md transition-colors ${
                           language === lang.code
-                            ? "bg-neutral-100 dark:bg-neutral-800 text-neutral-900 dark:text-neutral-100"
-                            : "text-neutral-600 dark:text-neutral-400 hover:bg-neutral-50 dark:hover:bg-neutral-800"
+                            ? "bg-muted text-foreground"
+                            : "text-muted-foreground hover:bg-muted/50"
                         }`}
                       >
                         {lang.name}
@@ -715,8 +715,8 @@ export default function Settings() {
             {/* Theme Toggle Row */}
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <Palette className="h-4 w-4 text-neutral-500 dark:text-neutral-400" />
-                <span className="text-sm text-neutral-700 dark:text-neutral-300">Theme</span>
+                <Palette className="h-4 w-4 text-muted-foreground" />
+                <span className="text-sm text-secondary-foreground">Theme</span>
               </div>
               <ThemeToggle />
             </div>
@@ -724,10 +724,10 @@ export default function Settings() {
             {/* Link Preview Toggle Row */}
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <Eye className="h-4 w-4 text-neutral-500 dark:text-neutral-400" />
+                <Eye className="h-4 w-4 text-muted-foreground" />
                 <div>
-                  <span className="text-sm text-neutral-700 dark:text-neutral-300">Link Preview</span>
-                  <p className="text-xs text-neutral-400 dark:text-neutral-500">
+                  <span className="text-sm text-secondary-foreground">Link Preview</span>
+                  <p className="text-xs text-muted-foreground">
                     Show preview before redirecting
                   </p>
                 </div>
@@ -741,10 +741,10 @@ export default function Settings() {
             {/* Security Mode Select Row */}
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <Shield className="h-4 w-4 text-neutral-500 dark:text-neutral-400" />
+                <Shield className="h-4 w-4 text-muted-foreground" />
                 <div>
-                  <span className="text-sm text-neutral-700 dark:text-neutral-300">Security Mode</span>
-                  <p className="text-xs text-neutral-400 dark:text-neutral-500">
+                  <span className="text-sm text-secondary-foreground">Security Mode</span>
+                  <p className="text-xs text-muted-foreground">
                     URL safety checking level
                   </p>
                 </div>
@@ -753,10 +753,10 @@ export default function Settings() {
                 value={localSecurityMode} 
                 onValueChange={(v) => handleSecurityModeChange(v as SecurityMode)}
               >
-                <SelectTrigger className="w-24 h-8 text-xs bg-white dark:bg-neutral-800 border-neutral-300 dark:border-neutral-600">
+                <SelectTrigger className="w-24 h-8 text-xs bg-card border-input">
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent className="bg-white dark:bg-neutral-900 border-neutral-200 dark:border-neutral-700">
+                <SelectContent className="bg-popover border-border">
                   <SelectItem value="disable">Off</SelectItem>
                   <SelectItem value="warn">Warn</SelectItem>
                   <SelectItem value="strict">Strict</SelectItem>
@@ -767,10 +767,10 @@ export default function Settings() {
             {/* Auto Dashboard Refresh Toggle Row */}
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <RefreshCw className="h-4 w-4 text-neutral-500 dark:text-neutral-400" />
+                <RefreshCw className="h-4 w-4 text-muted-foreground" />
                 <div>
-                  <span className="text-sm text-neutral-700 dark:text-neutral-300">Auto Dashboard Refresh</span>
-                  <p className="text-xs text-neutral-400 dark:text-neutral-500">
+                  <span className="text-sm text-secondary-foreground">Auto Dashboard Refresh</span>
+                  <p className="text-xs text-muted-foreground">
                     Automatically refresh dashboard data
                   </p>
                 </div>
@@ -789,12 +789,12 @@ export default function Settings() {
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
-            className="bg-white dark:bg-neutral-950 rounded-xl border-2 border-red-200 dark:border-red-900/50 p-5 space-y-4"
+            className="bg-card rounded-xl border-2 border-destructive/30 p-5 space-y-4"
           >
-            <h2 className="text-sm font-medium text-red-600 dark:text-red-400 uppercase tracking-wide">
+            <h2 className="text-sm font-medium text-destructive uppercase tracking-wide">
               Danger Zone
             </h2>
-            <p className="text-xs text-neutral-500 dark:text-neutral-400">
+            <p className="text-xs text-muted-foreground">
               Permanently delete your account and all associated data.
             </p>
             <Button
@@ -817,7 +817,7 @@ export default function Settings() {
       {/* PASSWORD DIALOG */}
       {/* ═══════════════════════════════════════════════════════════════════════ */}
       <Dialog open={passwordDialogOpen} onOpenChange={setPasswordDialogOpen}>
-        <DialogContent className="bg-white dark:bg-neutral-900 border-neutral-200 dark:border-neutral-800 sm:max-w-md">
+        <DialogContent className="bg-popover border-border sm:max-w-md">
           <DialogHeader className="space-y-3">
             <DialogTitle>
               {hasPassword ? "Change Password" : "Set Password"}
@@ -836,7 +836,7 @@ export default function Settings() {
                   type="password"
                   value={currentPassword}
                   onChange={(e) => setCurrentPassword(e.target.value)}
-                  className="bg-white dark:bg-neutral-800"
+                  className="bg-card"
                 />
               </div>
             )}
@@ -847,7 +847,7 @@ export default function Settings() {
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
                 placeholder={hasPassword ? "Enter new password" : "Create a password"}
-                className="bg-white dark:bg-neutral-800"
+                  className="bg-card"
               />
             </div>
             <div className="space-y-2">
@@ -856,7 +856,7 @@ export default function Settings() {
                 type="password"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
-                className="bg-white dark:bg-neutral-800"
+                className="bg-card"
               />
             </div>
           </div>
@@ -875,7 +875,7 @@ export default function Settings() {
             <Button
               onClick={handleChangePassword}
               disabled={isChangingPassword}
-              className="bg-neutral-900 dark:bg-neutral-100 text-white dark:text-neutral-900"
+              className="bg-primary text-primary-foreground"
             >
               {isChangingPassword && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
               {hasPassword ? "Change Password" : "Set Password"}
@@ -888,7 +888,7 @@ export default function Settings() {
       {/* FORGOT PASSWORD DIALOG */}
       {/* ═══════════════════════════════════════════════════════════════════════ */}
       <Dialog open={forgotPasswordDialogOpen} onOpenChange={setForgotPasswordDialogOpen}>
-        <DialogContent className="bg-white dark:bg-neutral-900 border-neutral-200 dark:border-neutral-800">
+        <DialogContent className="bg-popover border-border">
           <DialogHeader>
             <DialogTitle>Reset Password</DialogTitle>
             <DialogDescription>
@@ -896,9 +896,9 @@ export default function Settings() {
             </DialogDescription>
           </DialogHeader>
           <div className="py-4">
-            <div className="bg-neutral-50 dark:bg-neutral-800 rounded-lg p-3 flex items-center gap-3">
-              <Mail className="h-4 w-4 text-neutral-500" />
-              <span className="text-sm text-neutral-700 dark:text-neutral-300">{user?.email}</span>
+            <div className="bg-secondary rounded-lg p-3 flex items-center gap-3">
+              <Mail className="h-4 w-4 text-muted-foreground" />
+              <span className="text-sm text-secondary-foreground">{user?.email}</span>
             </div>
           </div>
           <DialogFooter>
@@ -916,13 +916,13 @@ export default function Settings() {
       {/* DELETE ACCOUNT DIALOG */}
       {/* ═══════════════════════════════════════════════════════════════════════ */}
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <AlertDialogContent className="bg-white dark:bg-neutral-900 border-neutral-200 dark:border-neutral-800">
+        <AlertDialogContent className="bg-popover border-border">
           <AlertDialogHeader>
             <AlertDialogTitle>
               Are you sure you want to delete your account?
             </AlertDialogTitle>
             <AlertDialogDescription asChild>
-              <div className="space-y-3 text-sm text-neutral-500 dark:text-neutral-400">
+              <div className="space-y-3 text-sm text-muted-foreground">
                 <p>
                   This action will start a 30-day recovery period. You can reactivate your account anytime within 30 days by logging back in.
                 </p>
