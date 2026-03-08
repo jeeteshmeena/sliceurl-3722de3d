@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { motion } from "framer-motion";
 import { useParams, Link } from "react-router-dom";
 import { Lock, AlertTriangle, Check, Share2, ChevronRight } from "lucide-react";
