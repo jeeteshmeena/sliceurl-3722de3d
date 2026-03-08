@@ -93,16 +93,16 @@ export function Header() {
     };
   }, [isAdmin]);
 
-  const handleThemeCycle = () => {
-    if (resolvedTheme === "light") setTheme("dark");
-    else if (resolvedTheme === "dark") setTheme("maggie");
-    else if (resolvedTheme === "maggie") setTheme("racing");
-    else if (resolvedTheme === "racing") setTheme("meridian");
-    else if (resolvedTheme === "meridian") setTheme("designgud");
-    else if (resolvedTheme === "designgud") setTheme("supahero");
-    else if (resolvedTheme === "supahero") setTheme("opencall");
-    else setTheme("light");
-  };
+  const themeOptions = [
+    { value: "light", label: "Light", swatch: "hsl(0,0%,100%)" },
+    { value: "dark", label: "Dark", swatch: "hsl(240,6%,10%)" },
+    { value: "maggie", label: "Maggie", swatch: "hsl(330,80%,75%)" },
+    { value: "racing", label: "Racing", swatch: "hsl(55,100%,50%)" },
+    { value: "meridian", label: "Meridian", swatch: "hsl(30,80%,55%)" },
+    { value: "designgud", label: "Designgud", swatch: "hsl(52,100%,70%)" },
+    { value: "supahero", label: "Supahero", swatch: "hsl(0,0%,96%)" },
+    { value: "opencall", label: "OpenCall", swatch: "hsl(130,30%,80%)" },
+  ];
 
   const themeLabelMap: Record<string, string> = { light: "Light", dark: "Dark", maggie: "Maggie", racing: "Racing", meridian: "Meridian", designgud: "Designgud", supahero: "Supahero", opencall: "OpenCall" };
   const themeLabel = themeLabelMap[resolvedTheme] || "Light";
