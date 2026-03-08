@@ -291,8 +291,63 @@ export default function AppPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-dvh flex items-center justify-center bg-background">
-        <div className="text-muted-foreground">Loading...</div>
+      <div className="min-h-dvh bg-background">
+        {/* Header skeleton */}
+        <div className="h-12 bg-muted/50 border-b border-border" />
+        
+        {/* Hero skeleton */}
+        <div className="lg:hidden" style={{ background: 'linear-gradient(135deg, #6f7a83 0%, #a3aab1 100%)', padding: '24px 20px' }}>
+          <div className="flex items-center gap-5">
+            <div className="w-[112px] h-[112px] rounded-3xl bg-white/20 animate-pulse" />
+            <div className="flex-1 space-y-3">
+              <div className="h-6 w-40 bg-white/20 rounded animate-pulse" />
+              <div className="h-4 w-56 bg-white/15 rounded animate-pulse" />
+              <div className="h-9 w-28 bg-white/20 rounded-full animate-pulse mt-2" />
+            </div>
+          </div>
+        </div>
+        <div className="hidden lg:block" style={{ background: 'linear-gradient(135deg, #4a4e54 0%, #6f7a83 50%, #a3aab1 100%)', padding: '40px 0' }}>
+          <div className="max-w-[980px] mx-auto px-10 flex items-center gap-7">
+            <div className="w-[190px] h-[190px] rounded-[38px] bg-white/20 animate-pulse" />
+            <div className="flex-1 space-y-4">
+              <div className="h-8 w-64 bg-white/20 rounded animate-pulse" />
+              <div className="h-5 w-80 bg-white/15 rounded animate-pulse" />
+              <div className="h-4 w-40 bg-white/10 rounded animate-pulse" />
+              <div className="flex gap-4 mt-2">
+                <div className="h-10 w-32 bg-white/20 rounded-full animate-pulse" />
+                <div className="h-10 w-24 bg-white/15 rounded-full animate-pulse" />
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        {/* Metadata strip skeleton */}
+        <div className="border-b border-border/30 py-4">
+          <div className="max-w-[980px] mx-auto px-5 flex gap-8 overflow-x-auto">
+            {[...Array(5)].map((_, i) => (
+              <div key={i} className="flex flex-col items-center gap-2 min-w-[80px]">
+                <div className="h-5 w-12 bg-muted rounded animate-pulse" />
+                <div className="h-3 w-16 bg-muted/70 rounded animate-pulse" />
+              </div>
+            ))}
+          </div>
+        </div>
+        
+        {/* Content skeleton */}
+        <div className="max-w-[980px] mx-auto px-5 lg:px-10 py-6 space-y-6">
+          <div className="h-5 w-32 bg-muted rounded animate-pulse" />
+          <div className="flex gap-3 overflow-hidden">
+            {[...Array(3)].map((_, i) => (
+              <div key={i} className="w-[200px] h-[360px] rounded-2xl bg-muted animate-pulse flex-shrink-0" />
+            ))}
+          </div>
+          <div className="h-5 w-24 bg-muted rounded animate-pulse mt-8" />
+          <div className="space-y-2">
+            <div className="h-4 w-full bg-muted/70 rounded animate-pulse" />
+            <div className="h-4 w-5/6 bg-muted/70 rounded animate-pulse" />
+            <div className="h-4 w-3/4 bg-muted/70 rounded animate-pulse" />
+          </div>
+        </div>
       </div>
     );
   }
