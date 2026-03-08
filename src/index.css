@@ -476,6 +476,61 @@
     --shadow-lg: 0 8px 24px 0 hsl(150 20% 10% / 0.08);
     --shadow-xl: 0 20px 50px -12px hsl(150 20% 10% / 0.12);
   }
+
+  /* Shuttle Theme - Dark developer-focused, warm orange/amber accents */
+  .shuttle {
+    --background: 20 10% 7%;
+    --foreground: 30 15% 88%;
+    
+    --card: 20 8% 11%;
+    --card-foreground: 30 15% 88%;
+    
+    --popover: 20 8% 11%;
+    --popover-foreground: 30 15% 88%;
+    
+    --primary: 25 95% 55%;
+    --primary-foreground: 0 0% 100%;
+    
+    --secondary: 20 6% 15%;
+    --secondary-foreground: 30 15% 85%;
+    
+    --muted: 20 6% 14%;
+    --muted-foreground: 30 8% 50%;
+    
+    --accent: 25 95% 55%;
+    --accent-foreground: 0 0% 100%;
+    
+    --destructive: 0 72% 50%;
+    --destructive-foreground: 0 0% 100%;
+    
+    --success: 142 72% 42%;
+    --success-foreground: 0 0% 100%;
+    
+    --warning: 38 95% 48%;
+    --warning-foreground: 0 0% 100%;
+    
+    --border: 20 6% 16%;
+    --input: 20 6% 16%;
+    --ring: 25 95% 55%;
+    
+    --radius: 0.75rem;
+    
+    --sidebar-background: 20 8% 8%;
+    --sidebar-foreground: 30 12% 75%;
+    --sidebar-primary: 25 95% 55%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 20 6% 12%;
+    --sidebar-accent-foreground: 30 15% 88%;
+    --sidebar-border: 20 6% 14%;
+    --sidebar-ring: 25 95% 55%;
+    
+    --glass: 20 10% 7% / 0.92;
+    --glass-border: 25 95% 55% / 0.06;
+    --shadow-sm: 0 1px 3px 0 hsl(0 0% 0% / 0.4);
+    --shadow-md: 0 4px 12px 0 hsl(0 0% 0% / 0.5);
+    --shadow-lg: 0 8px 24px 0 hsl(25 80% 40% / 0.08);
+    --shadow-xl: 0 16px 40px -8px hsl(25 80% 40% / 0.12);
+  }
 }
 
 @layer base {
