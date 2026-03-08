@@ -129,7 +129,7 @@ export function Header() {
                 src="/favicon.png"
                 alt="SliceURL"
                 className={`h-8 w-8 rounded-lg object-contain shrink-0 ${
-                  resolvedTheme === "dark" ? "invert brightness-110" : ""
+                  (resolvedTheme === "dark" || resolvedTheme === "racing") ? "invert brightness-110" : ""
                 }`}
               />
               <span className="text-xl font-bold tracking-tight">
