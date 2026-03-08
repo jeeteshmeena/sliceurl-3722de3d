@@ -104,38 +104,34 @@ export function MetadataStrip({
       label: formatRatingCount(ratingCount),
       value: ratingAvg?.toFixed(1) || "0.0",
       bottom: <StarRow rating={ratingAvg || 0} />,
-      isBoldValue: true,
     },
     {
       label: "AGES",
-      value: ageRating,
-      bottom: <span style={{ fontSize: 13, fontWeight: 400, color: '#a1a1a6' }} className="leading-none">Years Old</span>,
-      isBoldValue: true,
+      value: ageRating || "4+",
+      bottom: <span style={{ fontSize: 13, fontWeight: 400, color: '#a1a1a6' }} className="leading-none">Years</span>,
     },
     {
       label: "DOWNLOAD",
       value: downloads || "0",
       bottom: <span style={{ fontSize: 13, fontWeight: 400, color: '#a1a1a6' }} className="leading-none">Downloads</span>,
-      isBoldValue: true,
     },
     {
       label: "DEVELOPER",
       value: null,
-      center: <UserRound className="h-[18px] w-[18px]" style={{ color: '#8e8e93' }} fill="#8e8e93" strokeWidth={0} />,
+      center: <UserRound className="h-[21px] w-[21px]" style={{ color: '#8e8e93' }} fill="#8e8e93" strokeWidth={0} />,
       bottom: <span style={{ fontSize: 13, fontWeight: 400, color: '#a1a1a6' }} className="leading-none truncate max-w-[80px]">{devFirstName}</span>,
       onClick: developerUrl ? handleDeveloperClick : undefined,
     },
     {
       label: "CATEGORY",
       value: null,
-      center: <CategoryIcon category={category} className="h-[18px] w-[18px]" />,
+      center: <CategoryIcon category={category} className="h-[21px] w-[21px]" />,
       bottom: <span style={{ fontSize: 13, fontWeight: 400, color: '#a1a1a6' }} className="leading-none">{category || "Other"}</span>,
     },
     {
       label: "SIZE",
-      value: sizeValue,
-      bottom: <span style={{ fontSize: 13, fontWeight: 400, color: '#a1a1a6' }} className="leading-none">{sizeUnit}</span>,
-      isBoldValue: true,
+      value: sizeValue || "0",
+      bottom: <span style={{ fontSize: 13, fontWeight: 400, color: '#a1a1a6' }} className="leading-none">{sizeUnit || "MB"}</span>,
     },
   ];
 
@@ -181,7 +177,7 @@ export function MetadataStrip({
             {/* Center: value or icon */}
             <div className="my-2 flex items-center justify-center min-h-[28px]">
               {item.value && (
-                <span className="leading-none tracking-tight" style={{ fontSize: 17, fontWeight: 500, color: '#ffffff' }}>
+                <span className="leading-none tracking-tight text-foreground" style={{ fontSize: 17, fontWeight: 600 }}>
                   {item.value}
                 </span>
               )}
