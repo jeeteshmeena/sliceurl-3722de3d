@@ -270,7 +270,7 @@ export default function AppPage() {
                 {app.icon_url ? (
                   <img src={app.icon_url} alt={app.app_name} className="w-full h-full object-cover" loading="lazy" />
                 ) : (
-                  <div className="w-full h-full flex items-center justify-center text-4xl font-bold" style={{ color: '#8e8e93', background: '#f5f5f7' }}>
+                  <div className="w-full h-full flex items-center justify-center text-4xl font-bold text-muted-foreground bg-muted">
                     {app.app_name.charAt(0)}
                   </div>
                 )}
