@@ -27,21 +27,21 @@ export interface AnalyticsSummary {
   clicksTimeline: { date: string; clicks: number }[];
 }
 
-// Monochrome grey scale colors for charts
+// Theme-aware chart colors using CSS variables
 const MONO_COLORS = [
-  "#1a1a1a", // Darkest
-  "#404040",
-  "#666666",
-  "#888888",
-  "#aaaaaa",
-  "#cccccc", // Lightest
+  "hsl(var(--foreground))",          // Strongest
+  "hsl(var(--foreground) / 0.7)",
+  "hsl(var(--foreground) / 0.5)",
+  "hsl(var(--foreground) / 0.35)",
+  "hsl(var(--foreground) / 0.2)",
+  "hsl(var(--foreground) / 0.1)",    // Lightest
 ];
 
 const DEVICE_COLORS: Record<string, string> = {
-  mobile: "#1a1a1a",
-  desktop: "#666666",
-  tablet: "#aaaaaa",
-  unknown: "#cccccc",
+  mobile: "hsl(var(--foreground))",
+  desktop: "hsl(var(--foreground) / 0.5)",
+  tablet: "hsl(var(--foreground) / 0.2)",
+  unknown: "hsl(var(--foreground) / 0.1)",
 };
 
 export function useAnalytics(linkId: string, dateRangeStart?: Date | null) {

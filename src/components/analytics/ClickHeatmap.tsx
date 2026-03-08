@@ -116,13 +116,16 @@ export function ClickHeatmap({ clicks }: ClickHeatmapProps) {
           <div className="flex items-center gap-2 mt-4 ml-12">
             <span className="text-[10px] text-muted-foreground">Less</span>
             <div className="flex gap-0.5">
-              {[0, 0.25, 0.5, 0.75, 1].map((intensity, idx) => (
-                <div
-                  key={idx}
-                  className="w-3 h-3 rounded-sm"
-                  style={{ backgroundColor: `hsl(0, 0%, ${90 - intensity * 75}%)` }}
-                />
-              ))}
+              {[0, 0.25, 0.5, 0.75, 1].map((intensity, idx) => {
+                const opacity = intensity === 0 ? 0 : 0.1 + (intensity * 0.85);
+                return (
+                  <div
+                    key={idx}
+                    className="w-3 h-3 rounded-sm"
+                    style={{ backgroundColor: intensity === 0 ? "hsl(var(--muted))" : `hsl(var(--foreground) / ${opacity})` }}
+                  />
+                );
+              })}
             </div>
             <span className="text-[10px] text-muted-foreground">More</span>
           </div>

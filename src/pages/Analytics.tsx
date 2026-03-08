@@ -614,7 +614,7 @@ const Analytics = () => {
                           borderRadius: "8px"
                         }}
                       />
-                      <Bar dataKey="value" fill="#1a1a1a" radius={[0, 6, 6, 0]} />
+                      <Bar dataKey="value" fill="hsl(var(--foreground))" radius={[0, 6, 6, 0]} />
                     </BarChart>
                   </ResponsiveContainer>
                 </div>
