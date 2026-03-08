@@ -148,7 +148,7 @@ export function Header() {
             ) : (
               <Moon className="h-[18px] w-[18px]" />
             )}
-          </Button>
+          </button>
 
           {/* Language Selector - Clean icon, no pill background */}
           <Popover open={langOpen} onOpenChange={setLangOpen}>
