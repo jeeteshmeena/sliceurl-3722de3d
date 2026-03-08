@@ -1,12 +1,9 @@
 import { useState, useEffect, useMemo } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { Mail, ArrowLeft, Loader2, Lock, Eye, EyeOff, User, AlertCircle, CheckCircle2 } from "lucide-react";
+import { ArrowLeft, Loader2, Eye, EyeOff, AlertCircle, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { useAuth } from "@/hooks/useAuth";
-import { useToast } from "@/hooks/use-toast";
-import { useLanguage } from "@/lib/i18n";
 import { AuthSuccess } from "@/components/AuthSuccess";
 
 type AuthMode = "login" | "signup" | "forgot-password";
@@ -22,6 +19,13 @@ interface FieldErrors {
   confirmPassword?: string;
 }
 
+interface TouchedFields {
+  fullName?: boolean;
+  email?: boolean;
+  password?: boolean;
+  confirmPassword?: boolean;
+}
+
 interface FormAlert {
   type: "error" | "success" | "info";
   message: string;
@@ -31,7 +35,6 @@ interface FormAlert {
   };
 }
 
-// Inline error component
 const FieldError = ({ message }: { message?: string }) => (
   <AnimatePresence mode="wait">
     {message && (
@@ -40,7 +43,7 @@ const FieldError = ({ message }: { message?: string }) => (
         animate={{ opacity: 1, y: 0, height: "auto" }}
         exit={{ opacity: 0, y: -4, height: 0 }}
         transition={{ duration: 0.15 }}
-        className="flex items-center gap-1.5 mt-1.5 text-destructive"
+        className="flex items-center gap-1.5 mt-1.5 text-destructive/80"
       >
         <AlertCircle className="h-3.5 w-3.5 flex-shrink-0" />
         <span className="text-xs font-medium">{message}</span>
@@ -49,7 +52,6 @@ const FieldError = ({ message }: { message?: string }) => (
   </AnimatePresence>
 );
 
-// Form alert banner
 const FormAlertBanner = ({ alert }: { alert: FormAlert | null }) => (
   <AnimatePresence mode="wait">
     {alert && (
@@ -58,12 +60,12 @@ const FormAlertBanner = ({ alert }: { alert: FormAlert | null }) => (
         animate={{ opacity: 1, y: 0, height: "auto" }}
         exit={{ opacity: 0, y: -8, height: 0 }}
         transition={{ duration: 0.2 }}
-        className={`mb-5 p-3 rounded-xl border flex items-start gap-2.5 ${
+        className={`mb-4 p-3 rounded-xl border flex items-start gap-2.5 ${
           alert.type === "error"
-            ? "bg-destructive/5 border-destructive/20 text-destructive"
+            ? "bg-destructive/5 border-destructive/15 text-destructive/90 dark:bg-destructive/10 dark:border-destructive/20 dark:text-destructive/80"
             : alert.type === "success"
-            ? "bg-green-500/5 border-green-500/20 text-green-600 dark:text-green-400"
-            : "bg-blue-500/5 border-blue-500/20 text-blue-600 dark:text-blue-400"
+            ? "bg-success/5 border-success/15 text-success dark:bg-success/10 dark:border-success/20"
+            : "bg-accent/5 border-accent/15 text-accent dark:bg-accent/10 dark:border-accent/20"
         }`}
       >
         {alert.type === "error" ? (
@@ -89,7 +91,6 @@ const FormAlertBanner = ({ alert }: { alert: FormAlert | null }) => (
 );
 
 const Auth = ({ mode: initialMode = "login" }: AuthProps) => {
-  const { t } = useLanguage();
   const [mode, setMode] = useState<AuthMode>(initialMode);
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
@@ -99,12 +100,12 @@ const Auth = ({ mode: initialMode = "login" }: AuthProps) => {
   const [isLoading, setIsLoading] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
+  const [touched, setTouched] = useState<TouchedFields>({});
   const [formAlert, setFormAlert] = useState<FormAlert | null>(null);
   const [showSuccess, setShowSuccess] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
-  
+
   const { user, loading, signIn, signUp, signInWithGoogle, resetPassword } = useAuth();
-  const { toast } = useToast();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -125,6 +126,29 @@ const Auth = ({ mode: initialMode = "login" }: AuthProps) => {
     if (formAlert) setFormAlert(null);
   };
 
+  const markTouched = (field: keyof TouchedFields) => {
+    setTouched((prev) => ({ ...prev, [field]: true }));
+  };
+
+  const isEmailValid = (v: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
+
+  const getInputClass = (field: keyof FieldErrors) => {
+    const base = "h-12 text-base bg-background rounded-lg border transition-all duration-200 ease-out px-3 placeholder:text-muted-foreground/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-0";
+    if (fieldErrors[field]) {
+      return `${base} border-destructive/60 focus-visible:ring-destructive/30`;
+    }
+    if (touched[field]) {
+      // Check if field is valid
+      let valid = false;
+      if (field === "email") valid = isEmailValid(email);
+      else if (field === "fullName") valid = fullName.trim().length >= 2;
+      else if (field === "password") valid = mode === "login" ? password.length > 0 : password.length >= 6;
+      else if (field === "confirmPassword") valid = confirmPassword.length > 0 && confirmPassword === password;
+      if (valid) return `${base} border-foreground/30 focus-visible:ring-foreground/20`;
+    }
+    return `${base} border-border focus-visible:ring-foreground/20`;
+  };
+
   const validateForm = (): boolean => {
     const errors: FieldErrors = {};
     let isValid = true;
@@ -132,7 +156,7 @@ const Auth = ({ mode: initialMode = "login" }: AuthProps) => {
     if (!email.trim()) {
       errors.email = "Email is required";
       isValid = false;
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    } else if (!isEmailValid(email)) {
       errors.email = "Please enter a valid email address";
       isValid = false;
     }
@@ -172,16 +196,15 @@ const Auth = ({ mode: initialMode = "login" }: AuthProps) => {
     return isValid;
   };
 
-  // Check if primary button should be active
   const isFormValid = useMemo(() => {
     if (mode === "login") {
-      return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) && password.length > 0;
+      return isEmailValid(email) && password.length > 0;
     }
     if (mode === "signup") {
-      return fullName.trim().length >= 2 && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) && password.length >= 6 && confirmPassword === password;
+      return fullName.trim().length >= 2 && isEmailValid(email) && password.length >= 6 && confirmPassword === password;
     }
     if (mode === "forgot-password") {
-      return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+      return isEmailValid(email);
     }
     return false;
   }, [mode, email, password, fullName, confirmPassword]);
@@ -233,7 +256,7 @@ const Auth = ({ mode: initialMode = "login" }: AuthProps) => {
           }
         }
       }
-    } catch (error: any) {
+    } catch {
       setFormAlert({ type: "error", message: "Something went wrong. Please try again." });
     } finally {
       setIsLoading(false);
@@ -246,6 +269,7 @@ const Auth = ({ mode: initialMode = "login" }: AuthProps) => {
     setPassword("");
     setConfirmPassword("");
     setFieldErrors({});
+    setTouched({});
     setFormAlert(null);
   };
 
@@ -257,7 +281,7 @@ const Auth = ({ mode: initialMode = "login" }: AuthProps) => {
       if (error) {
         setFormAlert({ type: "error", message: "Google sign-in failed. Please try again." });
       }
-    } catch (error: any) {
+    } catch {
       setFormAlert({ type: "error", message: "Something went wrong with Google sign-in." });
     } finally {
       setIsGoogleLoading(false);
@@ -270,215 +294,237 @@ const Auth = ({ mode: initialMode = "login" }: AuthProps) => {
 
   if (loading) {
     return (
-      <div className="min-h-dvh bg-background flex items-center justify-center">
+      <div className="min-h-screen bg-background flex items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
       </div>
     );
   }
 
-  const inputBaseClass = "h-12 text-base rounded-xl border bg-muted/50 border-border px-4 transition-all duration-150 focus:border-foreground/30 focus:ring-1 focus:ring-foreground/10 placeholder:text-muted-foreground/50";
-
-  const getInputClassName = (hasError: boolean) =>
-    `${inputBaseClass} ${hasError ? "border-destructive focus:border-destructive focus:ring-destructive/15" : ""}`;
-
   return (
-    <div className={`min-h-dvh bg-background flex flex-col ${mode === "signup" ? "overflow-y-auto" : "overflow-hidden"}`}>
+    <div className="h-[100dvh] bg-background flex flex-col overflow-hidden">
       {/* Back arrow */}
-      <div className="px-4 pt-4">
-        <button
-          type="button"
-          onClick={() => navigate(-1)}
-          className="p-2 -ml-2 text-foreground hover:text-foreground/70 transition-colors"
-          aria-label="Go back"
-        >
-          <ArrowLeft className="h-5 w-5" />
-        </button>
-      </div>
+      <button
+        type="button"
+        onClick={() => navigate(-1)}
+        className="absolute top-5 left-5 h-10 w-10 rounded-full flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors z-10"
+        aria-label="Go back"
+      >
+        <ArrowLeft className="h-5 w-5" />
+      </button>
 
-      <div className="flex-1 flex flex-col px-6 sm:px-8 pt-6 pb-8 max-w-md mx-auto w-full">
-        {/* Title + Subtitle */}
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="mb-8"
-        >
-          <h1 className="text-2xl sm:text-3xl font-bold text-foreground tracking-tight">
-            {mode === "signup" ? "Sign up" : mode === "forgot-password" ? "Reset password" : "Sign in"}
-          </h1>
-          <p className="text-muted-foreground text-sm mt-2 leading-relaxed">
-            {mode === "signup"
-              ? "Create an account to start shortening links"
-              : mode === "forgot-password"
-              ? "Enter your email to receive a reset link"
-              : "Access your account and manage your links"}
-          </p>
-        </motion.div>
+      {/* Content area */}
+      <div className="flex-1 flex flex-col justify-center px-6 sm:px-8 pt-14 pb-6">
+        <div className="w-full max-w-sm mx-auto">
+          {/* Heading */}
+          <motion.div
+            key={mode + "-heading"}
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4 }}
+            className="mb-6"
+          >
+            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground">
+              {mode === "signup" ? "Sign up" : mode === "forgot-password" ? "Reset password" : "Sign in"}
+            </h1>
+            <p className="mt-2 text-muted-foreground text-base">
+              {mode === "signup"
+                ? "Create an account to start shortening links"
+                : mode === "forgot-password"
+                ? "Enter your email and we'll send you a reset link"
+                : "Access your account and manage your links"}
+            </p>
+          </motion.div>
 
-        {/* Form Alert */}
-        <FormAlertBanner alert={formAlert} />
+          {/* Form Alert */}
+          <FormAlertBanner alert={formAlert} />
 
-        <form onSubmit={handleSubmit} className="space-y-5 flex-1">
-          {/* Full Name (signup) */}
-          {mode === "signup" && (
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-foreground">Full name</label>
-              <Input
-                type="text"
-                placeholder="Enter your full name"
-                value={fullName}
-                onChange={(e) => { setFullName(e.target.value); clearFieldError("fullName"); }}
-                className={getInputClassName(!!fieldErrors.fullName)}
+          {/* Form */}
+          <motion.form
+            key={mode + "-form"}
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, delay: 0.05 }}
+            onSubmit={handleSubmit}
+            className="space-y-4"
+          >
+            {/* Full Name (signup) */}
+            {mode === "signup" && (
+              <div>
+                <label className="text-sm font-medium text-foreground mb-1.5 block">Full name</label>
+                <input
+                  type="text"
+                  placeholder="Enter your full name"
+                  value={fullName}
+                  onChange={(e) => { setFullName(e.target.value); clearFieldError("fullName"); }}
+                  onBlur={() => markTouched("fullName")}
+                  className={getInputClass("fullName") + " w-full"}
+                  disabled={isLoading}
+                  autoFocus
+                />
+                <FieldError message={fieldErrors.fullName} />
+              </div>
+            )}
+
+            {/* Email */}
+            <div>
+              <label className="text-sm font-medium text-foreground mb-1.5 block">Email</label>
+              <input
+                type="email"
+                placeholder="Enter your email"
+                value={email}
+                onChange={(e) => { setEmail(e.target.value); clearFieldError("email"); }}
+                onBlur={() => markTouched("email")}
+                className={getInputClass("email") + " w-full"}
                 disabled={isLoading}
-                autoFocus
+                autoFocus={mode !== "signup"}
               />
-              <FieldError message={fieldErrors.fullName} />
+              <FieldError message={fieldErrors.email} />
             </div>
-          )}
 
-          {/* Email */}
-          <div className="space-y-2">
-            <label className="text-sm font-medium text-foreground">Email</label>
-            <Input
-              type="email"
-              placeholder="Enter your email"
-              value={email}
-              onChange={(e) => { setEmail(e.target.value); clearFieldError("email"); }}
-              className={getInputClassName(!!fieldErrors.email)}
-              disabled={isLoading}
-              autoFocus={mode !== "signup"}
-            />
-            <FieldError message={fieldErrors.email} />
-          </div>
-
-          {/* Password */}
-          {mode !== "forgot-password" && (
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <label className="text-sm font-medium text-foreground">Password</label>
-                {mode === "login" && (
+            {/* Password */}
+            {mode !== "forgot-password" && (
+              <div>
+                <div className="flex items-center justify-between mb-1.5">
+                  <label className="text-sm font-medium text-foreground">Password</label>
+                  {mode === "login" && (
+                    <button
+                      type="button"
+                      onClick={() => handleModeSwitch("forgot-password")}
+                      className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+                      disabled={isLoading}
+                    >
+                      Forgot password?
+                    </button>
+                  )}
+                </div>
+                <div className="relative h-12">
+                  <input
+                    type={showPassword ? "text" : "password"}
+                    placeholder="Enter your password"
+                    value={password}
+                    onChange={(e) => { setPassword(e.target.value); clearFieldError("password"); }}
+                    onBlur={() => markTouched("password")}
+                    className={getInputClass("password") + " pr-10 absolute inset-0 w-full"}
+                    disabled={isLoading}
+                  />
                   <button
                     type="button"
-                    onClick={() => handleModeSwitch("forgot-password")}
-                    className="text-xs text-muted-foreground hover:text-foreground transition-colors"
-                    disabled={isLoading}
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-0 bottom-0 flex items-center justify-center text-muted-foreground hover:text-foreground transition-opacity duration-[120ms] z-10"
+                    tabIndex={-1}
                   >
-                    Forgot password?
+                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                   </button>
-                )}
+                </div>
+                <FieldError message={fieldErrors.password} />
               </div>
-              <div className="relative">
-                <Input
-                  type={showPassword ? "text" : "password"}
-                  placeholder="Enter your password"
-                  value={password}
-                  onChange={(e) => { setPassword(e.target.value); clearFieldError("password"); }}
-                  className={`${getInputClassName(!!fieldErrors.password)} pr-12`}
-                  disabled={isLoading}
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-opacity duration-[120ms]"
-                  disabled={isLoading}
-                  tabIndex={-1}
-                >
-                  {showPassword ? <EyeOff className="h-4.5 w-4.5" /> : <Eye className="h-4.5 w-4.5" />}
-                </button>
-              </div>
-              <FieldError message={fieldErrors.password} />
-            </div>
-          )}
-
-          {/* Confirm password (signup) */}
-          {mode === "signup" && (
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-foreground">Confirm password</label>
-              <div className="relative">
-                <Input
-                  type={showPassword ? "text" : "password"}
-                  placeholder="Confirm your password"
-                  value={confirmPassword}
-                  onChange={(e) => { setConfirmPassword(e.target.value); clearFieldError("confirmPassword"); }}
-                  className={`${getInputClassName(!!fieldErrors.confirmPassword)} pr-12`}
-                  disabled={isLoading}
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-opacity duration-[120ms]"
-                  disabled={isLoading}
-                  tabIndex={-1}
-                >
-                  {showPassword ? <EyeOff className="h-4.5 w-4.5" /> : <Eye className="h-4.5 w-4.5" />}
-                </button>
-              </div>
-              <FieldError message={fieldErrors.confirmPassword} />
-            </div>
-          )}
-
-          {/* Primary Button */}
-          <Button
-            type="submit"
-            className={`w-full h-12 text-base font-medium rounded-full transition-colors ${
-              isFormValid && !isLoading
-                ? "bg-foreground text-background hover:bg-foreground/90"
-                : "bg-muted text-muted-foreground cursor-not-allowed"
-            }`}
-            disabled={isLoading || isGoogleLoading || !isFormValid}
-          >
-            {isLoading ? (
-              <>
-                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                {mode === "forgot-password" ? "Sending..." : mode === "signup" ? "Creating account..." : "Signing in..."}
-              </>
-            ) : (
-              mode === "forgot-password" ? "Send reset link" : mode === "signup" ? "Sign up" : "Sign in"
             )}
-          </Button>
 
-          {/* Back for forgot password */}
-          {mode === "forgot-password" && (
+            {/* Confirm Password (signup) */}
+            {mode === "signup" && (
+              <div>
+                <label className="text-sm font-medium text-foreground mb-1.5 block">Confirm password</label>
+                <div className="relative h-12">
+                  <input
+                    type={showPassword ? "text" : "password"}
+                    placeholder="Confirm your password"
+                    value={confirmPassword}
+                    onChange={(e) => { setConfirmPassword(e.target.value); clearFieldError("confirmPassword"); }}
+                    onBlur={() => markTouched("confirmPassword")}
+                    className={getInputClass("confirmPassword") + " pr-10 absolute inset-0 w-full"}
+                    disabled={isLoading}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-0 bottom-0 flex items-center justify-center text-muted-foreground hover:text-foreground transition-opacity duration-[120ms] z-10"
+                    tabIndex={-1}
+                  >
+                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </button>
+                </div>
+                <FieldError message={fieldErrors.confirmPassword} />
+              </div>
+            )}
+
+            {/* Submit Button */}
             <Button
-              variant="ghost"
-              className="w-full h-12"
-              onClick={() => handleModeSwitch("login")}
-              type="button"
-              disabled={isLoading}
+              type="submit"
+              className={`w-full h-12 text-base font-medium rounded-full transition-all duration-200 ${
+                isFormValid && !isLoading && !isGoogleLoading
+                  ? "bg-foreground text-background hover:bg-foreground/90"
+                  : "bg-foreground/40 text-background/70 cursor-not-allowed"
+              }`}
+              disabled={isLoading || isGoogleLoading || !isFormValid}
             >
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Back to sign in
+              {isLoading ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  {mode === "forgot-password" ? "Sending..." : mode === "signup" ? "Creating account..." : "Signing in..."}
+                </>
+              ) : (
+                mode === "forgot-password" ? "Send reset link" : mode === "signup" ? "Create account" : "Sign in"
+              )}
             </Button>
-          )}
 
-          {/* Account switch text - directly below button */}
+            {/* Back to sign in (forgot-password) */}
+            {mode === "forgot-password" && (
+              <Button
+                variant="ghost"
+                className="w-full h-12 rounded-full"
+                onClick={() => handleModeSwitch("login")}
+                type="button"
+                disabled={isLoading}
+              >
+                <ArrowLeft className="h-4 w-4 mr-2" />
+                Back to sign in
+              </Button>
+            )}
+          </motion.form>
+
+          {/* Account Switcher */}
           {mode !== "forgot-password" && (
-            <p className="text-center text-sm text-muted-foreground">
+            <motion.p
+              key={mode + "-switch"}
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4, delay: 0.08 }}
+              className="mt-4 text-sm text-muted-foreground text-center"
+            >
               {mode === "login" ? "Don't have an account? " : "Already have an account? "}
               <Link
                 to={mode === "login" ? "/register" : "/login"}
-                className="text-foreground font-semibold hover:underline"
+                className="text-foreground font-semibold underline hover:no-underline"
               >
                 {mode === "login" ? "Sign up" : "Sign in"}
               </Link>
-            </p>
+            </motion.p>
           )}
 
-          {/* Social Login */}
+          {/* Divider */}
           {mode !== "forgot-password" && (
-            <>
-              <div className="relative my-2">
-                <div className="absolute inset-0 flex items-center">
-                  <span className="w-full border-t border-dashed border-border" />
-                </div>
-                <div className="relative flex justify-center text-xs uppercase">
-                  <span className="bg-background px-4 text-muted-foreground font-medium">or</span>
-                </div>
+            <div className="mt-6 mb-6 relative">
+              <div className="absolute inset-0 flex items-center">
+                <span className="w-full border-t border-border/40" />
               </div>
+              <div className="relative flex justify-center">
+                <span className="bg-background px-4 text-muted-foreground tracking-wider text-xs uppercase">or</span>
+              </div>
+            </div>
+          )}
 
+          {/* Google Sign-In */}
+          {mode !== "forgot-password" && (
+            <motion.div
+              key={mode + "-google"}
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4, delay: 0.1 }}
+            >
               <Button
                 type="button"
                 variant="outline"
-                className="w-full h-12 gap-3 text-foreground font-medium border-border rounded-xl hover:bg-muted/50"
+                className="w-full h-12 gap-3 text-foreground font-medium border-border/60 hover:bg-muted/30 rounded-full transition-all duration-200 active:scale-[0.98] dark:bg-muted/20 dark:hover:bg-muted/40 dark:border-border/40"
                 onClick={handleGoogleSignIn}
                 disabled={isGoogleLoading || isLoading}
               >
@@ -494,23 +540,29 @@ const Auth = ({ mode: initialMode = "login" }: AuthProps) => {
                 )}
                 Continue with Google
               </Button>
-            </>
+            </motion.div>
           )}
-        </form>
 
-        {/* Terms text at bottom */}
-        {mode !== "forgot-password" && (
-          <p className="text-center text-[11px] text-muted-foreground/70 mt-auto pt-6">
-            By {mode === "login" ? "logging in" : "signing up"}, you agree to our{" "}
-            <Link to="/terms" className="underline hover:text-foreground transition-colors">
-              Terms of Service
-            </Link>{" "}
-            and{" "}
-            <Link to="/privacy" className="underline hover:text-foreground transition-colors">
-              Privacy Policy
-            </Link>
-          </p>
-        )}
+          {/* Consent Text */}
+          {mode !== "forgot-password" && (
+            <motion.p
+              key={mode + "-consent"}
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4, delay: 0.18 }}
+              className="mt-6 text-xs text-muted-foreground/70 text-center leading-relaxed"
+            >
+              By {mode === "login" ? "signing in" : "signing up"}, you agree to our{" "}
+              <Link to="/terms" className="text-muted-foreground underline hover:no-underline">
+                Terms of Service
+              </Link>{" "}
+              and{" "}
+              <Link to="/privacy" className="text-muted-foreground underline hover:no-underline">
+                Privacy Policy
+              </Link>.
+            </motion.p>
+          )}
+        </div>
       </div>
     </div>
   );
