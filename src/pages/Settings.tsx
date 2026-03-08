@@ -724,10 +724,10 @@ export default function Settings() {
             {/* Link Preview Toggle Row */}
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <Eye className="h-4 w-4 text-neutral-500 dark:text-neutral-400" />
+                <Eye className="h-4 w-4 text-muted-foreground" />
                 <div>
-                  <span className="text-sm text-neutral-700 dark:text-neutral-300">Link Preview</span>
-                  <p className="text-xs text-neutral-400 dark:text-neutral-500">
+                  <span className="text-sm text-secondary-foreground">Link Preview</span>
+                  <p className="text-xs text-muted-foreground">
                     Show preview before redirecting
                   </p>
                 </div>
