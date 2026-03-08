@@ -81,7 +81,7 @@ const Analytics = () => {
   };
 
   // Monochrome colors for sources
-  const sourceColors = ["#1a1a1a", "#404040", "#666666", "#888888", "#aaaaaa", "#cccccc", "#e5e5e5", "#f5f5f5"];
+  const sourceColors = ["hsl(var(--foreground))", "hsl(var(--foreground) / 0.7)", "hsl(var(--foreground) / 0.5)", "hsl(var(--foreground) / 0.35)", "hsl(var(--foreground) / 0.2)", "hsl(var(--foreground) / 0.12)", "hsl(var(--foreground) / 0.08)", "hsl(var(--foreground) / 0.05)"];
 
   if (loading) {
     return (
