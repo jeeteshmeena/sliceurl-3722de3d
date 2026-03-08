@@ -60,7 +60,8 @@ export function SliceAppsHeader() {
           </button>
 
           <span
-            className="absolute left-1/2 -translate-x-1/2 text-lg font-semibold tracking-tight text-foreground"
+            onClick={() => navigate("/apps")}
+            className="absolute left-1/2 -translate-x-1/2 text-lg font-semibold tracking-tight text-foreground cursor-pointer"
             style={{ letterSpacing: "-0.02em" }}
           >
             SliceAPPs

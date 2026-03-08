@@ -34,6 +34,7 @@ const ShortFileView = lazy(() => import("@/pages/ShortFileView"));
 const LegacySliceBoxRedirect = lazy(() => import("@/pages/LegacySliceBoxRedirect"));
 const CreateAppListing = lazy(() => import("@/pages/CreateAppListing"));
 const AppPage = lazy(() => import("@/pages/AppPage"));
+const SliceAppsHome = lazy(() => import("@/pages/SliceAppsHome"));
 
 const Feedback = lazy(() => import("@/pages/Feedback"));
 const FeedbackAdmin = lazy(() => import("@/pages/FeedbackAdmin"));
@@ -185,6 +186,11 @@ const App = () => (
                   <Route path="/app/:id" element={
                     <Suspense fallback={<PageLoader />}>
                       <AppPage />
+                    </Suspense>
+                  } />
+                  <Route path="/apps" element={
+                    <Suspense fallback={<PageLoader />}>
+                      <SliceAppsHome />
                     </Suspense>
                   } />
                   {/* Feedback Routes */}

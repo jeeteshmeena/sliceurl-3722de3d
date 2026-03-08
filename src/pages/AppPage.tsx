@@ -1,5 +1,5 @@
-import { useState, useEffect } from "react";
-import { motion } from "framer-motion";
+import { useState, useEffect, useCallback } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { useParams, Link } from "react-router-dom";
 import { Lock, AlertTriangle, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -55,6 +55,34 @@ interface Review {
   review_text: string | null;
   created_at: string;
   user_id: string | null;
+}
+
+function ExpandableSection({ title, text }: { title: string; text: string }) {
+  const [expanded, setExpanded] = useState(false);
+  const isLong = text.length > 200;
+
+  return (
+    <section className="mt-8">
+      <h2 className="text-base font-semibold text-foreground mb-3">{title}</h2>
+      <div className="relative">
+        <p
+          className={`text-sm text-muted-foreground leading-relaxed whitespace-pre-wrap ${
+            !expanded && isLong ? "line-clamp-4" : ""
+          }`}
+        >
+          {text}
+        </p>
+        {isLong && (
+          <button
+            onClick={() => setExpanded(!expanded)}
+            className="text-sm font-medium text-primary mt-1"
+          >
+            {expanded ? "Less" : "More"}
+          </button>
+        )}
+      </div>
+    </section>
+  );
 }
 
 export default function AppPage() {
@@ -349,26 +377,12 @@ export default function AppPage() {
 
         {/* About this app */}
         {app.full_description && (
-          <section className="mt-8">
-            <h2 className="text-base font-semibold text-foreground mb-3">
-              About this app
-            </h2>
-            <p className="text-sm text-muted-foreground leading-relaxed whitespace-pre-wrap">
-              {app.full_description}
-            </p>
-          </section>
+          <ExpandableSection title="About this app" text={app.full_description} />
         )}
 
         {/* What's New */}
         {app.whats_new && (
-          <section className="mt-8">
-            <h2 className="text-base font-semibold text-foreground mb-3">
-              What's new
-            </h2>
-            <p className="text-sm text-muted-foreground leading-relaxed whitespace-pre-wrap">
-              {app.whats_new}
-            </p>
-          </section>
+          <ExpandableSection title="What's new" text={app.whats_new} />
         )}
 
         {/* Additional Info */}
