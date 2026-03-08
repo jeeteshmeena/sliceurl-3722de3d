@@ -420,9 +420,9 @@ export default function Settings() {
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.05 }}
-            className="bg-neutral-50 dark:bg-neutral-900 rounded-xl border border-neutral-200 dark:border-neutral-800 p-5 space-y-5"
+            className="bg-secondary rounded-xl border border-border p-5 space-y-5"
           >
-            <h2 className="text-sm font-medium text-neutral-900 dark:text-neutral-100 uppercase tracking-wide">
+            <h2 className="text-sm font-medium text-foreground uppercase tracking-wide">
               Profile Information
             </h2>
 
