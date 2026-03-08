@@ -250,8 +250,8 @@ export function RatingsReviewsSection({
     if (review.user_id && userProfiles[review.user_id]) {
       return userProfiles[review.user_id];
     }
-    if ((review as any).display_name) {
-      return (review as any).display_name;
+    if (review.display_name) {
+      return review.display_name;
     }
     return review.username || generateRandomUsername(review.id);
   };
