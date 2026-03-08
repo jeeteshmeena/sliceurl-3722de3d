@@ -86,9 +86,9 @@ export function MetadataStrip({
       bottom: <span style={{ fontSize: 13, color: '#6e6e73' }} className="leading-none">Years Old</span>,
     },
     {
-      label: "LANGUAGE",
-      value: "EN",
-      bottom: <span style={{ fontSize: 13, color: '#6e6e73' }} className="leading-none">+ More</span>,
+      label: "DOWNLOAD",
+      value: downloads || "0",
+      bottom: <span style={{ fontSize: 13, color: '#6e6e73' }} className="leading-none">Downloads</span>,
     },
     {
       label: "DEVELOPER",
