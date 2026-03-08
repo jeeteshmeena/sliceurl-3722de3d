@@ -76,6 +76,13 @@ export default function AppPage() {
   const [selectedScreenshot, setSelectedScreenshot] = useState<number | null>(null);
   const [aboutExpanded, setAboutExpanded] = useState(false);
   const [whatsNewExpanded, setWhatsNewExpanded] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
+
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 40);
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
 
   useEffect(() => { loadAppData(); }, [id]);
 
