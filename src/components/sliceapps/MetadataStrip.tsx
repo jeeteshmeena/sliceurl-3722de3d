@@ -88,13 +88,13 @@ export function MetadataStrip({
     {
       label: "CATEGORY",
       value: null,
-      center: <CategoryIcon category={category} className="h-[18px] w-[18px]" style={{ color: '#8e8e93' }} />,
+      center: <CategoryIcon category={category} className="h-[18px] w-[18px] text-[#8e8e93]" />,
       bottom: <span style={{ fontSize: 13, color: '#6e6e73' }} className="leading-none">{category || "Other"}</span>,
     },
     {
       label: "DEVELOPER",
       value: null,
-      center: <User className="h-[18px] w-[18px]" style={{ color: '#8e8e93' }} strokeWidth={1.5} />,
+      center: <User className="h-[18px] w-[18px] text-[#8e8e93]" strokeWidth={1.5} />,
       bottom: <span style={{ fontSize: 13, color: '#6e6e73' }} className="leading-none truncate max-w-[80px]">{devFirstName}</span>,
     },
     {
