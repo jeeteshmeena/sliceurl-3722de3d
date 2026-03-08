@@ -81,7 +81,7 @@ export function MetadataStrip({
       bottom: <StarRow rating={ratingAvg || 0} />,
     },
     {
-      label: "AGE",
+      label: "AGES",
       value: ageRating,
       bottom: <span style={{ fontSize: 13, color: '#6e6e73' }} className="leading-none">Years Old</span>,
     },
