@@ -37,7 +37,7 @@ const allLanguages: Language[] = [
 ];
 
 export function Header() {
-  const { resolvedTheme, setTheme } = useTheme();
+  const { resolvedTheme, setTheme, styleTheme, setStyleTheme } = useTheme();
   const { user, signOut } = useAuth();
   const { profile } = useProfile();
   const { language, setLanguage, t } = useLanguage();
