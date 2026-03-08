@@ -868,8 +868,28 @@ textarea:focus-visible,
   border-radius: 1rem;
 }
 
-.maggie [class*="rounded-xl"] {
-  border-radius: 1.25rem;
+
+/* Racing Dark theme typography & style overrides */
+.racing body,
+.racing {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  letter-spacing: -0.02em;
+}
+
+.racing h1, .racing h2, .racing h3 {
+  font-weight: 800;
+  letter-spacing: -0.04em;
+  text-transform: uppercase;
+}
+
+.racing button {
+  font-weight: 700;
+  border-radius: 9999px;
+}
+
+.racing [class*="rounded-lg"],
+.racing [class*="rounded-md"] {
+  border-radius: 0.75rem;
 }
 
 /* Header offset for fixed header */
