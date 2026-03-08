@@ -34,8 +34,8 @@ export function SliceAppsHeader() {
   return (
     <>
       {/* Mobile Header - visible on small screens */}
-      <header className="sticky top-0 z-50 bg-background border-b border-border/30 lg:hidden">
-        <div className="h-12 flex items-center justify-between px-4 relative">
+      <header className="sticky top-0 z-[100] bg-background border-b border-border/30 lg:hidden">
+        <div className="h-[52px] flex items-center justify-between px-4 relative">
           <button
             onClick={() => setMenuOpen(true)}
             className="w-10 h-10 flex flex-col items-start justify-center gap-[5px] pl-1"
