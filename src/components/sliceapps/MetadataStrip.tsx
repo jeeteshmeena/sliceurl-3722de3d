@@ -26,15 +26,15 @@ interface MetadataStripProps {
 function CategoryIcon({ category, className }: { category: string; className?: string }) {
   const cls = className || "h-6 w-6 text-muted-foreground";
   const cat = category.toLowerCase();
-  if (cat.includes("music")) return <Music className={cls} strokeWidth={1.5} />;
-  if (cat.includes("entertainment")) return <Clapperboard className={cls} strokeWidth={1.5} />;
-  if (cat.includes("game") || cat.includes("action")) return <Gamepad2 className={cls} strokeWidth={1.5} />;
-  if (cat.includes("productiv")) return <Navigation className={cls} strokeWidth={1.5} />;
-  if (cat.includes("tool")) return <Wrench className={cls} strokeWidth={1.5} />;
-  if (cat.includes("social")) return <Users className={cls} strokeWidth={1.5} />;
-  if (cat.includes("education")) return <BookOpen className={cls} strokeWidth={1.5} />;
-  if (cat.includes("utilit")) return <Settings className={cls} strokeWidth={1.5} />;
-  return <LayoutGrid className={cls} strokeWidth={1.5} />;
+  if (cat.includes("music")) return <Music className={cls} fill="currentColor" strokeWidth={0} />;
+  if (cat.includes("entertainment")) return <Clapperboard className={cls} fill="currentColor" strokeWidth={0} />;
+  if (cat.includes("game") || cat.includes("action")) return <Gamepad2 className={cls} fill="currentColor" strokeWidth={0} />;
+  if (cat.includes("productiv")) return <Navigation className={cls} fill="currentColor" strokeWidth={0} />;
+  if (cat.includes("tool")) return <Wrench className={cls} fill="currentColor" strokeWidth={0} />;
+  if (cat.includes("social")) return <Users className={cls} fill="currentColor" strokeWidth={0} />;
+  if (cat.includes("education")) return <BookOpen className={cls} fill="currentColor" strokeWidth={0} />;
+  if (cat.includes("utilit")) return <Settings className={cls} fill="currentColor" strokeWidth={0} />;
+  return <LayoutGrid className={cls} fill="currentColor" strokeWidth={0} />;
 }
 
 function StarRow({ rating }: { rating: number }) {
