@@ -8,7 +8,7 @@ type ThemeProviderProps = {
   storageKey?: string;
 };
 
-type ResolvedTheme = "dark" | "light" | "maggie" | "racing" | "meridian" | "designgud" | "supahero";
+type ResolvedTheme = "dark" | "light" | "maggie" | "racing" | "meridian" | "designgud" | "supahero" | "opencall";
 
 type ThemeProviderState = {
   theme: Theme;
