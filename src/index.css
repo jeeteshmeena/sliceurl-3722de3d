@@ -1061,6 +1061,32 @@ textarea:focus-visible,
   font-weight: 600;
 }
 
+/* Supahero theme typography & style overrides */
+.supahero body,
+.supahero {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  letter-spacing: -0.015em;
+}
+
+.supahero h1, .supahero h2, .supahero h3 {
+  font-weight: 700;
+  letter-spacing: -0.035em;
+}
+
+.supahero h1 {
+  font-weight: 800;
+}
+
+.supahero button {
+  font-weight: 500;
+  border-radius: 0.5rem;
+}
+
+.supahero [class*="rounded-lg"],
+.supahero [class*="rounded-md"] {
+  border-radius: 0.75rem;
+}
+
 /* Designgud theme typography & style overrides */
 .designgud body,
 .designgud {
