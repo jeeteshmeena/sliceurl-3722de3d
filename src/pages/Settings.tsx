@@ -428,7 +428,7 @@ export default function Settings() {
 
             {/* Name Field */}
             <div className="space-y-1.5">
-              <Label className="text-xs text-neutral-500 dark:text-neutral-400 flex items-center gap-1.5">
+              <Label className="text-xs text-muted-foreground flex items-center gap-1.5">
                 <User className="h-3.5 w-3.5" />
                 Name
               </Label>
