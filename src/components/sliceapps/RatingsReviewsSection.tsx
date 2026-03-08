@@ -434,6 +434,16 @@ export function RatingsReviewsSection({
               ))}
             </div>
             
+            {!userId && !isEditing && (
+              <Input
+                value={displayName}
+                onChange={(e) => setDisplayName(e.target.value)}
+                placeholder="Your display name (required)"
+                className="mb-3 text-[15px] bg-muted/30 border-0 rounded-xl h-11"
+                maxLength={30}
+              />
+            )}
+
             <Textarea
               value={reviewText}
               onChange={(e) => setReviewText(e.target.value)}
