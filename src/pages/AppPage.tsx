@@ -133,60 +133,60 @@ export default function AppPage() {
     await initiateDownload();
   };
 
+  const simulateProgress = useCallback(() => {
+    return new Promise<void>((resolve) => {
+      let progress = 0;
+      const start = performance.now();
+      const duration = 1800; // 1.8 seconds total
+
+      const tick = () => {
+        const elapsed = performance.now() - start;
+        const t = Math.min(elapsed / duration, 1);
+
+        // Fast start, ease-out finish
+        if (t < 0.5) {
+          progress = t * 2 * 60; // 0-60% in first half
+        } else if (t < 0.8) {
+          progress = 60 + ((t - 0.5) / 0.3) * 30; // 60-90%
+        } else {
+          progress = 90 + ((t - 0.8) / 0.2) * 10; // 90-100%
+        }
+
+        setDownloadProgress(Math.min(Math.round(progress), 100));
+
+        if (t < 1) {
+          requestAnimationFrame(tick);
+        } else {
+          setDownloadProgress(100);
+          resolve();
+        }
+      };
+      requestAnimationFrame(tick);
+    });
+  }, []);
+
   const initiateDownload = async (passwordForDownload?: string) => {
     if (!fileInfo) return;
     const controller = new AbortController();
     downloadControllerRef.current = controller;
     setIsDownloading(true);
     setDownloadProgress(0);
+
     try {
+      // Run simulated progress animation
+      await simulateProgress();
+
+      // Now trigger the real download
       const streamUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/file-stream?fileId=${fileInfo.file_id}${passwordForDownload ? '&verified=true' : ''}`;
-      const response = await fetch(streamUrl, { signal: controller.signal });
-      if (!response.ok) throw new Error("Download failed");
+      const a = document.createElement("a");
+      a.href = streamUrl;
+      a.download = fileInfo.original_name;
+      a.style.display = "none";
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
 
-      const contentLength = response.headers.get("content-length");
-      const total = contentLength ? parseInt(contentLength, 10) : 0;
-
-      if (!response.body || !total) {
-        const blob = await response.blob();
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = fileInfo.original_name;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
-      } else {
-        const reader = response.body.getReader();
-        const chunks: BlobPart[] = [];
-        let received = 0;
-
-        try {
-          while (true) {
-            const { done, value } = await reader.read();
-            if (done) break;
-            chunks.push(value);
-            received += value.length;
-            setDownloadProgress(Math.min(Math.round((received / total) * 100), 100));
-          }
-        } catch (readErr) {
-          reader.cancel();
-          throw readErr;
-        }
-
-        const blob = new Blob(chunks);
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = fileInfo.original_name;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
-      }
-
-      setDownloadProgress(100);
+      // Optimistically update counts
       setFileInfo(prev => prev ? { ...prev, download_count: (prev.download_count || 0) + 1 } : null);
       setApp(prev => prev ? { ...prev, total_downloads: (prev.total_downloads || 0) + 1 } : null);
       setDownloadSuccess(true);

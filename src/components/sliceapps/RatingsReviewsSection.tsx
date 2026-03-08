@@ -112,6 +112,7 @@ export function RatingsReviewsSection({
           rating: reviewRating,
           reviewText: reviewText.trim() || null,
           browserFingerprint,
+          displayName: !userId && displayName.trim() ? displayName.trim() : undefined,
         },
       });
 
