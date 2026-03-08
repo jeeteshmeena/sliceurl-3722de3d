@@ -388,7 +388,7 @@ export function useLinks() {
 
       setLinks((prev) =>
         prev.map((link) =>
-          ids.includes(link.id) ? { ...link, is_pinned: pin } as Link : link
+          ids.includes(link.id) ? { ...link, is_pinned: pin } : link
         )
       );
 
