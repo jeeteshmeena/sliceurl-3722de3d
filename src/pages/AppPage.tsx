@@ -249,49 +249,53 @@ export default function AppPage() {
           <div
             className="lg:hidden"
             style={{
-              paddingTop: 28,
-              paddingBottom: 24,
-              paddingLeft: 16,
-              paddingRight: 16,
-              background: '#f5f5f7',
-              borderBottom: '1px solid rgba(0,0,0,0.06)',
+              paddingTop: 32,
+              paddingBottom: 28,
+              paddingLeft: 20,
+              paddingRight: 20,
+              background: 'linear-gradient(180deg, #b8b8bc 0%, #8e8e93 100%)',
             }}
           >
-            <div className="flex items-start" style={{ gap: 16 }}>
+            <div className="flex items-start" style={{ gap: 18 }}>
               {/* App Icon */}
               <div
-                className="flex-shrink-0 overflow-hidden bg-muted shadow-sm"
+                className="flex-shrink-0 overflow-hidden shadow-lg"
                 style={{
-                  width: 96,
-                  height: 96,
-                  borderRadius: 22,
+                  width: 140,
+                  height: 140,
+                  borderRadius: 30,
+                  background: '#e5e5ea',
                 }}
               >
                 {app.icon_url ? (
                   <img src={app.icon_url} alt={app.app_name} className="w-full h-full object-cover" loading="lazy" />
                 ) : (
-                  <div className="w-full h-full flex items-center justify-center text-muted-foreground text-4xl font-bold bg-muted">
+                  <div className="w-full h-full flex items-center justify-center text-5xl font-bold" style={{ color: '#8e8e93', background: '#e5e5ea' }}>
                     {app.app_name.charAt(0)}
                   </div>
                 )}
               </div>
 
-              {/* App Info + GET button */}
-              <div className="flex-1 min-w-0 flex flex-col justify-center">
+              {/* App Info */}
+              <div className="flex-1 min-w-0 flex flex-col justify-center" style={{ paddingTop: 8 }}>
                 <h1
-                  className="font-bold text-foreground"
-                  style={{ fontSize: 24, lineHeight: 1.2, letterSpacing: '-0.2px', marginBottom: 4 }}
+                  className="font-bold"
+                  style={{ fontSize: 22, lineHeight: 1.2, letterSpacing: '-0.2px', marginBottom: 4, color: '#ffffff' }}
                 >
                   {app.app_name}
                 </h1>
                 <p
                   className="line-clamp-2"
-                  style={{ fontSize: 15, color: '#6e6e73', fontWeight: 400, marginBottom: 14 }}
+                  style={{ fontSize: 14, color: 'rgba(255,255,255,0.8)', fontWeight: 400, marginBottom: 4 }}
                 >
                   {app.short_description || `The official app by ${app.developer_name || "Unknown"}`}
                 </p>
+                <p style={{ fontSize: 14, color: 'rgba(255,255,255,0.7)', fontWeight: 400, marginBottom: 16 }}>
+                  Free · In-App Purchases
+                </p>
 
-                <div className="flex items-center" style={{ gap: 14 }}>
+                <div className="flex items-center" style={{ gap: 12 }}>
+                  {/* GET Button */}
                   <motion.div
                     animate={downloadSuccess ? { scale: [1, 1.05, 1] } : {}}
                     transition={{ duration: 0.25 }}
@@ -300,14 +304,16 @@ export default function AppPage() {
                       onClick={handleDownload}
                       disabled={isDownloading || !fileInfo || !!fileUnavailable}
                       style={{
-                        height: 38,
-                        paddingLeft: 22,
-                        paddingRight: 22,
-                        borderRadius: 19,
-                        background: '#0071e3',
+                        height: 34,
+                        paddingLeft: 20,
+                        paddingRight: 20,
+                        borderRadius: 17,
+                        background: 'rgba(255,255,255,0.25)',
+                        backdropFilter: 'blur(10px)',
                         color: 'white',
-                        fontSize: 16,
+                        fontSize: 15,
                         fontWeight: 600,
+                        border: '1px solid rgba(255,255,255,0.15)',
                       }}
                       className="disabled:opacity-40 active:opacity-80 transition-opacity"
                     >
@@ -319,13 +325,27 @@ export default function AppPage() {
                     </button>
                   </motion.div>
 
+                  {/* Share Button - pill style like App Store */}
                   <button
                     onClick={handleShare}
-                    className="flex items-center justify-center"
-                    style={{ width: 38, height: 38, color: '#0071e3' }}
+                    className="flex items-center justify-center active:opacity-80 transition-opacity"
+                    style={{
+                      height: 34,
+                      paddingLeft: 14,
+                      paddingRight: 16,
+                      borderRadius: 17,
+                      background: 'rgba(255,255,255,0.25)',
+                      backdropFilter: 'blur(10px)',
+                      color: 'white',
+                      fontSize: 15,
+                      fontWeight: 500,
+                      gap: 6,
+                      border: '1px solid rgba(255,255,255,0.15)',
+                    }}
                     aria-label="Share"
                   >
-                    <Share2 style={{ width: 20, height: 20 }} strokeWidth={1.8} />
+                    <Share2 style={{ width: 16, height: 16 }} strokeWidth={2} />
+                    Share
                   </button>
                 </div>
               </div>
