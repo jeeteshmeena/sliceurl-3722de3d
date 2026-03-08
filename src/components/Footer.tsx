@@ -65,7 +65,7 @@ export function Footer() {
               <Skull className="h-3.5 w-3.5" />
             </Link>
           </div>
-          <div className="flex items-center justify-center gap-5 mt-4">
+          <div className="flex items-center justify-center gap-6 mt-4 pb-2">
             {socialIcons}
           </div>
         </div>
