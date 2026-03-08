@@ -247,18 +247,20 @@ export default function AppPage() {
 
           {/* Layer 2: Hero Section (mobile only) */}
           <div
-            className="lg:hidden border-b border-foreground/[0.06]"
+            className="lg:hidden"
             style={{
-              paddingTop: 24,
-              paddingBottom: 20,
+              paddingTop: 28,
+              paddingBottom: 24,
               paddingLeft: 16,
               paddingRight: 16,
+              background: '#f5f5f7',
+              borderBottom: '1px solid rgba(0,0,0,0.06)',
             }}
           >
-            <div className="flex items-start gap-4">
+            <div className="flex items-start" style={{ gap: 16 }}>
               {/* App Icon */}
               <div
-                className="flex-shrink-0 overflow-hidden bg-muted shadow-sm border border-border/10"
+                className="flex-shrink-0 overflow-hidden bg-muted shadow-sm"
                 style={{
                   width: 96,
                   height: 96,
@@ -275,15 +277,21 @@ export default function AppPage() {
               </div>
 
               {/* App Info + GET button */}
-              <div className="flex-1 min-w-0 flex flex-col">
-                <h1 className="text-[24px] font-bold text-foreground leading-[1.25] mb-[6px]">
+              <div className="flex-1 min-w-0 flex flex-col justify-center">
+                <h1
+                  className="font-bold text-foreground"
+                  style={{ fontSize: 24, lineHeight: 1.2, letterSpacing: '-0.2px', marginBottom: 4 }}
+                >
                   {app.app_name}
                 </h1>
-                <p className="text-[15px] text-[#6e6e73] line-clamp-2 mb-[14px]">
+                <p
+                  className="line-clamp-2"
+                  style={{ fontSize: 15, color: '#6e6e73', fontWeight: 400, marginBottom: 14 }}
+                >
                   {app.short_description || `The official app by ${app.developer_name || "Unknown"}`}
                 </p>
 
-                <div className="flex items-center gap-[14px]">
+                <div className="flex items-center" style={{ gap: 14 }}>
                   <motion.div
                     animate={downloadSuccess ? { scale: [1, 1.05, 1] } : {}}
                     transition={{ duration: 0.25 }}
@@ -291,7 +299,17 @@ export default function AppPage() {
                     <button
                       onClick={handleDownload}
                       disabled={isDownloading || !fileInfo || !!fileUnavailable}
-                      className="h-[38px] px-[22px] text-[16px] font-semibold rounded-[19px] bg-[#007AFF] text-white disabled:opacity-40 active:opacity-80 transition-opacity"
+                      style={{
+                        height: 38,
+                        paddingLeft: 22,
+                        paddingRight: 22,
+                        borderRadius: 19,
+                        background: '#0071e3',
+                        color: 'white',
+                        fontSize: 16,
+                        fontWeight: 600,
+                      }}
+                      className="disabled:opacity-40 active:opacity-80 transition-opacity"
                     >
                       {downloadSuccess ? (
                         <motion.span initial={{ opacity: 0, scale: 0.5 }} animate={{ opacity: 1, scale: 1 }} className="flex items-center gap-1">
@@ -303,10 +321,11 @@ export default function AppPage() {
 
                   <button
                     onClick={handleShare}
-                    className="w-[38px] h-[38px] flex items-center justify-center rounded-full text-[#007AFF]"
+                    className="flex items-center justify-center"
+                    style={{ width: 38, height: 38, color: '#0071e3' }}
                     aria-label="Share"
                   >
-                    <Share2 className="h-5 w-5" strokeWidth={1.8} />
+                    <Share2 style={{ width: 20, height: 20 }} strokeWidth={1.8} />
                   </button>
                 </div>
               </div>
