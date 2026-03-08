@@ -158,7 +158,7 @@ export function Header() {
                 aria-label="Change language"
               >
                 <Languages className="h-[18px] w-[18px]" />
-              </Button>
+              </button>
             </PopoverTrigger>
             <PopoverContent
               align="end"
