@@ -376,10 +376,10 @@ export default function Settings() {
 
           {/* Page Header */}
           <div>
-            <h1 className="text-2xl font-semibold text-neutral-900 dark:text-neutral-100">
+            <h1 className="text-2xl font-semibold text-foreground">
               Settings
             </h1>
-            <p className="text-sm text-neutral-500 dark:text-neutral-400 mt-1">
+            <p className="text-sm text-muted-foreground mt-1">
               Manage your account and preferences
             </p>
           </div>
