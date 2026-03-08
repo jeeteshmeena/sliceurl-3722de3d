@@ -4,6 +4,7 @@
 
 /* SliceURL Design System - Clean, calm, premium */
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800;900&display=swap');
 
 /* Hindi Typography System */
 /* Functional UI font: Noto Sans Devanagari - clean, highly readable */
@@ -169,6 +170,61 @@
     --shadow-md: 0 2px 8px 0 hsl(0 0% 0% / 0.35);
     --shadow-lg: 0 8px 24px 0 hsl(0 0% 0% / 0.45);
     --shadow-xl: 0 16px 40px -8px hsl(0 0% 0% / 0.5);
+  }
+
+  /* Maggie Theme - Playful, bold, inspired by maggie-app.com */
+  .maggie {
+    --background: 316 68% 91%;
+    --foreground: 166 100% 18%;
+    
+    --card: 30 50% 97%;
+    --card-foreground: 166 100% 18%;
+    
+    --popover: 30 50% 97%;
+    --popover-foreground: 166 100% 18%;
+    
+    --primary: 163 100% 30%;
+    --primary-foreground: 0 0% 100%;
+    
+    --secondary: 316 40% 85%;
+    --secondary-foreground: 166 100% 18%;
+    
+    --muted: 316 30% 87%;
+    --muted-foreground: 166 50% 32%;
+    
+    --accent: 163 100% 30%;
+    --accent-foreground: 0 0% 100%;
+    
+    --destructive: 0 72% 50%;
+    --destructive-foreground: 0 0% 100%;
+    
+    --success: 163 100% 30%;
+    --success-foreground: 0 0% 100%;
+    
+    --warning: 38 95% 48%;
+    --warning-foreground: 0 0% 100%;
+    
+    --border: 316 30% 82%;
+    --input: 316 30% 82%;
+    --ring: 163 100% 30%;
+    
+    --radius: 1rem;
+    
+    --sidebar-background: 316 50% 88%;
+    --sidebar-foreground: 166 100% 18%;
+    --sidebar-primary: 163 100% 30%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 316 40% 84%;
+    --sidebar-accent-foreground: 166 100% 18%;
+    --sidebar-border: 316 30% 80%;
+    --sidebar-ring: 163 100% 30%;
+    
+    --glass: 316 68% 91% / 0.9;
+    --glass-border: 166 100% 18% / 0.08;
+    --shadow-sm: 0 1px 3px 0 hsl(316 40% 50% / 0.08);
+    --shadow-md: 0 4px 12px 0 hsl(316 40% 50% / 0.1);
+    --shadow-lg: 0 8px 24px 0 hsl(316 40% 50% / 0.12);
+    --shadow-xl: 0 16px 40px -8px hsl(316 40% 50% / 0.18);
   }
 }
 
@@ -733,6 +789,32 @@ textarea:focus-visible,
 .theme-transitioning,
 .theme-transitioning * {
   transition: none !important;
+}
+
+/* Maggie theme typography override */
+.maggie body,
+.maggie {
+  font-family: 'Nunito', -apple-system, BlinkMacSystemFont, sans-serif;
+  letter-spacing: -0.01em;
+}
+
+.maggie h1, .maggie h2, .maggie h3, .maggie h4, .maggie h5, .maggie h6 {
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+.maggie button {
+  font-weight: 700;
+  border-radius: 9999px;
+}
+
+.maggie [class*="rounded-lg"],
+.maggie [class*="rounded-md"] {
+  border-radius: 1rem;
+}
+
+.maggie [class*="rounded-xl"] {
+  border-radius: 1.25rem;
 }
 
 /* Header offset for fixed header */

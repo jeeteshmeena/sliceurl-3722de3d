@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
 
-type Theme = "dark" | "light" | "system";
+type Theme = "dark" | "light" | "system" | "maggie";
 
 type ThemeProviderProps = {
   children: React.ReactNode;
@@ -11,7 +11,7 @@ type ThemeProviderProps = {
 type ThemeProviderState = {
   theme: Theme;
   setTheme: (theme: Theme) => void;
-  resolvedTheme: "dark" | "light";
+  resolvedTheme: "dark" | "light" | "maggie";
 };
 
 const initialState: ThemeProviderState = {
@@ -32,7 +32,7 @@ export function ThemeProvider({
     () => (localStorage.getItem(storageKey) as Theme) || defaultTheme
   );
 
-  const [resolvedTheme, setResolvedTheme] = useState<"dark" | "light">("light");
+  const [resolvedTheme, setResolvedTheme] = useState<"dark" | "light" | "maggie">("light");
 
   useEffect(() => {
     const root = window.document.documentElement;
@@ -40,9 +40,12 @@ export function ThemeProvider({
     // Add transition-disabling class
     root.classList.add("theme-transitioning");
 
-    root.classList.remove("light", "dark");
+    root.classList.remove("light", "dark", "maggie");
 
-    if (theme === "system") {
+    if (theme === "maggie") {
+      root.classList.add("maggie");
+      setResolvedTheme("maggie");
+    } else if (theme === "system") {
       const systemTheme = window.matchMedia("(prefers-color-scheme: dark)")
         .matches
         ? "dark"
@@ -69,7 +72,7 @@ export function ThemeProvider({
     const handleChange = () => {
       if (theme === "system") {
         const root = window.document.documentElement;
-        root.classList.remove("light", "dark");
+        root.classList.remove("light", "dark", "maggie");
         const systemTheme = mediaQuery.matches ? "dark" : "light";
         root.classList.add(systemTheme);
         setResolvedTheme(systemTheme);
