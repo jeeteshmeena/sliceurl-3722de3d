@@ -144,15 +144,20 @@ export function SliceAppsSidebar() {
       </div>
 
       {/* Navigation */}
-      <nav className="px-2 space-y-0.5">
+      <nav className="px-2 space-y-1">
         {menuItems.map((item) => (
           <button
             key={item.label}
             onClick={() => navigate(item.path)}
-            className="w-full flex items-center gap-3 px-2.5 py-[7px] rounded-md text-left hover:bg-muted/50 transition-colors"
+            className="w-full flex items-center gap-3 px-2.5 py-[8px] rounded-md text-left hover:bg-muted/50 transition-colors"
           >
-            <item.icon className="h-[18px] w-[18px] text-[#007AFF]" strokeWidth={1.8} />
-            <span className="text-[13px] text-foreground">{item.label}</span>
+            <div style={{ width: 32, height: 32, borderRadius: 8, background: 'rgba(0,122,255,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+              <item.icon style={{ width: 18, height: 18, color: '#007AFF' }} strokeWidth={1.8} />
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column' }}>
+              <span className="text-[13px] font-semibold text-foreground">{item.label}</span>
+              <span style={{ fontSize: 11, color: '#8e8e93' }}>{item.subtitle}</span>
+            </div>
           </button>
         ))}
       </nav>
