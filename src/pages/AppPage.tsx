@@ -57,6 +57,34 @@ interface Review {
   user_id: string | null;
 }
 
+function ExpandableSection({ title, text }: { title: string; text: string }) {
+  const [expanded, setExpanded] = useState(false);
+  const isLong = text.length > 200;
+
+  return (
+    <section className="mt-8">
+      <h2 className="text-base font-semibold text-foreground mb-3">{title}</h2>
+      <div className="relative">
+        <p
+          className={`text-sm text-muted-foreground leading-relaxed whitespace-pre-wrap ${
+            !expanded && isLong ? "line-clamp-4" : ""
+          }`}
+        >
+          {text}
+        </p>
+        {isLong && (
+          <button
+            onClick={() => setExpanded(!expanded)}
+            className="text-sm font-medium text-primary mt-1"
+          >
+            {expanded ? "Less" : "More"}
+          </button>
+        )}
+      </div>
+    </section>
+  );
+}
+
 export default function AppPage() {
   const { id } = useParams<{ id: string }>();
   const { user } = useAuth();
