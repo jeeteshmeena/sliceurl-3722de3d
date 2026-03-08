@@ -191,7 +191,7 @@ export default function AppPage() {
       setFileInfo(prev => prev ? { ...prev, download_count: (prev.download_count || 0) + 1 } : null);
       setApp(prev => prev ? { ...prev, total_downloads: (prev.total_downloads || 0) + 1 } : null);
       setDownloadSuccess(true);
-      setTimeout(() => { setDownloadSuccess(false); setDownloadProgress(0); }, 1500);
+      setTimeout(() => { setDownloadSuccess(false); setDownloadProgress(0); }, 3000);
       toast.success("Download complete!");
     } catch (err: unknown) {
       if (err instanceof DOMException && err.name === 'AbortError') {
