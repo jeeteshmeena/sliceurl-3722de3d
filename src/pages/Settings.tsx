@@ -896,9 +896,9 @@ export default function Settings() {
             </DialogDescription>
           </DialogHeader>
           <div className="py-4">
-            <div className="bg-neutral-50 dark:bg-neutral-800 rounded-lg p-3 flex items-center gap-3">
-              <Mail className="h-4 w-4 text-neutral-500" />
-              <span className="text-sm text-neutral-700 dark:text-neutral-300">{user?.email}</span>
+            <div className="bg-secondary rounded-lg p-3 flex items-center gap-3">
+              <Mail className="h-4 w-4 text-muted-foreground" />
+              <span className="text-sm text-secondary-foreground">{user?.email}</span>
             </div>
           </div>
           <DialogFooter>
