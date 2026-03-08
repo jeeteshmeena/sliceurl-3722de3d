@@ -610,7 +610,7 @@ export default function Settings() {
                 variant="outline"
                 onClick={handleSignOutAllDevices}
                 disabled={isSigningOutAll}
-                className="w-full h-8 text-xs border-neutral-300 dark:border-neutral-600 text-neutral-700 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-800"
+                className="w-full h-8 text-xs border-border text-secondary-foreground hover:bg-muted"
               >
                 {isSigningOutAll ? "Signing out..." : "Sign out from all devices"}
               </Button>
