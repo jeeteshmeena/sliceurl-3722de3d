@@ -138,11 +138,9 @@ export function Header() {
         {/* Right Section - Clean icon layout with consistent spacing */}
         <div className="flex items-center gap-3 shrink-0 mr-2 sm:mr-4 flex-nowrap">
           {/* Theme Toggle - Clean icon, no pill background */}
-          <Button
-            variant="ghost"
-            size="icon"
+          <button
             onClick={handleThemeToggle}
-            className="h-9 w-9 rounded-full hover:bg-muted/50"
+            className="h-9 w-9 flex items-center justify-center text-foreground hover:text-foreground/70 transition-colors"
             aria-label={`Switch to ${resolvedTheme === "dark" ? "light" : "dark"} mode`}
           >
             {resolvedTheme === "dark" ? (
