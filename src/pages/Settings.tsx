@@ -922,7 +922,7 @@ export default function Settings() {
               Are you sure you want to delete your account?
             </AlertDialogTitle>
             <AlertDialogDescription asChild>
-              <div className="space-y-3 text-sm text-neutral-500 dark:text-neutral-400">
+              <div className="space-y-3 text-sm text-muted-foreground">
                 <p>
                   This action will start a 30-day recovery period. You can reactivate your account anytime within 30 days by logging back in.
                 </p>
