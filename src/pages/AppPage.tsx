@@ -67,6 +67,7 @@ export default function AppPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [isDownloading, setIsDownloading] = useState(false);
   const [downloadSuccess, setDownloadSuccess] = useState(false);
+  const [downloadProgress, setDownloadProgress] = useState(0);
   const [fileUnavailable, setFileUnavailable] = useState<string | null>(null);
   
   const [showPasswordDialog, setShowPasswordDialog] = useState(false);
@@ -133,22 +134,59 @@ export default function AppPage() {
   const initiateDownload = async (passwordForDownload?: string) => {
     if (!fileInfo) return;
     setIsDownloading(true);
+    setDownloadProgress(0);
     try {
       const streamUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/file-stream?fileId=${fileInfo.file_id}${passwordForDownload ? '&verified=true' : ''}`;
-      const a = document.createElement("a");
-      a.href = streamUrl;
-      a.download = fileInfo.original_name;
-      a.style.display = "none";
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
+      const response = await fetch(streamUrl);
+      if (!response.ok) throw new Error("Download failed");
+
+      const contentLength = response.headers.get("content-length");
+      const total = contentLength ? parseInt(contentLength, 10) : 0;
+
+      if (!response.body || !total) {
+        // Fallback: no streaming support or unknown size
+        const blob = await response.blob();
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = fileInfo.original_name;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      } else {
+        const reader = response.body.getReader();
+        const chunks: BlobPart[] = [];
+        let received = 0;
+
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          chunks.push(value);
+          received += value.length;
+          setDownloadProgress(Math.min(Math.round((received / total) * 100), 100));
+        }
+
+        const blob = new Blob(chunks);
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = fileInfo.original_name;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      }
+
+      setDownloadProgress(100);
       setFileInfo(prev => prev ? { ...prev, download_count: (prev.download_count || 0) + 1 } : null);
       setApp(prev => prev ? { ...prev, total_downloads: (prev.total_downloads || 0) + 1 } : null);
       setDownloadSuccess(true);
-      setTimeout(() => setDownloadSuccess(false), 1500);
-      toast.success("Download started!");
+      setTimeout(() => { setDownloadSuccess(false); setDownloadProgress(0); }, 1500);
+      toast.success("Download complete!");
     } catch (err) {
       console.error("Download failed:", err);
+      setDownloadProgress(0);
       toast.error("This file is temporarily unavailable. Please try again later.");
     } finally {
       setIsDownloading(false);
@@ -320,28 +358,33 @@ export default function AppPage() {
                     className="disabled:opacity-40"
                     style={{
                       height: 36,
+                      minWidth: 120,
                       padding: '8px 22px',
                       borderRadius: 20,
-                      background: '#0A84FF',
+                      background: isDownloading
+                        ? `linear-gradient(90deg, #0077ED ${downloadProgress}%, #0A84FF ${downloadProgress}%)`
+                        : '#0A84FF',
                       color: '#ffffff',
                       fontSize: 16,
                       fontWeight: 600,
                       border: 'none',
                       cursor: 'pointer',
-                      transition: 'background 0.15s ease, transform 0.12s ease',
+                      transition: 'transform 0.12s ease',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
+                      position: 'relative',
+                      overflow: 'hidden',
                     }}
-                    onPointerDown={(e) => { e.currentTarget.style.background = '#0077ED'; e.currentTarget.style.transform = 'scale(0.96)'; }}
-                    onPointerUp={(e) => { e.currentTarget.style.background = '#0A84FF'; e.currentTarget.style.transform = 'scale(1)'; }}
-                    onPointerLeave={(e) => { e.currentTarget.style.background = '#0A84FF'; e.currentTarget.style.transform = 'scale(1)'; }}
+                    onPointerDown={(e) => { if (!isDownloading) { e.currentTarget.style.transform = 'scale(0.96)'; } }}
+                    onPointerUp={(e) => { e.currentTarget.style.transform = 'scale(1)'; }}
+                    onPointerLeave={(e) => { e.currentTarget.style.transform = 'scale(1)'; }}
                   >
                     {downloadSuccess ? (
                       <motion.span initial={{ opacity: 0, scale: 0.5 }} animate={{ opacity: 1, scale: 1 }} className="flex items-center justify-center gap-1.5">
                         <Check style={{ width: 16, height: 16 }} /> Done
                       </motion.span>
-                    ) : isDownloading ? "..." : "DOWNLOAD"}
+                    ) : isDownloading ? `${downloadProgress}%` : "DOWNLOAD"}
                   </button>
                 </motion.div>
               </div>
@@ -416,28 +459,33 @@ export default function AppPage() {
                       className="disabled:opacity-40"
                       style={{
                         height: 36,
+                        minWidth: 120,
                         padding: '8px 22px',
                         borderRadius: 20,
-                        background: '#0A84FF',
+                        background: isDownloading
+                          ? `linear-gradient(90deg, #0077ED ${downloadProgress}%, #0A84FF ${downloadProgress}%)`
+                          : '#0A84FF',
                         color: '#ffffff',
                         fontSize: 16,
                         fontWeight: 600,
                         border: 'none',
                         cursor: 'pointer',
-                        transition: 'background 0.15s ease, transform 0.12s ease',
+                        transition: 'transform 0.12s ease',
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
+                        position: 'relative',
+                        overflow: 'hidden',
                       }}
-                      onPointerDown={(e) => { e.currentTarget.style.background = '#0077ED'; e.currentTarget.style.transform = 'scale(0.96)'; }}
-                      onPointerUp={(e) => { e.currentTarget.style.background = '#0A84FF'; e.currentTarget.style.transform = 'scale(1)'; }}
-                      onPointerLeave={(e) => { e.currentTarget.style.background = '#0A84FF'; e.currentTarget.style.transform = 'scale(1)'; }}
+                      onPointerDown={(e) => { if (!isDownloading) { e.currentTarget.style.transform = 'scale(0.96)'; } }}
+                      onPointerUp={(e) => { e.currentTarget.style.transform = 'scale(1)'; }}
+                      onPointerLeave={(e) => { e.currentTarget.style.transform = 'scale(1)'; }}
                     >
                       {downloadSuccess ? (
                         <motion.span initial={{ opacity: 0, scale: 0.5 }} animate={{ opacity: 1, scale: 1 }} className="flex items-center gap-1">
                           <Check className="h-4 w-4" /> Done
                         </motion.span>
-                      ) : isDownloading ? "..." : "DOWNLOAD"}
+                      ) : isDownloading ? `${downloadProgress}%` : "DOWNLOAD"}
                     </button>
                   </motion.div>
                 </div>
