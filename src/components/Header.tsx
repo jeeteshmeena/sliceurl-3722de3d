@@ -21,7 +21,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { ScrollArea } from "@/components/ui/scroll-area";
+
 import { useTheme } from "@/lib/theme";
 import { useAuth } from "@/hooks/useAuth";
 import { useProfile } from "@/hooks/useProfile";
@@ -163,52 +163,52 @@ export function Header() {
             <PopoverContent
               align="end"
               sideOffset={8}
-              className="w-48 p-0 bg-popover border border-border shadow-lg rounded-xl overflow-hidden"
+              collisionPadding={12}
+              className="w-52 p-2 bg-popover border border-border shadow-lg overflow-hidden"
+              style={{ borderRadius: '16px', maxHeight: '320px' }}
             >
               {/* Search Input */}
-              <div className="border-b border-border/50 p-2">
+              <div className="pb-2 mb-1 border-b border-border/50">
                 <div className="relative">
                   <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
                   <Input
                     value={langSearch}
                     onChange={(e) => setLangSearch(e.target.value)}
-                    placeholder="Search..."
+                    placeholder={t("search_language") || "Search..."}
                     className="h-8 pl-8 text-sm bg-background border-border/60 rounded-lg"
                   />
                 </div>
               </div>
               
-              {/* Language List */}
-              <ScrollArea className="h-[200px]">
-                <div className="p-1">
-                  {filteredLanguages.length === 0 ? (
-                    <p className="px-3 py-2 text-xs text-muted-foreground text-center">
-                      No languages found
-                    </p>
-                  ) : (
-                    filteredLanguages.map((lang) => (
-                      <button
-                        key={lang}
-                        onClick={() => {
-                          setLanguage(lang);
-                          setLangOpen(false);
-                          setLangSearch("");
-                        }}
-                        className={`w-full flex items-center justify-between px-3 py-2 text-sm rounded-lg transition-colors cursor-pointer ${
-                          language === lang
-                            ? "bg-primary/10 text-primary font-medium"
-                            : "hover:bg-muted/50 text-foreground"
-                        }`}
-                      >
-                        <span>{languageNames[lang]}</span>
-                        {language === lang && (
-                          <Check className="h-3.5 w-3.5 text-primary" />
-                        )}
-                      </button>
-                    ))
-                  )}
-                </div>
-              </ScrollArea>
+              {/* Language List - scrollable */}
+              <div className="overflow-y-auto" style={{ maxHeight: '252px' }}>
+                {filteredLanguages.length === 0 ? (
+                  <p className="px-3 py-2 text-xs text-muted-foreground text-center">
+                    No languages found
+                  </p>
+                ) : (
+                  filteredLanguages.map((lang) => (
+                    <button
+                      key={lang}
+                      onClick={() => {
+                        setLanguage(lang);
+                        setLangOpen(false);
+                        setLangSearch("");
+                      }}
+                      className={`w-full flex items-center justify-between px-3 py-2 text-sm rounded-lg transition-colors cursor-pointer ${
+                        language === lang
+                          ? "bg-primary/10 text-primary font-medium"
+                          : "hover:bg-muted/50 text-foreground"
+                      }`}
+                    >
+                      <span>{languageNames[lang]}</span>
+                      {language === lang && (
+                        <Check className="h-3.5 w-3.5 text-primary" />
+                      )}
+                    </button>
+                  ))
+                )}
+              </div>
             </PopoverContent>
           </Popover>
 
