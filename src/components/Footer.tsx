@@ -37,14 +37,14 @@ export function Footer() {
 
   const socialIcons = (
     <>
-      <a href="mailto:Sus.jeetX@gmail.com" className="text-muted-foreground hover:text-foreground transition-colors">
-        <Mail className="h-4 w-4" fill="currentColor" strokeWidth={0} />
+      <a href="mailto:Sus.jeetX@gmail.com" className="text-foreground/70 hover:text-foreground transition-colors">
+        <Mail className="h-5 w-5" fill="currentColor" strokeWidth={0} />
       </a>
-      <a href="https://t.me/MeJeetX" target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-foreground transition-colors">
-        <Send className="h-4 w-4" fill="currentColor" strokeWidth={0} />
+      <a href="https://t.me/MeJeetX" target="_blank" rel="noopener noreferrer" className="text-foreground/70 hover:text-foreground transition-colors">
+        <Send className="h-5 w-5" fill="currentColor" strokeWidth={0} />
       </a>
-      <a href="https://x.com/Itx_Jeetesh" target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-foreground transition-colors">
-        <XIcon className="h-4 w-4" />
+      <a href="https://x.com/Itx_Jeetesh" target="_blank" rel="noopener noreferrer" className="text-foreground/70 hover:text-foreground transition-colors">
+        <XIcon className="h-5 w-5" />
       </a>
     </>
   );
@@ -65,7 +65,7 @@ export function Footer() {
               <Skull className="h-3.5 w-3.5" />
             </Link>
           </div>
-          <div className="flex items-center justify-center gap-5 mt-4">
+          <div className="flex items-center justify-center gap-6 mt-4 pb-2">
             {socialIcons}
           </div>
         </div>

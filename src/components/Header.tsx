@@ -323,7 +323,7 @@ export function Header() {
                 variant="ghost"
                 size="icon"
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                className="h-9 w-9 rounded-full sm:hidden"
+                className="h-9 w-9 rounded-full hover:bg-muted/50 sm:hidden"
               >
                 {mobileMenuOpen ? (
                   <X className="h-5 w-5" />
