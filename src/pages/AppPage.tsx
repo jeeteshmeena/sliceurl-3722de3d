@@ -366,26 +366,62 @@ export default function AppPage() {
         </div>
 
         {/* Desktop Hero (non-collapsing) */}
-        <div className="hidden lg:block px-10 py-10 bg-gradient-to-b from-muted/40 to-transparent">
+        <div
+          className="hidden lg:block"
+          style={{
+            background: 'linear-gradient(135deg, #6f7a83 0%, #a3aab1 100%)',
+            backdropFilter: 'blur(20px)',
+            padding: '32px 40px',
+          }}
+        >
           <div className="max-w-5xl mx-auto">
-            <div className="flex items-start gap-8">
-              <div className="w-[170px] h-[170px] rounded-[36px] flex-shrink-0 overflow-hidden bg-muted shadow-sm border border-border/10">
+            <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
+              <div
+                className="flex-shrink-0 overflow-hidden"
+                style={{
+                  width: 128,
+                  height: 128,
+                  borderRadius: 28,
+                  boxShadow: '0 8px 24px rgba(0,0,0,0.12)',
+                }}
+              >
                 {app.icon_url ? (
                   <img src={app.icon_url} alt={app.app_name} className="w-full h-full object-cover" loading="lazy" />
                 ) : (
-                  <div className="w-full h-full flex items-center justify-center text-muted-foreground text-5xl font-bold bg-muted">
+                  <div className="w-full h-full flex items-center justify-center text-5xl font-bold bg-muted text-muted-foreground">
                     {app.app_name.charAt(0)}
                   </div>
                 )}
               </div>
-              <div className="flex-1 min-w-0 flex flex-col">
-                <h1 className="text-[32px] font-bold text-foreground leading-[1.2]">
+              <div style={{ display: 'flex', flexDirection: 'column', flex: 1, minWidth: 0 }}>
+                <h1
+                  style={{
+                    fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Display", system-ui, sans-serif',
+                    fontWeight: 600,
+                    fontSize: 26,
+                    lineHeight: '30px',
+                    letterSpacing: '-0.01em',
+                    color: '#ffffff',
+                    margin: 0,
+                  }}
+                >
                   {app.app_name}
                 </h1>
-                <p className="text-[17px] text-muted-foreground mt-0.5 mb-3 line-clamp-2">
+                <p
+                  className="line-clamp-2"
+                  style={{
+                    fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Text", system-ui, sans-serif',
+                    fontWeight: 400,
+                    fontSize: 15,
+                    lineHeight: '22px',
+                    color: 'rgba(255,255,255,0.85)',
+                    marginTop: 6,
+                    marginBottom: 0,
+                  }}
+                >
                   {app.short_description || `The official app by ${app.developer_name || "Unknown"}`}
                 </p>
-                <div className="flex items-center" style={{ gap: 12 }}>
+                <div style={{ display: 'flex', alignItems: 'center', marginTop: 12, gap: 12 }}>
                   <motion.div
                     animate={downloadSuccess ? { scale: [1, 1.05, 1] } : {}}
                     transition={{ duration: 0.25 }}
@@ -395,6 +431,7 @@ export default function AppPage() {
                       disabled={isDownloading || !fileInfo || !!fileUnavailable}
                       className="disabled:opacity-40"
                       style={{
+                        height: 36,
                         padding: '8px 22px',
                         borderRadius: 20,
                         background: '#0A84FF',
@@ -403,11 +440,14 @@ export default function AppPage() {
                         fontWeight: 600,
                         border: 'none',
                         cursor: 'pointer',
-                        transition: 'background 0.15s ease',
+                        transition: 'background 0.15s ease, transform 0.12s ease',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
                       }}
-                      onPointerDown={(e) => (e.currentTarget.style.background = '#0077ED')}
-                      onPointerUp={(e) => (e.currentTarget.style.background = '#0A84FF')}
-                      onPointerLeave={(e) => (e.currentTarget.style.background = '#0A84FF')}
+                      onPointerDown={(e) => { e.currentTarget.style.background = '#0077ED'; e.currentTarget.style.transform = 'scale(0.96)'; }}
+                      onPointerUp={(e) => { e.currentTarget.style.background = '#0A84FF'; e.currentTarget.style.transform = 'scale(1)'; }}
+                      onPointerLeave={(e) => { e.currentTarget.style.background = '#0A84FF'; e.currentTarget.style.transform = 'scale(1)'; }}
                     >
                       {downloadSuccess ? (
                         <motion.span initial={{ opacity: 0, scale: 0.5 }} animate={{ opacity: 1, scale: 1 }} className="flex items-center gap-1">
