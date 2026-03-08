@@ -113,11 +113,11 @@ export function Header() {
   const isOnDashboard = location.pathname === "/dashboard";
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-[100] bg-background border-b border-border/40 safe-top max-w-[100vw]" style={{ height: '64px' }}>
+    <header className="fixed top-0 left-0 right-0 z-[100] bg-background/80 backdrop-blur-xl border-b border-border/20 safe-top max-w-[100vw]" style={{ height: '64px' }}>
       <SliceLine />
-      <div className="max-w-[1280px] mx-auto h-full flex items-center justify-between flex-nowrap">
+      <div className="max-w-[1280px] mx-auto h-full flex items-center justify-between flex-nowrap px-4 sm:px-5">
         {/* Left Section - Brand */}
-        <div className="flex items-center gap-3 shrink-0 ml-2 sm:ml-4">
+        <div className="flex items-center gap-3 shrink-0">
           <Link to="/" className="shrink-0 hover:opacity-80 transition-opacity">
             <div className="flex items-center gap-2">
               <img
@@ -135,18 +135,18 @@ export function Header() {
           </Link>
         </div>
 
-        {/* Right Section - Clean icon layout with consistent spacing */}
-        <div className="flex items-center gap-3 shrink-0 mr-2 sm:mr-4 flex-nowrap">
-          {/* Theme Toggle - Clean icon, no pill background */}
+        {/* Right Section - Apple-style icon controls */}
+        <div className="flex items-center gap-1.5 shrink-0 flex-nowrap">
+          {/* Theme Toggle */}
           <button
             onClick={handleThemeToggle}
-            className="h-9 w-9 flex items-center justify-center text-foreground/80 hover:text-foreground transition-colors"
+            className="h-[42px] w-[42px] flex items-center justify-center rounded-full text-foreground/70 hover:text-foreground hover:bg-foreground/[0.06] active:scale-[0.96] transition-all duration-150"
             aria-label={`Switch to ${resolvedTheme === "dark" ? "light" : "dark"} mode`}
           >
             {resolvedTheme === "dark" ? (
-              <Sun className="h-[18px] w-[18px]" />
+              <Sun className="h-5 w-5" strokeWidth={1.7} />
             ) : (
-              <Moon className="h-[18px] w-[18px]" />
+              <Moon className="h-5 w-5" strokeWidth={1.7} />
             )}
           </button>
 
@@ -154,10 +154,10 @@ export function Header() {
           <Popover open={langOpen} onOpenChange={(open) => { setLangOpen(open); if (!open) setLangSearch(""); }}>
             <PopoverTrigger asChild>
               <button
-                className="h-9 w-9 flex items-center justify-center text-foreground/80 hover:text-foreground transition-colors"
+                className="h-[42px] w-[42px] flex items-center justify-center rounded-full text-foreground/70 hover:text-foreground hover:bg-foreground/[0.06] active:scale-[0.96] transition-all duration-150"
                 aria-label="Change language"
               >
-                <Languages className="h-[18px] w-[18px]" />
+                <Languages className="h-5 w-5" strokeWidth={1.7} />
               </button>
             </PopoverTrigger>
             <PopoverContent
@@ -225,10 +225,10 @@ export function Header() {
               {isAdmin && (
                 <button
                   onClick={() => navigate("/admin/inbox")}
-                  className="h-9 w-9 flex items-center justify-center text-foreground/80 hover:text-foreground transition-colors relative"
+                  className="h-[42px] w-[42px] flex items-center justify-center rounded-full text-foreground/70 hover:text-foreground hover:bg-foreground/[0.06] active:scale-[0.96] transition-all duration-150 relative"
                   aria-label="Admin Inbox"
                 >
-                  <Bell className="h-[18px] w-[18px]" />
+                  <Bell className="h-5 w-5" strokeWidth={1.7} />
                   {unreadCount > 0 && (
                     <span className="absolute -top-0.5 -right-0.5 h-4 min-w-[16px] px-1 flex items-center justify-center bg-destructive text-destructive-foreground text-[10px] font-bold rounded-full">
                       {unreadCount > 99 ? "99+" : unreadCount}
@@ -322,12 +322,12 @@ export function Header() {
               {/* Mobile Menu Toggle */}
               <button
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                className="h-9 w-9 flex items-center justify-center text-foreground/80 hover:text-foreground transition-colors sm:hidden"
+                className="h-[42px] w-[42px] flex items-center justify-center rounded-full text-foreground/70 hover:text-foreground hover:bg-foreground/[0.06] active:scale-[0.96] transition-all duration-150 sm:hidden"
               >
                 {mobileMenuOpen ? (
-                  <X className="h-5 w-5" />
+                  <X className="h-5 w-5" strokeWidth={1.7} />
                 ) : (
-                  <Menu className="h-5 w-5" />
+                  <Menu className="h-5 w-5" strokeWidth={1.7} />
                 )}
               </button>
             </>
