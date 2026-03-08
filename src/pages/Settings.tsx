@@ -588,7 +588,7 @@ export default function Settings() {
               </h3>
 
               {/* Current Device Card */}
-              <div className="flex items-center justify-between p-3 bg-white dark:bg-neutral-800 rounded-lg border border-neutral-200 dark:border-neutral-700 mb-3">
+              <div className="flex items-center justify-between p-3 bg-card rounded-lg border border-border mb-3">
                 <div className="flex items-center gap-3">
                   <div className="h-8 w-8 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center">
                     {/Mobile|Android|iPhone|iPad|iPod/i.test(navigator.userAgent) ? (
