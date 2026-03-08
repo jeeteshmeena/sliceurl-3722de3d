@@ -437,16 +437,9 @@ export default function AppPage() {
                         <motion.span initial={{ opacity: 0, scale: 0.5 }} animate={{ opacity: 1, scale: 1 }} className="flex items-center gap-1">
                           <Check className="h-4 w-4" /> Done
                         </motion.span>
-                      ) : isDownloading ? "..." : "GET"}
+                      ) : isDownloading ? "..." : "DOWNLOAD"}
                     </button>
                   </motion.div>
-                  <button
-                    onClick={handleShare}
-                    aria-label="Share"
-                    style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-                  >
-                    <Share2 style={{ width: 22, height: 22, color: '#0A84FF' }} strokeWidth={1.8} />
-                  </button>
                 </div>
               </div>
             </div>
