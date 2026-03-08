@@ -741,10 +741,10 @@ export default function Settings() {
             {/* Security Mode Select Row */}
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <Shield className="h-4 w-4 text-neutral-500 dark:text-neutral-400" />
+                <Shield className="h-4 w-4 text-muted-foreground" />
                 <div>
-                  <span className="text-sm text-neutral-700 dark:text-neutral-300">Security Mode</span>
-                  <p className="text-xs text-neutral-400 dark:text-neutral-500">
+                  <span className="text-sm text-secondary-foreground">Security Mode</span>
+                  <p className="text-xs text-muted-foreground">
                     URL safety checking level
                   </p>
                 </div>
