@@ -916,7 +916,7 @@ export default function Settings() {
       {/* DELETE ACCOUNT DIALOG */}
       {/* ═══════════════════════════════════════════════════════════════════════ */}
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <AlertDialogContent className="bg-white dark:bg-neutral-900 border-neutral-200 dark:border-neutral-800">
+        <AlertDialogContent className="bg-popover border-border">
           <AlertDialogHeader>
             <AlertDialogTitle>
               Are you sure you want to delete your account?
