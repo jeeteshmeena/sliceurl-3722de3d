@@ -162,8 +162,8 @@ export function Header() {
             </PopoverTrigger>
             <PopoverContent
               align="end"
-              sideOffset={8}
-              className="w-48 p-0 bg-popover border border-border shadow-lg rounded-xl overflow-hidden"
+              sideOffset={12}
+              className="w-48 p-0 bg-popover border border-border shadow-lg rounded-xl overflow-hidden z-[200]"
             >
               {/* Search Input */}
               <div className="border-b border-border/50 p-2">
