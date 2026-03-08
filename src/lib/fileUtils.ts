@@ -2,6 +2,8 @@
  * Shared file utility functions used across SliceBox, LittleSlice, and SliceAPPs
  */
 
+import { FileText, Image, Video, Music, Archive, File } from "lucide-react";
+
 /**
  * Format file size to human-readable string
  */
@@ -69,6 +71,18 @@ export function formatExpiryTime(isoString: string | null): string | null {
 }
 
 /**
+ * Get file icon component based on MIME type
+ */
+export function getFileIcon(mimeType: string) {
+  if (mimeType.startsWith("image/")) return Image;
+  if (mimeType.startsWith("video/")) return Video;
+  if (mimeType.startsWith("audio/")) return Music;
+  if (mimeType === "application/pdf") return FileText;
+  if (mimeType.includes("zip") || mimeType.includes("rar") || mimeType.includes("7z")) return Archive;
+  return File;
+}
+
+/**
  * Check if file is an executable
  */
 export const EXECUTABLE_EXTENSIONS = ['apk', 'exe', 'ipa', 'dmg', 'msi', 'deb', 'rpm', 'bat', 'cmd', 'sh'];
@@ -99,7 +113,6 @@ export function isApkFile(fileName: string, mimeType?: string): boolean {
 export function getCorrectMimeType(fileName: string, originalMimeType: string): string {
   const ext = fileName.split('.').pop()?.toLowerCase() || '';
   
-  // Force correct MIME types for common files
   const mimeMap: Record<string, string> = {
     'apk': 'application/vnd.android.package-archive',
     'pdf': 'application/pdf',
@@ -141,4 +154,27 @@ export function triggerDownload(url: string, fileName: string): void {
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
+}
+
+/**
+ * Retry a function with exponential backoff
+ */
+export async function withRetry<T>(
+  fn: () => Promise<T>,
+  maxRetries = 3,
+  baseDelay = 1000
+): Promise<T> {
+  let lastError: Error | unknown;
+  for (let attempt = 0; attempt <= maxRetries; attempt++) {
+    try {
+      return await fn();
+    } catch (err) {
+      lastError = err;
+      if (attempt < maxRetries) {
+        const delay = baseDelay * Math.pow(2, attempt);
+        await new Promise(resolve => setTimeout(resolve, delay));
+      }
+    }
+  }
+  throw lastError;
 }
