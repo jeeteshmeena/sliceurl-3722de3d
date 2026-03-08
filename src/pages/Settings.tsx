@@ -368,7 +368,7 @@ export default function Settings() {
             variant="ghost"
             size="sm"
             onClick={() => navigate("/dashboard")}
-            className="gap-2 text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-neutral-100 -ml-2"
+            className="gap-2 text-muted-foreground hover:text-foreground -ml-2"
           >
             <ArrowLeft className="h-4 w-4" />
             Back
