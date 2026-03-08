@@ -226,24 +226,6 @@ export default function AppPage() {
     }
   };
 
-  const formatFileSize = (bytes: number): string => {
-    if (bytes === 0) return "0 B";
-    const k = 1024;
-    const sizes = ["B", "KB", "MB", "GB"];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + " " + sizes[i];
-  };
-
-  const formatDownloads = (count: number | null): string => {
-    if (!count || count === 0) return "0";
-    if (count >= 1000000) return `${(count / 1000000).toFixed(1)}M+`;
-    if (count >= 100000) return "100K+";
-    if (count >= 10000) return "10K+";
-    if (count >= 1000) return `${Math.floor(count / 1000)}K+`;
-    if (count >= 100) return "100+";
-    if (count >= 10) return "10+";
-    return count.toString();
-  };
 
   const DownloadButton = ({ size = "default" }: { size?: "default" | "large" }) => {
     const isLarge = size === "large";
