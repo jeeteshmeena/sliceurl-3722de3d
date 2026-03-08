@@ -69,6 +69,7 @@ export default function AppPage() {
   const [downloadSuccess, setDownloadSuccess] = useState(false);
   const [downloadProgress, setDownloadProgress] = useState(0);
   const [fileUnavailable, setFileUnavailable] = useState<string | null>(null);
+  const downloadControllerRef = useRef<AbortController | null>(null);
   
   const [showPasswordDialog, setShowPasswordDialog] = useState(false);
   const [password, setPassword] = useState("");
