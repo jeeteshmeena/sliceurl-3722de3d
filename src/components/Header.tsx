@@ -96,10 +96,11 @@ export function Header() {
   const handleThemeCycle = () => {
     if (resolvedTheme === "light") setTheme("dark");
     else if (resolvedTheme === "dark") setTheme("maggie");
+    else if (resolvedTheme === "maggie") setTheme("racing");
     else setTheme("light");
   };
 
-  const themeLabel = resolvedTheme === "maggie" ? "Maggie" : resolvedTheme === "dark" ? "Dark" : "Light";
+  const themeLabel = resolvedTheme === "racing" ? "Racing" : resolvedTheme === "maggie" ? "Maggie" : resolvedTheme === "dark" ? "Dark" : "Light";
 
   const handleLogout = async () => {
     await signOut();
@@ -128,7 +129,7 @@ export function Header() {
                 src="/favicon.png"
                 alt="SliceURL"
                 className={`h-8 w-8 rounded-lg object-contain shrink-0 ${
-                  resolvedTheme === "dark" ? "invert brightness-110" : ""
+                  (resolvedTheme === "dark" || resolvedTheme === "racing") ? "invert brightness-110" : ""
                 }`}
               />
               <span className="text-xl font-bold tracking-tight">
@@ -148,7 +149,9 @@ export function Header() {
             aria-label={`Theme: ${themeLabel}. Click to switch.`}
             title={`Theme: ${themeLabel}`}
           >
-            {resolvedTheme === "maggie" ? (
+            {resolvedTheme === "racing" ? (
+              <span className="text-base">🏁</span>
+            ) : resolvedTheme === "maggie" ? (
               <span className="text-base">🩷</span>
             ) : resolvedTheme === "dark" ? (
               <Sun className="h-5 w-5" strokeWidth={1.7} />
