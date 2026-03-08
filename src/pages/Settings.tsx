@@ -756,7 +756,7 @@ export default function Settings() {
                 <SelectTrigger className="w-24 h-8 text-xs bg-card border-input">
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent className="bg-white dark:bg-neutral-900 border-neutral-200 dark:border-neutral-700">
+                <SelectContent className="bg-popover border-border">
                   <SelectItem value="disable">Off</SelectItem>
                   <SelectItem value="warn">Warn</SelectItem>
                   <SelectItem value="strict">Strict</SelectItem>
