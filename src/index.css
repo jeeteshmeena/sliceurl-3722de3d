@@ -171,6 +171,8 @@
     --shadow-md: 0 2px 8px 0 hsl(0 0% 0% / 0.35);
     --shadow-lg: 0 8px 24px 0 hsl(0 0% 0% / 0.45);
     --shadow-xl: 0 16px 40px -8px hsl(0 0% 0% / 0.5);
+    --sliceapps-get-bg: rgba(10, 132, 255, 1);
+    --sliceapps-get-color: #ffffff;
   }
 }
 
