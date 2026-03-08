@@ -11,9 +11,9 @@ const mainNavItems = [
 ];
 
 const menuItems = [
-  { label: "SliceURL", subtitle: "Short links & analytics", icon: Link2, path: "/" },
-  { label: "SliceBox", subtitle: "File sharing", icon: HardDrive, path: "/slicebox" },
-  { label: "LittleSlice", subtitle: "Lightweight quick links", icon: FileDown, path: "/littleslice" },
+  { label: "SliceURL", icon: Link2, path: "/" },
+  { label: "SliceBox", icon: HardDrive, path: "/slicebox" },
+  { label: "LittleSlice", icon: FileDown, path: "/littleslice" },
 ];
 
 const categoryItems = [
@@ -90,21 +90,15 @@ export function SliceAppsHeader() {
                 </div>
                 <div className="w-10" />
               </div>
-              <nav className="px-5 pt-4" style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+              <nav className="pt-2">
                 {menuItems.map((item) => (
                   <button
                     key={item.label}
                     onClick={() => { setMenuOpen(false); navigate(item.path); }}
-                    className="w-full text-left"
-                    style={{ display: 'flex', alignItems: 'center', gap: 14, paddingTop: 14, paddingBottom: 14 }}
+                    className="w-full h-[52px] flex items-center gap-[14px] pl-5 text-left"
                   >
-                    <div style={{ width: 40, height: 40, borderRadius: 10, background: 'rgba(0,122,255,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                      <item.icon style={{ width: 24, height: 24, color: '#007AFF' }} strokeWidth={1.5} />
-                    </div>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                      <span style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Text", system-ui, sans-serif', fontSize: 17, fontWeight: 600, color: 'var(--foreground)' }}>{item.label}</span>
-                      <span style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Text", system-ui, sans-serif', fontSize: 13, fontWeight: 400, color: '#8e8e93' }}>{item.subtitle}</span>
-                    </div>
+                    <item.icon className="h-6 w-6 text-[#007AFF]" strokeWidth={1.5} />
+                    <span className="text-[16px] font-medium text-foreground">{item.label}</span>
                   </button>
                 ))}
               </nav>
@@ -144,20 +138,15 @@ export function SliceAppsSidebar() {
       </div>
 
       {/* Navigation */}
-      <nav className="px-2 space-y-1">
+      <nav className="px-2 space-y-0.5">
         {menuItems.map((item) => (
           <button
             key={item.label}
             onClick={() => navigate(item.path)}
-            className="w-full flex items-center gap-3 px-2.5 py-[8px] rounded-md text-left hover:bg-muted/50 transition-colors"
+            className="w-full flex items-center gap-3 px-2.5 py-[7px] rounded-md text-left hover:bg-muted/50 transition-colors"
           >
-            <div style={{ width: 32, height: 32, borderRadius: 8, background: 'rgba(0,122,255,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-              <item.icon style={{ width: 18, height: 18, color: '#007AFF' }} strokeWidth={1.8} />
-            </div>
-            <div style={{ display: 'flex', flexDirection: 'column' }}>
-              <span className="text-[13px] font-semibold text-foreground">{item.label}</span>
-              <span style={{ fontSize: 11, color: '#8e8e93' }}>{item.subtitle}</span>
-            </div>
+            <item.icon className="h-[18px] w-[18px] text-[#007AFF]" strokeWidth={1.8} />
+            <span className="text-[13px] text-foreground">{item.label}</span>
           </button>
         ))}
       </nav>

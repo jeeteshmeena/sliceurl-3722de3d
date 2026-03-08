@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { motion } from "framer-motion";
 import { useParams, Link } from "react-router-dom";
 import { Lock, AlertTriangle, Check, Share2, ChevronRight } from "lucide-react";
@@ -67,9 +67,7 @@ export default function AppPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [isDownloading, setIsDownloading] = useState(false);
   const [downloadSuccess, setDownloadSuccess] = useState(false);
-  const [downloadProgress, setDownloadProgress] = useState(0);
   const [fileUnavailable, setFileUnavailable] = useState<string | null>(null);
-  const downloadControllerRef = useRef<AbortController | null>(null);
   
   const [showPasswordDialog, setShowPasswordDialog] = useState(false);
   const [password, setPassword] = useState("");
@@ -134,79 +132,26 @@ export default function AppPage() {
 
   const initiateDownload = async (passwordForDownload?: string) => {
     if (!fileInfo) return;
-    const controller = new AbortController();
-    downloadControllerRef.current = controller;
     setIsDownloading(true);
-    setDownloadProgress(0);
     try {
       const streamUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/file-stream?fileId=${fileInfo.file_id}${passwordForDownload ? '&verified=true' : ''}`;
-      const response = await fetch(streamUrl, { signal: controller.signal });
-      if (!response.ok) throw new Error("Download failed");
-
-      const contentLength = response.headers.get("content-length");
-      const total = contentLength ? parseInt(contentLength, 10) : 0;
-
-      if (!response.body || !total) {
-        const blob = await response.blob();
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = fileInfo.original_name;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
-      } else {
-        const reader = response.body.getReader();
-        const chunks: BlobPart[] = [];
-        let received = 0;
-
-        try {
-          while (true) {
-            const { done, value } = await reader.read();
-            if (done) break;
-            chunks.push(value);
-            received += value.length;
-            setDownloadProgress(Math.min(Math.round((received / total) * 100), 100));
-          }
-        } catch (readErr) {
-          reader.cancel();
-          throw readErr;
-        }
-
-        const blob = new Blob(chunks);
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = fileInfo.original_name;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
-      }
-
-      setDownloadProgress(100);
+      const a = document.createElement("a");
+      a.href = streamUrl;
+      a.download = fileInfo.original_name;
+      a.style.display = "none";
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
       setFileInfo(prev => prev ? { ...prev, download_count: (prev.download_count || 0) + 1 } : null);
-      setApp(prev => prev ? { ...prev, total_downloads: (prev.total_downloads || 0) + 1 } : null);
       setDownloadSuccess(true);
-      setTimeout(() => { setDownloadSuccess(false); setDownloadProgress(0); }, 1500);
-      toast.success("Download complete!");
-    } catch (err: unknown) {
-      if (err instanceof DOMException && err.name === 'AbortError') {
-        toast("Download cancelled");
-      } else {
-        console.error("Download failed:", err);
-        toast.error("This file is temporarily unavailable. Please try again later.");
-      }
-      setDownloadProgress(0);
+      setTimeout(() => setDownloadSuccess(false), 1500);
+      toast.success("Download started!");
+    } catch (err) {
+      console.error("Download failed:", err);
+      toast.error("This file is temporarily unavailable. Please try again later.");
     } finally {
-      downloadControllerRef.current = null;
       setIsDownloading(false);
     }
-  };
-
-  const cancelDownload = () => {
-    downloadControllerRef.current?.abort();
   };
 
   const handlePasswordSubmit = async () => {
@@ -286,7 +231,7 @@ export default function AppPage() {
     );
   }
 
-  const actualDownloads = app?.total_downloads || fileInfo?.download_count || 0;
+  const actualDownloads = fileInfo?.download_count || 0;
 
   return (
     <div className="min-h-dvh bg-background flex">
@@ -307,20 +252,23 @@ export default function AppPage() {
         <div
           className="lg:hidden"
           style={{
-            background: 'linear-gradient(135deg, #6f7a83 0%, #a3aab1 100%)',
-            backdropFilter: 'blur(20px)',
-            padding: '24px 20px',
+            background: 'linear-gradient(135deg, #9ea3aa 0%, #8d9198 40%, #7c8087 100%)',
+            backdropFilter: 'blur(6px)',
+            paddingTop: 28,
+            paddingBottom: 26,
+            paddingLeft: 16,
+            paddingRight: 16,
           }}
         >
-          <div style={{ display: 'flex', alignItems: 'center' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 18 }}>
             {/* App Icon — 112px */}
             <div
               className="flex-shrink-0 overflow-hidden"
               style={{
                 width: 112,
                 height: 112,
-                borderRadius: 24,
-                boxShadow: '0 8px 24px rgba(0,0,0,0.12)',
+                borderRadius: 26,
+                boxShadow: '0 10px 30px rgba(0,0,0,0.15)',
               }}
             >
               {app.icon_url ? (
@@ -333,16 +281,14 @@ export default function AppPage() {
             </div>
 
             {/* Text Block */}
-            <div style={{ display: 'flex', flexDirection: 'column', flex: 1, minWidth: 0, marginLeft: 20 }}>
+            <div style={{ display: 'flex', flexDirection: 'column', flex: 1, minWidth: 0 }}>
               <h1
                 style={{
-                  fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Display", system-ui, sans-serif',
-                  fontWeight: 600,
-                  fontSize: 20,
-                  lineHeight: '24px',
-                  letterSpacing: '-0.01em',
+                  fontSize: 26,
+                  fontWeight: 700,
+                  lineHeight: 1.2,
                   color: '#ffffff',
-                  margin: 0,
+                  marginBottom: 4,
                 }}
               >
                 {app.app_name}
@@ -350,188 +296,118 @@ export default function AppPage() {
               <p
                 className="line-clamp-2"
                 style={{
-                  fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Text", system-ui, sans-serif',
+                  fontSize: 15,
                   fontWeight: 400,
-                  fontSize: 13,
-                  lineHeight: '18px',
                   color: 'rgba(255,255,255,0.85)',
-                  marginTop: 6,
-                  marginBottom: 0,
+                  lineHeight: 1.35,
+                  marginBottom: 14,
                 }}
               >
                 {app.short_description || `The official app by ${app.developer_name || "Unknown"}`}
               </p>
 
               {/* Button Row */}
-              <div style={{ display: 'flex', alignItems: 'center', marginTop: 10, gap: 12 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
                 <motion.div
                   animate={downloadSuccess ? { scale: [1, 1.02, 1] } : {}}
                   transition={{ duration: 0.2 }}
                 >
-                  {isDownloading ? (
-                    <div style={{ width: 36, height: 36, position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                      <svg width={36} height={36} style={{ transform: 'rotate(-90deg)' }}>
-                        <circle cx={18} cy={18} r={15} fill="none" stroke="rgba(255,255,255,0.2)" strokeWidth={3} />
-                        <circle
-                          cx={18} cy={18} r={15} fill="none"
-                          stroke="#0A84FF" strokeWidth={3}
-                          strokeLinecap="round"
-                          strokeDasharray={2 * Math.PI * 15}
-                          strokeDashoffset={2 * Math.PI * 15 * (1 - downloadProgress / 100)}
-                          style={{ transition: 'stroke-dashoffset 0.2s ease' }}
-                        />
-                      </svg>
-                      <button onClick={cancelDownload} aria-label="Cancel download" style={{ position: 'absolute', width: 36, height: 36, background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 0 }}>
-                        <div style={{ width: 10, height: 10, borderRadius: 2, background: '#0A84FF' }} />
-                      </button>
-                    </div>
-                  ) : (
-                    <button
-                      onClick={handleDownload}
-                      disabled={!fileInfo || !!fileUnavailable}
-                      className="disabled:opacity-40"
-                      style={{
-                        height: 36,
-                        padding: '8px 22px',
-                        borderRadius: 20,
-                        background: '#0A84FF',
-                        color: '#ffffff',
-                        fontSize: 16,
-                        fontWeight: 600,
-                        border: 'none',
-                        cursor: 'pointer',
-                        transition: 'background 0.15s ease, transform 0.12s ease',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                      }}
-                      onPointerDown={(e) => { e.currentTarget.style.background = '#0077ED'; e.currentTarget.style.transform = 'scale(0.96)'; }}
-                      onPointerUp={(e) => { e.currentTarget.style.background = '#0A84FF'; e.currentTarget.style.transform = 'scale(1)'; }}
-                      onPointerLeave={(e) => { e.currentTarget.style.background = '#0A84FF'; e.currentTarget.style.transform = 'scale(1)'; }}
-                    >
-                      {downloadSuccess ? (
-                        <motion.span initial={{ opacity: 0, scale: 0.5 }} animate={{ opacity: 1, scale: 1 }} className="flex items-center justify-center gap-1.5">
-                          <Check style={{ width: 16, height: 16 }} /> Done
-                        </motion.span>
-                      ) : "DOWNLOAD"}
-                    </button>
-                  )}
+                  <button
+                    onClick={handleDownload}
+                    disabled={isDownloading || !fileInfo || !!fileUnavailable}
+                    className="disabled:opacity-40"
+                    style={{
+                      height: 40,
+                      paddingLeft: 26,
+                      paddingRight: 26,
+                      borderRadius: 20,
+                      background: '#ffffff',
+                      color: '#0071e3',
+                      fontSize: 16,
+                      fontWeight: 600,
+                      border: 'none',
+                      cursor: 'pointer',
+                      transition: 'transform 0.12s ease',
+                    }}
+                    onPointerDown={(e) => (e.currentTarget.style.transform = 'scale(0.96)')}
+                    onPointerUp={(e) => (e.currentTarget.style.transform = 'scale(1)')}
+                    onPointerLeave={(e) => (e.currentTarget.style.transform = 'scale(1)')}
+                  >
+                    {downloadSuccess ? (
+                      <motion.span initial={{ opacity: 0, scale: 0.5 }} animate={{ opacity: 1, scale: 1 }} className="flex items-center justify-center gap-1.5">
+                        <Check style={{ width: 16, height: 16 }} /> Done
+                      </motion.span>
+                    ) : isDownloading ? "..." : "GET"}
+                  </button>
                 </motion.div>
+
+                <button
+                  onClick={handleShare}
+                  aria-label="Share"
+                  style={{
+                    width: 38,
+                    height: 38,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    borderRadius: '50%',
+                    background: 'rgba(255,255,255,0.2)',
+                    border: 'none',
+                    cursor: 'pointer',
+                    padding: 0,
+                  }}
+                >
+                  <Share2 style={{ width: 20, height: 20, color: '#ffffff' }} strokeWidth={1.8} />
+                </button>
               </div>
             </div>
           </div>
         </div>
 
         {/* Desktop Hero (non-collapsing) */}
-        <div
-          className="hidden lg:block"
-          style={{
-            background: 'linear-gradient(135deg, #6f7a83 0%, #a3aab1 100%)',
-            backdropFilter: 'blur(20px)',
-            padding: '32px 40px',
-          }}
-        >
+        <div className="hidden lg:block px-10 py-10 bg-gradient-to-b from-muted/40 to-transparent">
           <div className="max-w-5xl mx-auto">
-            <div style={{ display: 'flex', alignItems: 'center' }}>
-              <div
-                className="flex-shrink-0 overflow-hidden"
-                style={{
-                  width: 112,
-                  height: 112,
-                  borderRadius: 24,
-                  boxShadow: '0 8px 24px rgba(0,0,0,0.12)',
-                }}
-              >
+            <div className="flex items-start gap-8">
+              <div className="w-[170px] h-[170px] rounded-[36px] flex-shrink-0 overflow-hidden bg-muted shadow-sm border border-border/10">
                 {app.icon_url ? (
                   <img src={app.icon_url} alt={app.app_name} className="w-full h-full object-cover" loading="lazy" />
                 ) : (
-                  <div className="w-full h-full flex items-center justify-center text-5xl font-bold bg-muted text-muted-foreground">
+                  <div className="w-full h-full flex items-center justify-center text-muted-foreground text-5xl font-bold bg-muted">
                     {app.app_name.charAt(0)}
                   </div>
                 )}
               </div>
-              <div style={{ display: 'flex', flexDirection: 'column', flex: 1, minWidth: 0, marginLeft: 20 }}>
-                <h1
-                  style={{
-                    fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Display", system-ui, sans-serif',
-                    fontWeight: 600,
-                    fontSize: 20,
-                    lineHeight: '24px',
-                    letterSpacing: '-0.01em',
-                    color: '#ffffff',
-                    margin: 0,
-                  }}
-                >
+              <div className="flex-1 min-w-0 flex flex-col">
+                <h1 className="text-[32px] font-bold text-foreground leading-[1.2]">
                   {app.app_name}
                 </h1>
-                <p
-                  className="line-clamp-2"
-                  style={{
-                    fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Text", system-ui, sans-serif',
-                    fontWeight: 400,
-                    fontSize: 13,
-                    lineHeight: '18px',
-                    color: 'rgba(255,255,255,0.85)',
-                    marginTop: 6,
-                    marginBottom: 0,
-                  }}
-                >
+                <p className="text-[17px] text-muted-foreground mt-0.5 mb-3 line-clamp-2">
                   {app.short_description || `The official app by ${app.developer_name || "Unknown"}`}
                 </p>
-                <div style={{ display: 'flex', alignItems: 'center', marginTop: 10, gap: 12 }}>
+                <div className="flex items-center gap-3">
                   <motion.div
                     animate={downloadSuccess ? { scale: [1, 1.05, 1] } : {}}
                     transition={{ duration: 0.25 }}
                   >
-                    {isDownloading ? (
-                      <div style={{ width: 36, height: 36, position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                        <svg width={36} height={36} style={{ transform: 'rotate(-90deg)' }}>
-                          <circle cx={18} cy={18} r={15} fill="none" stroke="rgba(255,255,255,0.2)" strokeWidth={3} />
-                          <circle
-                            cx={18} cy={18} r={15} fill="none"
-                            stroke="#0A84FF" strokeWidth={3}
-                            strokeLinecap="round"
-                            strokeDasharray={2 * Math.PI * 15}
-                            strokeDashoffset={2 * Math.PI * 15 * (1 - downloadProgress / 100)}
-                            style={{ transition: 'stroke-dashoffset 0.2s ease' }}
-                          />
-                        </svg>
-                        <button onClick={cancelDownload} aria-label="Cancel download" style={{ position: 'absolute', width: 36, height: 36, background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 0 }}>
-                          <div style={{ width: 10, height: 10, borderRadius: 2, background: '#0A84FF' }} />
-                        </button>
-                      </div>
-                    ) : (
-                      <button
-                        onClick={handleDownload}
-                        disabled={!fileInfo || !!fileUnavailable}
-                        className="disabled:opacity-40"
-                        style={{
-                          height: 36,
-                          padding: '8px 22px',
-                          borderRadius: 20,
-                          background: '#0A84FF',
-                          color: '#ffffff',
-                          fontSize: 16,
-                          fontWeight: 600,
-                          border: 'none',
-                          cursor: 'pointer',
-                          transition: 'background 0.15s ease, transform 0.12s ease',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                        }}
-                        onPointerDown={(e) => { e.currentTarget.style.background = '#0077ED'; e.currentTarget.style.transform = 'scale(0.96)'; }}
-                        onPointerUp={(e) => { e.currentTarget.style.background = '#0A84FF'; e.currentTarget.style.transform = 'scale(1)'; }}
-                        onPointerLeave={(e) => { e.currentTarget.style.background = '#0A84FF'; e.currentTarget.style.transform = 'scale(1)'; }}
-                      >
-                        {downloadSuccess ? (
-                          <motion.span initial={{ opacity: 0, scale: 0.5 }} animate={{ opacity: 1, scale: 1 }} className="flex items-center gap-1">
-                            <Check className="h-4 w-4" /> Done
-                          </motion.span>
-                        ) : "DOWNLOAD"}
-                      </button>
-                    )}
+                    <button
+                      onClick={handleDownload}
+                      disabled={isDownloading || !fileInfo || !!fileUnavailable}
+                      className="h-[38px] px-8 text-[16px] font-semibold rounded-full bg-primary text-primary-foreground disabled:opacity-40 active:opacity-80 transition-opacity"
+                    >
+                      {downloadSuccess ? (
+                        <motion.span initial={{ opacity: 0, scale: 0.5 }} animate={{ opacity: 1, scale: 1 }} className="flex items-center gap-1">
+                          <Check className="h-4 w-4" /> Done
+                        </motion.span>
+                      ) : isDownloading ? "..." : "GET"}
+                    </button>
                   </motion.div>
+                  <button
+                    onClick={handleShare}
+                    className="w-10 h-10 flex items-center justify-center rounded-full text-primary"
+                    aria-label="Share"
+                  >
+                    <Share2 className="h-[22px] w-[22px]" strokeWidth={1.8} />
+                  </button>
                 </div>
               </div>
             </div>

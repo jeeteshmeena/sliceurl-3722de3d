@@ -169,30 +169,6 @@ Deno.serve(async (req) => {
           .from("slicebox_files")
           .update({ download_count: (file.download_count || 0) + 1 })
           .eq("file_id", file.file_id);
-        
-        // Also increment total_downloads on any app_listing referencing this file
-        const { data: fileRow } = await supabase
-          .from("slicebox_files")
-          .select("id")
-          .eq("file_id", file.file_id)
-          .single();
-        
-        if (fileRow) {
-          const { data: appRow } = await supabase
-            .from("app_listings")
-            .select("id, total_downloads")
-            .eq("file_id", fileRow.id)
-            .single();
-          
-          if (appRow) {
-            await supabase
-              .from("app_listings")
-              .update({ total_downloads: (appRow.total_downloads || 0) + 1 })
-              .eq("id", appRow.id);
-            console.log("[file-stream] App listing download count incremented");
-          }
-        }
-        
         console.log("[file-stream] Download count incremented");
       } catch (err) {
         console.error("[file-stream] Failed to update download count:", err);
