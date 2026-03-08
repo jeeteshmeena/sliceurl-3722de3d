@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { useParams, Link } from "react-router-dom";
-import { Lock, AlertTriangle, Check } from "lucide-react";
+import { Lock, AlertTriangle, Check, Share2, ChevronRight, ChevronDown, ChevronUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -57,6 +57,42 @@ interface Review {
   user_id: string | null;
 }
 
+// Expandable Section Component
+function ExpandableSection({ 
+  title, 
+  children, 
+  defaultExpanded = false,
+  maxLines = 4
+}: { 
+  title: string; 
+  children: React.ReactNode;
+  defaultExpanded?: boolean;
+  maxLines?: number;
+}) {
+  const [expanded, setExpanded] = useState(defaultExpanded);
+  
+  return (
+    <div className="py-5 border-t border-border/30">
+      <div className="flex items-center justify-between mb-3">
+        <div className="flex items-center gap-1">
+          <h2 className="text-[22px] font-bold text-foreground">{title}</h2>
+          <ChevronRight className="h-5 w-5 text-muted-foreground" />
+        </div>
+      </div>
+      <div className={`text-[15px] text-foreground leading-relaxed ${!expanded ? `line-clamp-${maxLines}` : ''}`}>
+        {children}
+      </div>
+      <button 
+        onClick={() => setExpanded(!expanded)}
+        className="text-[#007AFF] text-[15px] font-medium mt-2 flex items-center gap-0.5"
+      >
+        {expanded ? "Less" : "More"}
+        {expanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+      </button>
+    </div>
+  );
+}
+
 export default function AppPage() {
   const { id } = useParams<{ id: string }>();
   const { user } = useAuth();
@@ -74,6 +110,7 @@ export default function AppPage() {
   const [isVerifyingPassword, setIsVerifyingPassword] = useState(false);
   
   const [selectedScreenshot, setSelectedScreenshot] = useState<number | null>(null);
+  const [aboutExpanded, setAboutExpanded] = useState(false);
 
   useEffect(() => {
     loadAppData();
@@ -211,6 +248,24 @@ export default function AppPage() {
     }
   };
 
+  const handleShare = async () => {
+    const shareUrl = window.location.href;
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: app?.app_name || "SliceAPPs",
+          text: app?.short_description || "Check out this app!",
+          url: shareUrl,
+        });
+      } catch (err) {
+        // User cancelled or share failed
+      }
+    } else {
+      await navigator.clipboard.writeText(shareUrl);
+      toast.success("Link copied!");
+    }
+  };
+
   const formatFileSize = (bytes: number): string => {
     if (bytes === 0) return "0 B";
     const k = 1024;
@@ -257,41 +312,180 @@ export default function AppPage() {
     <div className="min-h-dvh bg-background">
       <SliceAppsHeader />
 
-      <main className="max-w-2xl mx-auto px-4 py-6">
-        {/* Hero Section: Icon + Title + Developer */}
-        <div className="flex gap-4 mb-3">
-          {/* App Icon - rounded square */}
-          <div className="w-[88px] h-[88px] sm:w-[112px] sm:h-[112px] rounded-[22px] flex-shrink-0 overflow-hidden bg-muted shadow-sm">
-            {app.icon_url ? (
-              <img src={app.icon_url} alt={app.app_name} className="w-full h-full object-cover" loading="lazy" />
-            ) : (
-              <div className="w-full h-full flex items-center justify-center text-muted-foreground text-3xl font-bold">
-                {app.app_name.charAt(0)}
+      {/* App Store Hero Section - Grey gradient background */}
+      <div className="bg-gradient-to-b from-muted/60 to-muted/20 px-4 py-6">
+        <div className="max-w-4xl mx-auto">
+          <div className="flex gap-4">
+            {/* App Icon - Large rounded square like App Store */}
+            <div className="w-[128px] h-[128px] rounded-[28px] flex-shrink-0 overflow-hidden bg-background shadow-lg">
+              {app.icon_url ? (
+                <img src={app.icon_url} alt={app.app_name} className="w-full h-full object-cover" loading="lazy" />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center text-muted-foreground text-4xl font-bold bg-muted">
+                  {app.app_name.charAt(0)}
+                </div>
+              )}
+            </div>
+
+            {/* App Info - Right side */}
+            <div className="flex-1 min-w-0 flex flex-col justify-center">
+              <h1 className="text-[22px] font-bold text-foreground leading-tight mb-1">
+                {app.app_name}
+              </h1>
+              <p className="text-[15px] text-muted-foreground mb-1">
+                {app.short_description || `The official app by ${app.developer_name || "Unknown"}`}
+              </p>
+              <p className="text-[13px] text-muted-foreground">
+                Free • In-App Purchases
+              </p>
+
+              {/* Share Button - App Store style pill */}
+              <button
+                onClick={handleShare}
+                className="mt-3 flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-muted/80 hover:bg-muted w-fit text-[13px] font-medium text-foreground"
+              >
+                <Share2 className="h-4 w-4" />
+                Share
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Content Area */}
+      <main className="max-w-4xl mx-auto px-4">
+        {/* Metadata Strip - Horizontal scrollable */}
+        <MetadataStrip
+          ratingAvg={app.rating_avg}
+          ratingCount={app.rating_count}
+          downloads={formatDownloads(actualDownloads)}
+          fileSize={fileInfo ? formatFileSize(fileInfo.file_size) : "--"}
+          category={app.category || "Productivity"}
+          developer={app.developer_name || "Unknown"}
+        />
+
+        {/* File Unavailable Warning */}
+        {fileUnavailable && (
+          <div className="flex items-center gap-3 mt-4 text-muted-foreground">
+            <AlertTriangle className="h-4 w-4 flex-shrink-0" />
+            <p className="text-sm">{fileUnavailable}</p>
+          </div>
+        )}
+
+        {/* Screenshots - Horizontal scroll with light cyan/blue backgrounds like App Store */}
+        {app.screenshots && app.screenshots.length > 0 && (
+          <div className="py-6 -mx-4 px-4 overflow-x-auto scrollbar-hide">
+            <div className="flex gap-3 pb-2">
+              {app.screenshots.map((url, index) => (
+                <div
+                  key={index}
+                  className="relative min-w-[200px] h-[360px] rounded-2xl overflow-hidden flex-shrink-0 cursor-pointer bg-[#E3F4F9]"
+                  onClick={() => setSelectedScreenshot(index)}
+                >
+                  <img
+                    src={url}
+                    alt={`Screenshot ${index + 1}`}
+                    className="w-full h-full object-cover"
+                    loading="lazy"
+                  />
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* About Section - Expandable like App Store */}
+        {app.full_description && (
+          <div className="py-5 border-t border-border/30">
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-1">
+                <h2 className="text-[22px] font-bold text-foreground">About this app</h2>
+                <ChevronRight className="h-5 w-5 text-muted-foreground" />
               </div>
+            </div>
+            <div className={`text-[15px] text-foreground leading-relaxed whitespace-pre-wrap ${!aboutExpanded ? 'line-clamp-4' : ''}`}>
+              {app.full_description}
+            </div>
+            {app.full_description.length > 200 && (
+              <button 
+                onClick={() => setAboutExpanded(!aboutExpanded)}
+                className="text-[#007AFF] text-[15px] font-medium mt-2"
+              >
+                {aboutExpanded ? "Less" : "More"}
+              </button>
             )}
           </div>
+        )}
 
-          {/* App Title + Developer Name */}
-          <div className="flex-1 min-w-0 flex flex-col justify-center gap-0.5">
-            <h1 className="text-xl sm:text-2xl font-bold text-foreground leading-tight">
-              {app.app_name}
-            </h1>
-            <p className="text-sm text-muted-foreground">
-              {app.developer_name || "Unknown"}
+        {/* Ratings & Reviews Section */}
+        <div className="py-5 border-t border-border/30">
+          <RatingsReviewsSection
+            appId={app.id}
+            ratingAvg={app.rating_avg}
+            ratingCount={app.rating_count}
+            reviews={reviews}
+            userId={user?.id || null}
+            onReviewSubmit={loadAppData}
+          />
+        </div>
+
+        {/* What's New Section */}
+        {app.whats_new && (
+          <div className="py-5 border-t border-border/30">
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-1">
+                <h2 className="text-[22px] font-bold text-foreground">What's New</h2>
+                <ChevronRight className="h-5 w-5 text-muted-foreground" />
+              </div>
+              <div className="text-right">
+                <p className="text-[13px] text-muted-foreground">Version</p>
+                <p className="text-[13px] text-foreground">{app.version_name || "1.0"}</p>
+              </div>
+            </div>
+            <p className="text-[15px] text-foreground leading-relaxed">
+              {app.whats_new}
             </p>
+          </div>
+        )}
+
+        {/* Information Section - App Store exact layout */}
+        <div className="py-5 border-t border-border/30">
+          <h2 className="text-[22px] font-bold text-foreground mb-4">Information</h2>
+          
+          <div className="space-y-4">
+            <div className="flex justify-between py-2 border-b border-border/20">
+              <span className="text-[15px] text-muted-foreground">Size</span>
+              <span className="text-[15px] text-foreground">{fileInfo ? formatFileSize(fileInfo.file_size) : "--"}</span>
+            </div>
+            <div className="flex justify-between py-2 border-b border-border/20">
+              <span className="text-[15px] text-muted-foreground">Category</span>
+              <span className="text-[15px] text-foreground">{app.category || "Productivity"}</span>
+            </div>
+            <div className="flex justify-between py-2 border-b border-border/20">
+              <span className="text-[15px] text-muted-foreground">Developer</span>
+              <span className="text-[15px] text-foreground">{app.developer_name || "Unknown"}</span>
+            </div>
+            <div className="flex justify-between py-2 border-b border-border/20">
+              <span className="text-[15px] text-muted-foreground">Version</span>
+              <span className="text-[15px] text-foreground">{app.version_name || "1.0"}</span>
+            </div>
+            <div className="flex justify-between py-2 border-b border-border/20">
+              <span className="text-[15px] text-muted-foreground">Downloads</span>
+              <span className="text-[15px] text-foreground">{formatDownloads(actualDownloads)}</span>
+            </div>
           </div>
         </div>
 
-        {/* Download Button */}
-        <div className="mb-4">
+        {/* Download Button - Fixed at bottom on mobile */}
+        <div className="py-6 pb-8">
           <motion.div
-            animate={downloadSuccess ? { scale: [1, 1.04, 1] } : {}}
-            transition={{ duration: 0.4, ease: "easeOut" }}
+            animate={downloadSuccess ? { scale: [1, 1.02, 1] } : {}}
+            transition={{ duration: 0.3 }}
           >
             <Button
               onClick={handleDownload}
               disabled={isDownloading || !fileInfo || !!fileUnavailable}
-              className="w-full h-[50px] text-base font-bold rounded-full bg-green-600 hover:bg-green-700 text-white disabled:bg-muted disabled:text-muted-foreground uppercase tracking-wide shadow-sm transition-all duration-200"
+              className="w-full h-[52px] text-[17px] font-semibold rounded-2xl bg-[#34C759] hover:bg-[#2DB84D] text-white disabled:bg-muted disabled:text-muted-foreground shadow-sm"
             >
               {downloadSuccess ? (
                 <motion.span
@@ -310,103 +504,6 @@ export default function AppPage() {
             </Button>
           </motion.div>
         </div>
-
-        {/* Metadata Strip */}
-        <MetadataStrip
-          ratingAvg={app.rating_avg}
-          ratingCount={app.rating_count}
-          downloads={formatDownloads(actualDownloads)}
-          fileSize={fileInfo ? formatFileSize(fileInfo.file_size) : "--"}
-          category={app.category || "Other"}
-          developer={app.developer_name || "Unknown"}
-        />
-
-        {/* File Unavailable Warning */}
-        {fileUnavailable && (
-          <div className="flex items-center gap-3 mt-2 mb-2 text-muted-foreground">
-            <AlertTriangle className="h-4 w-4 flex-shrink-0" />
-            <p className="text-sm">{fileUnavailable}</p>
-          </div>
-        )}
-
-        {/* Screenshots - no heading, horizontal scroll */}
-        {app.screenshots && app.screenshots.length > 0 && (
-          <div className="mt-6 -mx-4 px-4">
-            <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide snap-x snap-mandatory">
-              {app.screenshots.map((url, index) => (
-                <img
-                  key={index}
-                  src={url}
-                  alt={`Preview ${index + 1}`}
-                  className="w-[180px] h-[320px] object-cover rounded-2xl flex-shrink-0 cursor-pointer snap-center"
-                  onClick={() => setSelectedScreenshot(index)}
-                  loading="lazy"
-                />
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* About this app */}
-        {app.full_description && (
-          <section className="mt-8">
-            <h2 className="text-base font-semibold text-foreground mb-3">
-              About this app
-            </h2>
-            <p className="text-sm text-muted-foreground leading-relaxed whitespace-pre-wrap">
-              {app.full_description}
-            </p>
-          </section>
-        )}
-
-        {/* What's New */}
-        {app.whats_new && (
-          <section className="mt-8">
-            <h2 className="text-base font-semibold text-foreground mb-3">
-              What's new
-            </h2>
-            <p className="text-sm text-muted-foreground leading-relaxed whitespace-pre-wrap">
-              {app.whats_new}
-            </p>
-          </section>
-        )}
-
-        {/* Additional Info */}
-        <section className="mt-8">
-          <h2 className="text-base font-semibold text-foreground mb-4">
-            Additional information
-          </h2>
-          <div className="grid grid-cols-2 gap-y-4 gap-x-8">
-            <div>
-              <p className="text-xs text-muted-foreground mb-0.5">Version</p>
-              <p className="text-sm text-foreground">{app.version_name || "1.0"}</p>
-            </div>
-            <div>
-              <p className="text-xs text-muted-foreground mb-0.5">Category</p>
-              <p className="text-sm text-foreground">{app.category || "Other"}</p>
-            </div>
-            <div>
-              <p className="text-xs text-muted-foreground mb-0.5">Developer</p>
-              <p className="text-sm text-foreground">{app.developer_name || "Unknown"}</p>
-            </div>
-            <div>
-              <p className="text-xs text-muted-foreground mb-0.5">Size</p>
-              <p className="text-sm text-foreground">{fileInfo ? formatFileSize(fileInfo.file_size) : "--"}</p>
-            </div>
-          </div>
-        </section>
-
-        {/* Ratings & Reviews */}
-        <section className="mt-8">
-          <RatingsReviewsSection
-            appId={app.id}
-            ratingAvg={app.rating_avg}
-            ratingCount={app.rating_count}
-            reviews={reviews}
-            userId={user?.id || null}
-            onReviewSubmit={loadAppData}
-          />
-        </section>
       </main>
 
       {/* Screenshot Modal */}
@@ -418,16 +515,16 @@ export default function AppPage() {
           <img
             src={app.screenshots[selectedScreenshot]}
             alt="Screenshot"
-            className="max-w-full max-h-full object-contain"
+            className="max-w-full max-h-full object-contain rounded-xl"
           />
         </div>
       )}
 
       {/* Password Dialog */}
       <Dialog open={showPasswordDialog} onOpenChange={setShowPasswordDialog}>
-        <DialogContent className="bg-background border-border">
+        <DialogContent className="bg-background border-border rounded-2xl">
           <DialogHeader>
-            <DialogTitle className="text-foreground">
+            <DialogTitle className="text-foreground text-lg">
               Password Required
             </DialogTitle>
             <DialogDescription className="text-muted-foreground">
@@ -441,7 +538,7 @@ export default function AppPage() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && handlePasswordSubmit()}
-              className="h-11"
+              className="h-12 rounded-xl"
             />
             <div className="flex gap-3">
               <Button
@@ -450,14 +547,14 @@ export default function AppPage() {
                   setPassword("");
                 }}
                 variant="outline"
-                className="flex-1 h-11"
+                className="flex-1 h-12 rounded-xl"
               >
                 Cancel
               </Button>
               <Button
                 onClick={handlePasswordSubmit}
                 disabled={isVerifyingPassword || !password}
-                className="flex-1 h-11 bg-green-600 hover:bg-green-700 text-white"
+                className="flex-1 h-12 rounded-xl bg-[#34C759] hover:bg-[#2DB84D] text-white"
               >
                 {isVerifyingPassword ? "Verifying..." : "Download"}
               </Button>

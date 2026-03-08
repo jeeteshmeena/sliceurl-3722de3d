@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
-import { Star, Edit2, Trash2 } from "lucide-react";
+import { Star, Edit2, Trash2, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/integrations/supabase/client";
@@ -251,105 +251,177 @@ export function RatingsReviewsSection({
 
   return (
     <div>
-      <h2 className="text-base font-semibold text-foreground mb-5">
-        Ratings & Reviews
-      </h2>
+      {/* Section Header - App Store style with arrow */}
+      <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center gap-1">
+          <h2 className="text-[22px] font-bold text-foreground">
+            Ratings & Reviews
+          </h2>
+          <ChevronRight className="h-5 w-5 text-muted-foreground" />
+        </div>
+      </div>
 
-      {/* Rating Summary - App Store style: large number left, bars right */}
-      <div className="flex gap-6 mb-6">
-        {/* Large average rating */}
-        <div className="text-center min-w-[80px] flex flex-col items-center justify-center">
-          <div className="text-[56px] font-bold text-foreground leading-none tracking-tight">
+      {/* Rating Summary - App Store exact layout */}
+      <div className="flex gap-4 mb-6">
+        {/* Large average rating - left side */}
+        <div className="flex flex-col items-center justify-center min-w-[90px]">
+          <div className="text-[64px] font-bold text-foreground leading-none tracking-tight">
             {ratingAvg?.toFixed(1) || "0.0"}
           </div>
-          <div className="flex gap-0.5 justify-center mt-2">
-            {[1, 2, 3, 4, 5].map(star => (
-              <Star
-                key={star}
-                className={`h-3.5 w-3.5 ${star <= Math.round(ratingAvg || 0) ? "fill-current text-foreground" : "text-muted-foreground/30"}`}
-                strokeWidth={0}
-              />
-            ))}
+          <div className="text-[13px] text-muted-foreground mt-1">
+            out of 5
           </div>
-          <p className="text-xs text-muted-foreground mt-1.5">
-            {ratingCount || 0} Ratings
-          </p>
         </div>
 
-        {/* Star distribution bars */}
-        <div className="flex-1 space-y-1.5 flex flex-col justify-center">
+        {/* Star distribution bars - right side (App Store grey bars) */}
+        <div className="flex-1 space-y-[6px] flex flex-col justify-center py-2">
           {[5, 4, 3, 2, 1].map((star, index) => (
             <div key={star} className="flex items-center gap-2">
-              <span className="text-xs w-3 text-right text-muted-foreground font-medium">{star}</span>
-              <div className="flex-1 h-[6px] rounded-full overflow-hidden bg-muted">
+              {/* Star icons row */}
+              <div className="flex gap-[1px] min-w-[60px]">
+                {[1, 2, 3, 4, 5].map((s) => (
+                  <Star
+                    key={s}
+                    className={`h-[10px] w-[10px] ${s <= star ? "fill-muted-foreground/60 text-muted-foreground/60" : "fill-muted-foreground/20 text-muted-foreground/20"}`}
+                    strokeWidth={0}
+                  />
+                ))}
+              </div>
+              {/* Progress bar */}
+              <div className="flex-1 h-[8px] rounded-full overflow-hidden bg-muted/50">
                 <div
-                  className="h-full rounded-full bg-foreground/70 transition-all duration-300"
+                  className="h-full rounded-full bg-muted-foreground/50"
                   style={{ width: `${(ratingDist[index] / maxRatingCount) * 100}%` }}
                 />
               </div>
             </div>
           ))}
+          {/* Total ratings */}
+          <div className="text-right mt-1">
+            <span className="text-[13px] text-muted-foreground">
+              {ratingCount || 0} Ratings
+            </span>
+          </div>
         </div>
       </div>
 
-      {/* Write/Edit a review */}
-      <div className="mb-6">
-        <h3 className="text-sm font-medium mb-3 text-foreground">
-          {myReview && !isEditing ? "Your review" : isEditing ? "Edit your review" : "Rate this app"}
+      {/* Reviews Cards - App Store horizontal scroll style */}
+      {reviews.length > 0 && (
+        <div className="overflow-x-auto -mx-4 px-4 mb-6 scrollbar-hide">
+          <div className="flex gap-3 pb-2">
+            {reviews.map(review => (
+              <div 
+                key={review.id} 
+                className="min-w-[280px] max-w-[280px] p-4 rounded-2xl bg-muted/30 flex-shrink-0"
+              >
+                {/* Review Header */}
+                <div className="flex items-start justify-between mb-2">
+                  <div>
+                    <p className="text-[15px] font-semibold text-foreground leading-tight">
+                      {review.review_text ? review.review_text.slice(0, 40) + (review.review_text.length > 40 ? "..." : "") : "Great app!"}
+                    </p>
+                    <div className="flex gap-0.5 mt-1.5">
+                      {[1, 2, 3, 4, 5].map(star => (
+                        <Star
+                          key={star}
+                          className={`h-3 w-3 ${star <= review.rating ? "fill-[#FF9500] text-[#FF9500]" : "fill-muted-foreground/20 text-muted-foreground/20"}`}
+                          strokeWidth={0}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <span className="text-[12px] text-muted-foreground">
+                      {new Date(review.created_at).toLocaleDateString('en-GB', { 
+                        day: '2-digit',
+                        month: '2-digit', 
+                        year: 'numeric' 
+                      })}
+                    </span>
+                    <p className="text-[12px] text-muted-foreground">
+                      {getUsername(review)}
+                    </p>
+                  </div>
+                </div>
+                
+                {/* Review text */}
+                {review.review_text && (
+                  <p className="text-[14px] text-foreground leading-relaxed line-clamp-4">
+                    {review.review_text}
+                    {review.review_text.length > 150 && (
+                      <span className="text-[#007AFF] ml-1">more</span>
+                    )}
+                  </p>
+                )}
+
+                {/* Edit/Delete for own review */}
+                {myReview?.id === review.id && (
+                  <div className="flex gap-2 mt-3 pt-3 border-t border-border/30">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={startEditing}
+                      className="h-8 px-3 text-[#007AFF] text-[13px]"
+                    >
+                      <Edit2 className="h-3.5 w-3.5 mr-1.5" />
+                      Edit
+                    </Button>
+                    {userId && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={handleDeleteReview}
+                        disabled={isSubmitting}
+                        className="h-8 px-3 text-muted-foreground text-[13px] hover:text-destructive"
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </Button>
+                    )}
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Write a review section */}
+      <div className="pt-4 border-t border-border/40">
+        <h3 className="text-[17px] font-semibold mb-4 text-foreground">
+          {myReview && !isEditing ? "Your Review" : isEditing ? "Edit Your Review" : "Write a Review"}
         </h3>
         
         {myReview && !isEditing ? (
-          <div className="py-3">
+          <div className="p-4 rounded-xl bg-muted/30">
             <div className="flex items-center justify-between mb-2">
               <div className="flex gap-0.5">
                 {[1, 2, 3, 4, 5].map(star => (
                   <Star
                     key={star}
-                    className={`h-4 w-4 ${star <= myReview.rating ? "fill-current text-foreground" : "text-muted-foreground/30"}`}
+                    className={`h-5 w-5 ${star <= myReview.rating ? "fill-[#FF9500] text-[#FF9500]" : "fill-muted-foreground/20 text-muted-foreground/20"}`}
                     strokeWidth={0}
                   />
                 ))}
               </div>
-              <div className="flex gap-1">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={startEditing}
-                  className="h-8 px-2 text-muted-foreground"
-                >
-                  <Edit2 className="h-4 w-4 mr-1" />
-                  Edit
-                </Button>
-                {userId && (
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={handleDeleteReview}
-                    disabled={isSubmitting}
-                    className="h-8 px-2 text-muted-foreground hover:text-destructive"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                )}
-              </div>
             </div>
             {myReview.review_text && (
-              <p className="text-sm text-muted-foreground">
+              <p className="text-[15px] text-foreground">
                 {myReview.review_text}
               </p>
             )}
           </div>
         ) : (
           <>
-            <div className="flex gap-1 mb-4">
+            {/* Star rating selector */}
+            <div className="flex gap-2 mb-4">
               {[1, 2, 3, 4, 5].map(star => (
                 <button
                   key={star}
                   onClick={() => setReviewRating(star)}
-                  className="p-0.5"
+                  className="p-1"
                 >
                   <Star
-                    className={`h-7 w-7 ${star <= reviewRating ? "fill-current text-foreground" : "text-muted-foreground/30"}`}
+                    className={`h-8 w-8 ${star <= reviewRating ? "fill-[#FF9500] text-[#FF9500]" : "fill-muted-foreground/20 text-muted-foreground/20"}`}
                     strokeWidth={0}
                   />
                 </button>
@@ -361,23 +433,23 @@ export function RatingsReviewsSection({
               onChange={(e) => setReviewText(e.target.value)}
               placeholder="Describe your experience (optional)"
               rows={3}
-              className="resize-none mb-3"
+              className="resize-none mb-4 text-[15px] bg-muted/30 border-0 rounded-xl"
             />
             
-            <div className="flex gap-2">
+            <div className="flex gap-3">
               {isEditing ? (
                 <>
                   <Button
                     onClick={handleUpdateReview}
                     disabled={isSubmitting}
-                    className="h-10 px-5 bg-green-600 hover:bg-green-700 text-white rounded-lg"
+                    className="h-11 px-6 bg-[#007AFF] hover:bg-[#0066CC] text-white rounded-full text-[15px] font-medium"
                   >
                     {isSubmitting ? "Saving..." : "Save"}
                   </Button>
                   <Button
                     onClick={cancelEditing}
                     variant="ghost"
-                    className="h-10 px-5 text-muted-foreground"
+                    className="h-11 px-6 text-[#007AFF] rounded-full text-[15px] font-medium"
                   >
                     Cancel
                   </Button>
@@ -386,61 +458,15 @@ export function RatingsReviewsSection({
                 <Button
                   onClick={handleSubmitReview}
                   disabled={isSubmitting}
-                  className="h-10 px-5 bg-green-600 hover:bg-green-700 text-white rounded-lg"
+                  className="h-11 px-6 bg-[#007AFF] hover:bg-[#0066CC] text-white rounded-full text-[15px] font-medium"
                 >
-                  {isSubmitting ? "Submitting..." : "Submit"}
+                  {isSubmitting ? "Submitting..." : "Submit Review"}
                 </Button>
               )}
             </div>
           </>
         )}
       </div>
-
-      {/* Reviews list */}
-      {reviews.length > 0 && (
-        <div className="space-y-4 max-h-[400px] overflow-y-auto">
-          {reviews.filter(r => r.id !== myReview?.id).map(review => (
-            <div key={review.id} className="py-3">
-              <div className="flex items-start gap-3">
-                {/* Avatar */}
-                <div className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 bg-muted text-muted-foreground text-xs font-medium">
-                  {getUsername(review).charAt(0).toUpperCase()}
-                </div>
-                
-                <div className="flex-1 min-w-0">
-                  {/* Username and date */}
-                  <div className="flex items-center gap-2 mb-1">
-                    <p className="text-sm font-medium text-foreground">
-                      {getUsername(review)}
-                    </p>
-                    <span className="text-xs text-muted-foreground">
-                      {new Date(review.created_at).toLocaleDateString()}
-                    </span>
-                  </div>
-                  
-                  {/* Stars */}
-                  <div className="flex gap-0.5 mb-2">
-                    {[1, 2, 3, 4, 5].map(star => (
-                      <Star
-                        key={star}
-                        className={`h-3 w-3 ${star <= review.rating ? "fill-current text-foreground" : "text-muted-foreground/30"}`}
-                        strokeWidth={0}
-                      />
-                    ))}
-                  </div>
-                  
-                  {/* Review text */}
-                  {review.review_text && (
-                    <p className="text-sm text-muted-foreground leading-relaxed">
-                      {review.review_text}
-                    </p>
-                  )}
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
     </div>
   );
 }

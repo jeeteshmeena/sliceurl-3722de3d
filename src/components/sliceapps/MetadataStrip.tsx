@@ -1,6 +1,5 @@
 import {
   Star,
-  Download,
   User,
   Gamepad2,
   Briefcase,
@@ -11,6 +10,7 @@ import {
   LayoutGrid,
   Music,
   Clapperboard,
+  Navigation,
 } from "lucide-react";
 
 interface MetadataStripProps {
@@ -24,17 +24,17 @@ interface MetadataStripProps {
 }
 
 function CategoryIcon({ category }: { category: string }) {
-  const cls = "h-6 w-6 text-foreground fill-foreground";
+  const cls = "h-7 w-7 text-muted-foreground";
   const cat = category.toLowerCase();
-  if (cat.includes("music")) return <Music className={cls} strokeWidth={0} />;
-  if (cat.includes("entertainment")) return <Clapperboard className={cls} strokeWidth={0} />;
-  if (cat.includes("game") || cat.includes("action")) return <Gamepad2 className={cls} strokeWidth={0} />;
-  if (cat.includes("productiv")) return <Briefcase className={cls} strokeWidth={0} />;
-  if (cat.includes("tool")) return <Wrench className={cls} strokeWidth={0} />;
-  if (cat.includes("social")) return <Users className={cls} strokeWidth={0} />;
-  if (cat.includes("education")) return <BookOpen className={cls} strokeWidth={0} />;
-  if (cat.includes("utilit")) return <Settings className={cls} strokeWidth={0} />;
-  return <LayoutGrid className={cls} strokeWidth={0} />;
+  if (cat.includes("music")) return <Music className={cls} strokeWidth={1.5} />;
+  if (cat.includes("entertainment")) return <Clapperboard className={cls} strokeWidth={1.5} />;
+  if (cat.includes("game") || cat.includes("action")) return <Gamepad2 className={cls} strokeWidth={1.5} />;
+  if (cat.includes("productiv")) return <Navigation className={cls} strokeWidth={1.5} />;
+  if (cat.includes("tool")) return <Wrench className={cls} strokeWidth={1.5} />;
+  if (cat.includes("social")) return <Users className={cls} strokeWidth={1.5} />;
+  if (cat.includes("education")) return <BookOpen className={cls} strokeWidth={1.5} />;
+  if (cat.includes("utilit")) return <Settings className={cls} strokeWidth={1.5} />;
+  return <LayoutGrid className={cls} strokeWidth={1.5} />;
 }
 
 function StarRow({ rating }: { rating: number }) {
@@ -44,7 +44,7 @@ function StarRow({ rating }: { rating: number }) {
       {[1, 2, 3, 4, 5].map((s) => (
         <Star
           key={s}
-          className={`h-3 w-3 ${s <= rounded ? "fill-current text-foreground" : "text-muted-foreground/30 fill-muted-foreground/10"}`}
+          className={`h-2.5 w-2.5 ${s <= rounded ? "fill-muted-foreground text-muted-foreground" : "text-muted-foreground/30"}`}
           strokeWidth={0}
         />
       ))}
@@ -53,10 +53,9 @@ function StarRow({ rating }: { rating: number }) {
 }
 
 function formatRatingCount(count: number | null): string {
-  if (!count || count === 0) return "";
-  if (count >= 1000000) return `${(count / 1000000).toFixed(1)}M Ratings`;
-  if (count >= 1000) return `${(count / 1000).toFixed(1)}K Ratings`;
-  if (count >= 100) return `${count}+ Ratings`;
+  if (!count || count === 0) return "0 Ratings";
+  if (count >= 1000000) return `${(count / 1000000).toFixed(0)}M Ratings`;
+  if (count >= 1000) return `${(count / 1000).toFixed(0)}K Ratings`;
   return `${count} Ratings`;
 }
 
@@ -71,61 +70,57 @@ export function MetadataStrip({
 }: MetadataStripProps) {
   const devFirstWord = developer ? developer.split(" ")[0] : "Unknown";
 
+  // Parse file size to show value and unit separately
+  const sizeMatch = fileSize.match(/^([\d.]+)\s*(.*)$/);
+  const sizeValue = sizeMatch ? sizeMatch[1] : fileSize;
+  const sizeUnit = sizeMatch ? sizeMatch[2] : "";
+
   return (
-    <div className="mt-5 overflow-x-auto overflow-y-hidden scrollbar-hide -mx-4 px-4 scroll-smooth">
-      <div className="flex snap-x snap-mandatory">
-        {/* RATINGS */}
-        <div className="flex flex-col items-center justify-between min-w-[110px] w-[110px] flex-shrink-0 snap-start py-3 px-2">
-          <span className="text-[11px] font-medium tracking-wider text-muted-foreground uppercase">Ratings</span>
-          <span className="text-[22px] font-semibold text-foreground mt-1 whitespace-nowrap leading-tight">
+    <div className="border-t border-b border-border/40 overflow-x-auto overflow-y-hidden scrollbar-hide -mx-4 scroll-smooth bg-background">
+      <div className="flex min-w-max">
+        {/* RATINGS - App Store exact style */}
+        <div className="flex flex-col items-center justify-center min-w-[120px] py-4 px-3 border-r border-border/20">
+          <span className="text-[11px] font-medium text-muted-foreground uppercase tracking-wide">
+            {formatRatingCount(ratingCount).split(" ")[0]} RATINGS
+          </span>
+          <span className="text-[28px] font-bold text-foreground mt-1 leading-none">
             {ratingAvg?.toFixed(1) || "0.0"}
           </span>
-          <div className="mt-1 flex flex-col items-center gap-0.5">
+          <div className="mt-1.5">
             <StarRow rating={ratingAvg || 0} />
-            {ratingCount && ratingCount > 0 && (
-              <span className="text-[11px] text-muted-foreground text-center leading-tight">{formatRatingCount(ratingCount)}</span>
-            )}
           </div>
         </div>
 
-        {/* AGES */}
-        <div className="flex flex-col items-center justify-between min-w-[110px] w-[110px] flex-shrink-0 snap-start py-3 px-2">
-          <span className="text-[11px] font-medium tracking-wider text-muted-foreground uppercase">Ages</span>
-          <span className="text-[22px] font-semibold text-foreground mt-1 whitespace-nowrap leading-tight">{ageRating}</span>
-          <span className="mt-1 text-[11px] text-muted-foreground text-center leading-tight">Years Old</span>
+        {/* AGES - App Store exact style */}
+        <div className="flex flex-col items-center justify-center min-w-[100px] py-4 px-3 border-r border-border/20">
+          <span className="text-[11px] font-medium text-muted-foreground uppercase tracking-wide">AGES</span>
+          <span className="text-[28px] font-bold text-foreground mt-1 leading-none">{ageRating}</span>
+          <span className="text-[11px] text-muted-foreground mt-1.5">Years Old</span>
         </div>
 
-        {/* CATEGORY */}
-        <div className="flex flex-col items-center justify-between min-w-[110px] w-[110px] flex-shrink-0 snap-start py-3 px-2">
-          <span className="text-[11px] font-medium tracking-wider text-muted-foreground uppercase">Category</span>
-          <div className="mt-1">
+        {/* CATEGORY - App Store exact style with icon */}
+        <div className="flex flex-col items-center justify-center min-w-[110px] py-4 px-3 border-r border-border/20">
+          <span className="text-[11px] font-medium text-muted-foreground uppercase tracking-wide">CATEGORY</span>
+          <div className="mt-2">
             <CategoryIcon category={category} />
           </div>
-          <span className="mt-1 text-[11px] text-muted-foreground text-center leading-tight">{category || "Other"}</span>
+          <span className="text-[11px] text-muted-foreground mt-1.5">{category || "Other"}</span>
         </div>
 
-        {/* DEVELOPER */}
-        <div className="flex flex-col items-center justify-between min-w-[110px] w-[110px] flex-shrink-0 snap-start py-3 px-2">
-          <span className="text-[11px] font-medium tracking-wider text-muted-foreground uppercase">Developer</span>
-          <div className="mt-1">
-            <User className="h-6 w-6 text-foreground fill-foreground" strokeWidth={0} />
+        {/* DEVELOPER - App Store exact style */}
+        <div className="flex flex-col items-center justify-center min-w-[120px] py-4 px-3 border-r border-border/20">
+          <span className="text-[11px] font-medium text-muted-foreground uppercase tracking-wide">DEVELOPER</span>
+          <div className="mt-2">
+            <User className="h-7 w-7 text-muted-foreground" strokeWidth={1.5} />
           </div>
-          <span className="mt-1 text-[11px] text-muted-foreground text-center leading-tight">{devFirstWord}</span>
+          <span className="text-[11px] text-muted-foreground mt-1.5">{devFirstWord}</span>
         </div>
 
-        {/* SIZE */}
-        <div className="flex flex-col items-center justify-between min-w-[110px] w-[110px] flex-shrink-0 snap-start py-3 px-2">
-          <span className="text-[11px] font-medium tracking-wider text-muted-foreground uppercase">Size</span>
-          <span className="text-[22px] font-semibold text-foreground mt-1 whitespace-nowrap leading-tight">{fileSize || "--"}</span>
-        </div>
-
-        {/* DOWNLOADS */}
-        <div className="flex flex-col items-center justify-between min-w-[110px] w-[110px] flex-shrink-0 snap-start py-3 px-2">
-          <span className="text-[11px] font-medium tracking-wider text-muted-foreground uppercase">Downloads</span>
-          <div className="flex items-center gap-1 mt-1">
-            <Download className="h-4 w-4 text-foreground fill-foreground" strokeWidth={0} />
-            <span className="text-[22px] font-semibold text-foreground whitespace-nowrap leading-tight">{downloads}</span>
-          </div>
+        {/* SIZE - App Store exact style */}
+        <div className="flex flex-col items-center justify-center min-w-[100px] py-4 px-3">
+          <span className="text-[11px] font-medium text-muted-foreground uppercase tracking-wide">SIZE</span>
+          <span className="text-[28px] font-bold text-foreground mt-1 leading-none">{sizeValue}</span>
+          <span className="text-[11px] text-muted-foreground mt-1.5">{sizeUnit}</span>
         </div>
       </div>
     </div>
