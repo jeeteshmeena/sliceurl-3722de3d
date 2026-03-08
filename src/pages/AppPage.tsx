@@ -411,7 +411,7 @@ export default function AppPage() {
                   </motion.div>
                   <button
                     onClick={handleShare}
-                    className="w-10 h-10 flex items-center justify-center rounded-full text-[#007AFF]"
+                    className="w-10 h-10 flex items-center justify-center rounded-full text-primary"
                     aria-label="Share"
                   >
                     <Share2 className="h-[22px] w-[22px]" strokeWidth={1.8} />
