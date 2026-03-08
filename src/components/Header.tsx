@@ -99,10 +99,11 @@ export function Header() {
     else if (resolvedTheme === "maggie") setTheme("racing");
     else if (resolvedTheme === "racing") setTheme("meridian");
     else if (resolvedTheme === "meridian") setTheme("designgud");
+    else if (resolvedTheme === "designgud") setTheme("supahero");
     else setTheme("light");
   };
 
-  const themeLabelMap: Record<string, string> = { light: "Light", dark: "Dark", maggie: "Maggie", racing: "Racing", meridian: "Meridian", designgud: "Designgud" };
+  const themeLabelMap: Record<string, string> = { light: "Light", dark: "Dark", maggie: "Maggie", racing: "Racing", meridian: "Meridian", designgud: "Designgud", supahero: "Supahero" };
   const themeLabel = themeLabelMap[resolvedTheme] || "Light";
 
   const handleLogout = async () => {
