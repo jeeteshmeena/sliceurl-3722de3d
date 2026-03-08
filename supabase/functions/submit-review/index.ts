@@ -11,7 +11,7 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const { appId, rating, reviewText, browserFingerprint } = await req.json();
+    const { appId, rating, reviewText, browserFingerprint, displayName } = await req.json();
 
     if (!appId || !rating || rating < 1 || rating > 5) {
       return new Response(

@@ -473,7 +473,7 @@ export function RatingsReviewsSection({
               ) : (
                 <Button
                   onClick={handleSubmitReview}
-                  disabled={isSubmitting}
+                  disabled={isSubmitting || (!userId && !displayName.trim())}
                   className="h-11 px-6 bg-[#007AFF] hover:bg-[#0066CC] text-white rounded-full text-[15px] font-medium"
                 >
                   {isSubmitting ? "Submitting..." : "Submit Review"}
