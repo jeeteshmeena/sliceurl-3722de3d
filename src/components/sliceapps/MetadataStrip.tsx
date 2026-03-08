@@ -110,7 +110,7 @@ export function MetadataStrip({
   ];
 
   return (
-    <div className="border-t border-b border-border/30 bg-background">
+    <div className="bg-background">
       <style>{`.metadata-row::-webkit-scrollbar { display: none; }`}</style>
       <div
         className="metadata-row"
