@@ -145,14 +145,14 @@ export function MetadataStrip({
             }}
           >
             {/* Top label */}
-            <span style={{ fontSize: 11, fontWeight: 600, letterSpacing: '0.06em', color: '#8e8e93' }} className="uppercase leading-none">
+            <span style={{ fontSize: 12, fontWeight: 600, letterSpacing: '0.06em', color: '#8e8e93' }} className="uppercase leading-none">
               {item.label}
             </span>
 
             {/* Center: value or icon */}
             <div className="my-1.5 flex items-center justify-center min-h-[26px]">
               {item.value && (
-                <span className="text-foreground leading-none tracking-tight" style={{ fontSize: 20, fontWeight: 700 }}>
+                <span className="leading-none tracking-tight" style={{ fontSize: 17, fontWeight: 500, color: '#ffffff' }}>
                   {item.value}
                 </span>
               )}
