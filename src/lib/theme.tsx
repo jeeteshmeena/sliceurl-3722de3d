@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
 
-type Theme = "dark" | "light" | "system" | "maggie" | "racing" | "meridian" | "designgud" | "supahero" | "opencall";
+type Theme = "dark" | "light" | "system" | "maggie" | "racing" | "meridian" | "designgud" | "supahero" | "opencall" | "shuttle";
 
 type ThemeProviderProps = {
   children: React.ReactNode;
