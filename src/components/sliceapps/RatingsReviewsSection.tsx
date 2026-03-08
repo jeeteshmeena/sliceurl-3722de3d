@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
+import { Input } from "@/components/ui/input";
 import { Star, Edit2, Trash2, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
