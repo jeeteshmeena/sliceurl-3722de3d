@@ -11,8 +11,7 @@ const corsHeaders = {
  * Used by AppPage for SliceAPPs public app pages
  * 
  * Query params:
- * - id: UUID or short_code of the app (for single app)
- * - list: "true" to return all published apps (for browse page)
+ * - id: UUID or short_code of the app (required)
  */
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -29,49 +28,18 @@ Deno.serve(async (req) => {
   try {
     const url = new URL(req.url);
     const id = url.searchParams.get("id");
-    const listMode = url.searchParams.get("list") === "true";
 
-    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-    const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-    const supabase = createClient(supabaseUrl, supabaseServiceKey);
-
-    // LIST MODE: return all published apps for the browse page
-    if (listMode) {
-      const { data: apps, error } = await supabase
-        .from("app_listings")
-        .select("id, short_code, app_name, developer_name, category, icon_url, rating_avg, rating_count, total_downloads, created_at")
-        .eq("is_published", true)
-        .order("created_at", { ascending: false })
-        .limit(50);
-
-      if (error) {
-        console.error("[public-app-info] List error:", error);
-        return new Response(
-          JSON.stringify({ apps: [] }),
-          { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
-      }
-
-      return new Response(
-        JSON.stringify({ apps: apps || [] }),
-        {
-          status: 200,
-          headers: {
-            ...corsHeaders,
-            "Content-Type": "application/json",
-            "Cache-Control": "public, max-age=60",
-          },
-        }
-      );
-    }
-
-    // SINGLE APP MODE
     if (!id) {
       return new Response(
         JSON.stringify({ error: "Missing id parameter" }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
+
+    // Use service role key for public access (bypasses RLS)
+    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+    const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
     // Check if id is a UUID or short_code
     const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id);
