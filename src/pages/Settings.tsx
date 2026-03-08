@@ -753,7 +753,7 @@ export default function Settings() {
                 value={localSecurityMode} 
                 onValueChange={(v) => handleSecurityModeChange(v as SecurityMode)}
               >
-                <SelectTrigger className="w-24 h-8 text-xs bg-white dark:bg-neutral-800 border-neutral-300 dark:border-neutral-600">
+                <SelectTrigger className="w-24 h-8 text-xs bg-card border-input">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent className="bg-white dark:bg-neutral-900 border-neutral-200 dark:border-neutral-700">
