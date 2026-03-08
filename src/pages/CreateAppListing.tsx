@@ -213,7 +213,7 @@ export default function CreateAppListing() {
 
     try {
       const { data: fileRecord, error: fileError } = await supabase
-        .from("slicebox_files").select("id, service_type").eq("file_id", fileData.fileId).single();
+        .from("slicebox_files_safe" as any).select("id, service_type").eq("file_id", fileData.fileId).single();
       if (fileError || !fileRecord) throw new Error("File not found");
 
       const slugCode = generateSlug(formData.appName.trim());

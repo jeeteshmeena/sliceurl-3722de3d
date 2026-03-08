@@ -21,7 +21,7 @@ export default function LegacySliceBoxRedirect() {
       try {
         // Look up by file_id to get short_code and service_type
         const { data, error: fetchError } = await supabase
-          .from("slicebox_files")
+          .from("slicebox_files_safe" as any)
           .select("short_code, service_type, is_deleted")
           .eq("file_id", fileId)
           .single();
