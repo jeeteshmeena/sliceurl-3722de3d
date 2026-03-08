@@ -672,8 +672,8 @@ export default function Settings() {
             {/* Language Row */}
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <Globe className="h-4 w-4 text-neutral-500 dark:text-neutral-400" />
-                <span className="text-sm text-neutral-700 dark:text-neutral-300">Language</span>
+                <Globe className="h-4 w-4 text-muted-foreground" />
+                <span className="text-sm text-secondary-foreground">Language</span>
               </div>
               <Popover open={langOpen} onOpenChange={setLangOpen}>
                 <PopoverTrigger asChild>
