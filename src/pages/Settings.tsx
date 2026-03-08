@@ -358,7 +358,7 @@ export default function Settings() {
   // ═══════════════════════════════════════════════════════════════════════════
 
   return (
-    <div className="min-h-dvh bg-white dark:bg-neutral-950 flex flex-col">
+    <div className="min-h-dvh bg-background flex flex-col">
       <Header />
 
       <main className="flex-1 pt-24 pb-16 px-4">
