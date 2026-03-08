@@ -11,9 +11,9 @@ const mainNavItems = [
 ];
 
 const menuItems = [
-  { label: "SliceURL", icon: Link2, path: "/" },
-  { label: "SliceBox", icon: HardDrive, path: "/slicebox" },
-  { label: "LittleSlice", icon: FileDown, path: "/littleslice" },
+  { label: "SliceURL", subtitle: "Short links & analytics", icon: Link2, path: "/" },
+  { label: "SliceBox", subtitle: "File sharing", icon: HardDrive, path: "/slicebox" },
+  { label: "LittleSlice", subtitle: "Lightweight quick links", icon: FileDown, path: "/littleslice" },
 ];
 
 const categoryItems = [
