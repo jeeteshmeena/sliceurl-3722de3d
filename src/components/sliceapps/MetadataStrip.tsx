@@ -157,36 +157,40 @@ export function MetadataStrip({
         }}
       >
         {items.map((item, index) => (
-          <div
-            key={index}
-            className="flex flex-col items-center justify-between transition-transform duration-200 ease-out hover:scale-105 active:scale-95 select-none"
-            style={{
-              minWidth: 110,
-              flexShrink: 0,
-              textAlign: 'center',
-              scrollSnapAlign: 'start',
-              cursor: item.onClick ? 'pointer' : 'default',
-            }}
-            onClick={item.onClick}
-          >
-            {/* Top label */}
-            <span style={{ fontSize: 12, fontWeight: 600, letterSpacing: '0.06em', color: '#8e8e93' }} className="uppercase leading-none">
-              {item.label}
-            </span>
+          <div key={index} className="flex items-center flex-shrink-0" style={{ scrollSnapAlign: 'start' }}>
+            {/* Vertical divider — hidden on first item */}
+            {index > 0 && (
+              <div style={{ width: 1, height: 36, background: 'var(--border)', opacity: 0.3, marginRight: 22, flexShrink: 0 }} />
+            )}
+            <div
+              className="flex flex-col items-center justify-between transition-transform duration-200 ease-out hover:scale-105 active:scale-95 select-none"
+              style={{
+                minWidth: 90,
+                flexShrink: 0,
+                textAlign: 'center',
+                cursor: item.onClick ? 'pointer' : 'default',
+              }}
+              onClick={item.onClick}
+            >
+              {/* Top label */}
+              <span style={{ fontSize: 12, fontWeight: 600, letterSpacing: '0.06em', color: '#8e8e93' }} className="uppercase leading-none">
+                {item.label}
+              </span>
 
-            {/* Center: value or icon */}
-            <div className="my-2 flex items-center justify-center min-h-[28px]">
-              {item.value && (
-                <span className="leading-none tracking-tight text-foreground" style={{ fontSize: 17, fontWeight: 600 }}>
-                  {item.value}
-                </span>
-              )}
-              {item.center && item.center}
-            </div>
+              {/* Center: value or icon */}
+              <div className="my-2 flex items-center justify-center min-h-[28px]">
+                {item.value && (
+                  <span className="leading-none tracking-tight text-foreground" style={{ fontSize: 17, fontWeight: 600 }}>
+                    {item.value}
+                  </span>
+                )}
+                {item.center && item.center}
+              </div>
 
-            {/* Bottom */}
-            <div className="flex items-center justify-center">
-              {item.bottom}
+              {/* Bottom */}
+              <div className="flex items-center justify-center">
+                {item.bottom}
+              </div>
             </div>
           </div>
         ))}

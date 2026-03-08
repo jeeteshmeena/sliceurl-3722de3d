@@ -138,29 +138,16 @@ export default function AppPage() {
     return new Promise<void>((resolve) => {
       let progress = 0;
       const start = performance.now();
-      const duration = 1800; // 1.8 seconds total
-
+      const duration = 1800;
       const tick = () => {
         const elapsed = performance.now() - start;
         const t = Math.min(elapsed / duration, 1);
-
-        // Fast start, ease-out finish
-        if (t < 0.5) {
-          progress = t * 2 * 60; // 0-60% in first half
-        } else if (t < 0.8) {
-          progress = 60 + ((t - 0.5) / 0.3) * 30; // 60-90%
-        } else {
-          progress = 90 + ((t - 0.8) / 0.2) * 10; // 90-100%
-        }
-
+        if (t < 0.5) { progress = t * 2 * 60; }
+        else if (t < 0.8) { progress = 60 + ((t - 0.5) / 0.3) * 30; }
+        else { progress = 90 + ((t - 0.8) / 0.2) * 10; }
         setDownloadProgress(Math.min(Math.round(progress), 100));
-
-        if (t < 1) {
-          requestAnimationFrame(tick);
-        } else {
-          setDownloadProgress(100);
-          resolve();
-        }
+        if (t < 1) { requestAnimationFrame(tick); }
+        else { setDownloadProgress(100); resolve(); }
       };
       requestAnimationFrame(tick);
     });
@@ -172,12 +159,8 @@ export default function AppPage() {
     downloadControllerRef.current = controller;
     setIsDownloading(true);
     setDownloadProgress(0);
-
     try {
-      // Run simulated progress animation
       await simulateProgress();
-
-      // Now trigger the real download
       const streamUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/file-stream?fileId=${fileInfo.file_id}${passwordForDownload ? '&verified=true' : ''}`;
       const a = document.createElement("a");
       a.href = streamUrl;
@@ -186,20 +169,14 @@ export default function AppPage() {
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
-
-      // Optimistically update counts
       setFileInfo(prev => prev ? { ...prev, download_count: (prev.download_count || 0) + 1 } : null);
       setApp(prev => prev ? { ...prev, total_downloads: (prev.total_downloads || 0) + 1 } : null);
       setDownloadSuccess(true);
       setTimeout(() => { setDownloadSuccess(false); setDownloadProgress(0); }, 3000);
       toast.success("Download complete!");
     } catch (err: unknown) {
-      if (err instanceof DOMException && err.name === 'AbortError') {
-        toast("Download cancelled");
-      } else {
-        console.error("Download failed:", err);
-        toast.error("This file is temporarily unavailable. Please try again later.");
-      }
+      if (err instanceof DOMException && err.name === 'AbortError') { toast("Download cancelled"); }
+      else { console.error("Download failed:", err); toast.error("This file is temporarily unavailable. Please try again later."); }
       setDownloadProgress(0);
     } finally {
       downloadControllerRef.current = null;
@@ -207,9 +184,7 @@ export default function AppPage() {
     }
   };
 
-  const cancelDownload = () => {
-    downloadControllerRef.current?.abort();
-  };
+  const cancelDownload = () => { downloadControllerRef.current?.abort(); };
 
   const handlePasswordSubmit = async () => {
     if (!fileInfo || !password) return;
@@ -269,6 +244,51 @@ export default function AppPage() {
     return count.toString();
   };
 
+  const DownloadButton = ({ size = "default" }: { size?: "default" | "large" }) => {
+    const isLarge = size === "large";
+    return (
+      <button
+        onClick={isDownloading ? cancelDownload : handleDownload}
+        disabled={(!fileInfo || !!fileUnavailable) && !isDownloading}
+        className="disabled:opacity-40"
+        style={{
+          height: isLarge ? 40 : 36,
+          minWidth: isLarge ? 120 : 110,
+          padding: isLarge ? '0 28px' : '0 22px',
+          borderRadius: 20,
+          background: '#0A84FF',
+          color: '#ffffff',
+          fontSize: isLarge ? 17 : 16,
+          fontWeight: 600,
+          border: 'none',
+          cursor: 'pointer',
+          position: 'relative',
+          overflow: 'hidden',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          transition: 'transform 0.12s ease',
+        }}
+        onPointerDown={(e) => { if (!isDownloading) e.currentTarget.style.transform = 'scale(0.96)'; }}
+        onPointerUp={(e) => { e.currentTarget.style.transform = 'scale(1)'; }}
+        onPointerLeave={(e) => { e.currentTarget.style.transform = 'scale(1)'; }}
+      >
+        {isDownloading && (
+          <div style={{
+            position: 'absolute', left: 0, top: 0, bottom: 0,
+            width: `${downloadProgress}%`,
+            background: 'rgba(255,255,255,0.25)',
+            borderRadius: 20,
+            transition: 'width 0.2s ease',
+          }} />
+        )}
+        <span style={{ position: 'relative', zIndex: 1 }}>
+          {downloadSuccess ? "OPEN" : isDownloading ? `${downloadProgress}%` : "DOWNLOAD"}
+        </span>
+      </button>
+    );
+  };
+
   if (isLoading) {
     return (
       <div className="min-h-dvh flex items-center justify-center bg-background">
@@ -292,12 +312,10 @@ export default function AppPage() {
 
   return (
     <div className="min-h-dvh bg-background flex">
-      {/* Desktop Sidebar */}
       <SliceAppsSidebar />
 
-      {/* Main Content */}
       <div className="flex-1 min-w-0">
-        {/* Mobile Sticky Navbar — always visible */}
+        {/* Mobile Sticky Navbar */}
         <div
           className="sticky top-0 z-[999] lg:relative lg:z-auto bg-[var(--sa-hero-bg)] transition-colors duration-500"
           style={{ borderBottom: '1px solid var(--sa-border)' }}
@@ -305,7 +323,7 @@ export default function AppPage() {
           <SliceAppsHeader />
         </div>
 
-        {/* Mobile Hero Section — Apple App Store style */}
+        {/* ===== MOBILE HERO ===== */}
         <div
           className="lg:hidden"
           style={{
@@ -315,204 +333,65 @@ export default function AppPage() {
           }}
         >
           <div style={{ display: 'flex', alignItems: 'center' }}>
-            {/* App Icon — 112px */}
-            <div
-              className="flex-shrink-0 overflow-hidden"
-              style={{
-                width: 112,
-                height: 112,
-                borderRadius: 24,
-                boxShadow: '0 8px 24px rgba(0,0,0,0.12)',
-              }}
-            >
+            <div className="flex-shrink-0 overflow-hidden" style={{ width: 112, height: 112, borderRadius: 24, boxShadow: '0 8px 24px rgba(0,0,0,0.12)' }}>
               {app.icon_url ? (
                 <img src={app.icon_url} alt={app.app_name} className="w-full h-full object-cover" loading="lazy" />
               ) : (
-                <div className="w-full h-full flex items-center justify-center text-3xl font-bold bg-muted text-muted-foreground">
-                  {app.app_name.charAt(0)}
-                </div>
+                <div className="w-full h-full flex items-center justify-center text-3xl font-bold bg-muted text-muted-foreground">{app.app_name.charAt(0)}</div>
               )}
             </div>
-
-            {/* Text Block */}
             <div style={{ display: 'flex', flexDirection: 'column', flex: 1, minWidth: 0, marginLeft: 20 }}>
-              <h1
-                style={{
-                  fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Display", system-ui, sans-serif',
-                  fontWeight: 600,
-                  fontSize: 20,
-                  lineHeight: '24px',
-                  letterSpacing: '-0.01em',
-                  color: '#ffffff',
-                  margin: 0,
-                }}
-              >
+              <h1 style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Display", system-ui, sans-serif', fontWeight: 600, fontSize: 20, lineHeight: '24px', letterSpacing: '-0.01em', color: '#ffffff', margin: 0 }}>
                 {app.app_name}
               </h1>
-              <p
-                className="line-clamp-2"
-                style={{
-                  fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Text", system-ui, sans-serif',
-                  fontWeight: 400,
-                  fontSize: 13,
-                  lineHeight: '18px',
-                  color: 'rgba(255,255,255,0.85)',
-                  marginTop: 6,
-                  marginBottom: 0,
-                }}
-              >
+              <p className="line-clamp-2" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Text", system-ui, sans-serif', fontWeight: 400, fontSize: 13, lineHeight: '18px', color: 'rgba(255,255,255,0.85)', marginTop: 6, marginBottom: 0 }}>
                 {app.short_description || `The official app by ${app.developer_name || "Unknown"}`}
               </p>
-
-              {/* Button Row */}
               <div style={{ display: 'flex', alignItems: 'center', marginTop: 10, gap: 12 }}>
-                <button
-                  onClick={isDownloading ? cancelDownload : handleDownload}
-                  disabled={(!fileInfo || !!fileUnavailable) && !isDownloading}
-                  className="disabled:opacity-40"
-                  style={{
-                    height: 36,
-                    minWidth: 110,
-                    padding: '0 22px',
-                    borderRadius: 20,
-                    background: '#0A84FF',
-                    color: '#ffffff',
-                    fontSize: 16,
-                    fontWeight: 600,
-                    border: 'none',
-                    cursor: 'pointer',
-                    position: 'relative',
-                    overflow: 'hidden',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    transition: 'transform 0.12s ease',
-                  }}
-                  onPointerDown={(e) => { if (!isDownloading) e.currentTarget.style.transform = 'scale(0.96)'; }}
-                  onPointerUp={(e) => { e.currentTarget.style.transform = 'scale(1)'; }}
-                  onPointerLeave={(e) => { e.currentTarget.style.transform = 'scale(1)'; }}
-                >
-                  {/* Progress bar background */}
-                  {isDownloading && (
-                    <div style={{
-                      position: 'absolute',
-                      left: 0,
-                      top: 0,
-                      bottom: 0,
-                      width: `${downloadProgress}%`,
-                      background: 'rgba(255,255,255,0.25)',
-                      borderRadius: 20,
-                      transition: 'width 0.2s ease',
-                    }} />
-                  )}
-                  <span style={{ position: 'relative', zIndex: 1 }}>
-                    {downloadSuccess ? "OPEN" : isDownloading ? `${downloadProgress}%` : "DOWNLOAD"}
-                  </span>
-                </button>
+                <DownloadButton />
               </div>
             </div>
           </div>
         </div>
 
-        {/* Desktop Hero (non-collapsing) */}
+        {/* ===== DESKTOP HERO — Apple App Store style ===== */}
         <div
           className="hidden lg:block"
           style={{
-            background: 'linear-gradient(135deg, #6f7a83 0%, #a3aab1 100%)',
-            backdropFilter: 'blur(20px)',
-            padding: '32px 40px',
+            background: 'linear-gradient(135deg, #4a4e54 0%, #6f7a83 50%, #a3aab1 100%)',
+            padding: '40px 0',
           }}
         >
-          <div className="max-w-5xl mx-auto">
-            <div style={{ display: 'flex', alignItems: 'center' }}>
-              <div
-                className="flex-shrink-0 overflow-hidden"
-                style={{
-                  width: 112,
-                  height: 112,
-                  borderRadius: 24,
-                  boxShadow: '0 8px 24px rgba(0,0,0,0.12)',
-                }}
-              >
+          <div className="max-w-[980px] mx-auto px-10">
+            <div style={{ display: 'flex', alignItems: 'center', gap: 28 }}>
+              <div className="flex-shrink-0 overflow-hidden" style={{ width: 190, height: 190, borderRadius: 38, boxShadow: '0 12px 40px rgba(0,0,0,0.2)' }}>
                 {app.icon_url ? (
                   <img src={app.icon_url} alt={app.app_name} className="w-full h-full object-cover" loading="lazy" />
                 ) : (
-                  <div className="w-full h-full flex items-center justify-center text-5xl font-bold bg-muted text-muted-foreground">
-                    {app.app_name.charAt(0)}
-                  </div>
+                  <div className="w-full h-full flex items-center justify-center text-6xl font-bold bg-muted text-muted-foreground">{app.app_name.charAt(0)}</div>
                 )}
               </div>
-              <div style={{ display: 'flex', flexDirection: 'column', flex: 1, minWidth: 0, marginLeft: 20 }}>
-                <h1
-                  style={{
-                    fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Display", system-ui, sans-serif',
-                    fontWeight: 600,
-                    fontSize: 20,
-                    lineHeight: '24px',
-                    letterSpacing: '-0.01em',
-                    color: '#ffffff',
-                    margin: 0,
-                  }}
-                >
+              <div style={{ display: 'flex', flexDirection: 'column', flex: 1, minWidth: 0 }}>
+                <h1 style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Display", system-ui, sans-serif', fontWeight: 700, fontSize: 32, lineHeight: '38px', letterSpacing: '-0.02em', color: '#ffffff', margin: 0 }}>
                   {app.app_name}
                 </h1>
-                <p
-                  className="line-clamp-2"
-                  style={{
-                    fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Text", system-ui, sans-serif',
-                    fontWeight: 400,
-                    fontSize: 13,
-                    lineHeight: '18px',
-                    color: 'rgba(255,255,255,0.85)',
-                    marginTop: 6,
-                    marginBottom: 0,
-                  }}
-                >
+                <p style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Text", system-ui, sans-serif', fontWeight: 400, fontSize: 16, lineHeight: '22px', color: 'rgba(255,255,255,0.85)', marginTop: 6, marginBottom: 0 }}>
                   {app.short_description || `The official app by ${app.developer_name || "Unknown"}`}
                 </p>
-                <div style={{ display: 'flex', alignItems: 'center', marginTop: 10, gap: 12 }}>
-                <button
-                  onClick={isDownloading ? cancelDownload : handleDownload}
-                  disabled={(!fileInfo || !!fileUnavailable) && !isDownloading}
-                  className="disabled:opacity-40"
-                  style={{
-                    height: 36,
-                    minWidth: 110,
-                    padding: '0 22px',
-                    borderRadius: 20,
-                    background: '#0A84FF',
-                    color: '#ffffff',
-                    fontSize: 16,
-                    fontWeight: 600,
-                    border: 'none',
-                    cursor: 'pointer',
-                    position: 'relative',
-                    overflow: 'hidden',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    transition: 'transform 0.12s ease',
-                  }}
-                  onPointerDown={(e) => { if (!isDownloading) e.currentTarget.style.transform = 'scale(0.96)'; }}
-                  onPointerUp={(e) => { e.currentTarget.style.transform = 'scale(1)'; }}
-                  onPointerLeave={(e) => { e.currentTarget.style.transform = 'scale(1)'; }}
-                >
-                  {isDownloading && (
-                    <div style={{
-                      position: 'absolute',
-                      left: 0,
-                      top: 0,
-                      bottom: 0,
-                      width: `${downloadProgress}%`,
-                      background: 'rgba(255,255,255,0.25)',
-                      borderRadius: 20,
-                      transition: 'width 0.2s ease',
-                    }} />
-                  )}
-                  <span style={{ position: 'relative', zIndex: 1 }}>
-                    {downloadSuccess ? "OPEN" : isDownloading ? `${downloadProgress}%` : "DOWNLOAD"}
-                  </span>
-                </button>
+                <p style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Text", system-ui, sans-serif', fontWeight: 400, fontSize: 14, lineHeight: '20px', color: 'rgba(255,255,255,0.6)', marginTop: 8, marginBottom: 0 }}>
+                  Free · {app.category || "Productivity"}
+                </p>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginTop: 16 }}>
+                  <DownloadButton size="large" />
+                  <button
+                    onClick={handleShare}
+                    style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'rgba(255,255,255,0.15)', border: 'none', borderRadius: 20, padding: '8px 18px', color: '#ffffff', fontSize: 15, fontWeight: 500, cursor: 'pointer', transition: 'background 0.15s' }}
+                    onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.25)'; }}
+                    onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.15)'; }}
+                  >
+                    <Share2 className="h-4 w-4" />
+                    Share
+                  </button>
                 </div>
               </div>
             </div>
@@ -520,24 +399,25 @@ export default function AppPage() {
         </div>
 
         {/* ===== METADATA STRIP ===== */}
-        <div className="mt-4">
-          <MetadataStrip
-            ratingAvg={app.rating_avg}
-            ratingCount={app.rating_count}
-            downloads={formatDownloads(actualDownloads)}
-            fileSize={fileInfo ? formatFileSize(fileInfo.file_size) : "--"}
-            ageRating={app.age_rating || "4+"}
-            category={app.category || "Productivity"}
-            developer={app.developer_name || "Unknown"}
-            developerUrl={app.developer_url}
-          />
+        <div className="border-b border-border/30">
+          <div className="max-w-[980px] mx-auto">
+            <MetadataStrip
+              ratingAvg={app.rating_avg}
+              ratingCount={app.rating_count}
+              downloads={formatDownloads(actualDownloads)}
+              fileSize={fileInfo ? formatFileSize(fileInfo.file_size) : "--"}
+              ageRating={app.age_rating || "4+"}
+              category={app.category || "Productivity"}
+              developer={app.developer_name || "Unknown"}
+              developerUrl={app.developer_url}
+            />
+          </div>
         </div>
 
         {/* ===== CONTENT ===== */}
-        <main className="max-w-5xl mx-auto">
-          {/* File Unavailable Warning */}
+        <main className="max-w-[980px] mx-auto">
           {fileUnavailable && (
-            <div className="flex items-center gap-3 mx-5 mt-4 text-muted-foreground">
+            <div className="flex items-center gap-3 mx-5 lg:mx-10 mt-4 text-muted-foreground">
               <AlertTriangle className="h-4 w-4 flex-shrink-0" />
               <p className="text-sm">{fileUnavailable}</p>
             </div>
@@ -550,7 +430,7 @@ export default function AppPage() {
                 {app.screenshots.map((url, index) => (
                   <div
                     key={index}
-                    className="relative min-w-[205px] lg:min-w-[230px] h-[370px] lg:h-[420px] rounded-[20px] overflow-hidden flex-shrink-0 cursor-pointer bg-[#E8F4F8] border border-border/10"
+                    className="relative min-w-[205px] lg:min-w-[250px] h-[370px] lg:h-[460px] rounded-[20px] overflow-hidden flex-shrink-0 cursor-pointer bg-[#E8F4F8] border border-border/10"
                     onClick={() => setSelectedScreenshot(index)}
                   >
                     <img src={url} alt={`Screenshot ${index + 1}`} className="w-full h-full object-cover" loading="lazy" />
@@ -560,89 +440,91 @@ export default function AppPage() {
             </div>
           )}
 
-          {/* Desktop: Two-column layout */}
-          <div className="lg:flex lg:gap-12 px-5 lg:px-10">
-            {/* Left column */}
-            <div className="lg:flex-1 lg:min-w-0">
-
-              {/* ===== DESCRIPTION ===== */}
-              {app.full_description && (
-                <div className="py-5 border-t border-border/30">
-                  <div className={`text-[15px] text-foreground leading-[1.6] whitespace-pre-wrap ${!aboutExpanded ? 'line-clamp-3' : ''}`}>
-                    {app.full_description}
-                  </div>
-                  {app.full_description.length > 120 && (
-                    <button
-                      onClick={() => setAboutExpanded(!aboutExpanded)}
-                      className="text-[#007AFF] text-[15px] font-normal mt-1 inline-block"
-                    >
-                      {aboutExpanded ? "less" : "more"}
-                    </button>
-                  )}
-                </div>
-              )}
-
-              {/* ===== RATINGS & REVIEWS ===== */}
+          {/* All content sections — full width on desktop */}
+          <div className="px-5 lg:px-10">
+            {/* ===== DESCRIPTION ===== */}
+            {app.full_description && (
               <div className="py-5 border-t border-border/30">
-                <RatingsReviewsSection
-                  appId={app.id}
-                  ratingAvg={app.rating_avg}
-                  ratingCount={app.rating_count}
-                  reviews={reviews}
-                  userId={user?.id || null}
-                  onReviewSubmit={loadAppData}
-                />
-              </div>
-
-              {/* ===== WHAT'S NEW ===== */}
-              {app.whats_new && (
-                <div className="py-5 border-t border-border/30">
-                  <div className="flex items-center justify-between mb-3">
-                    <h2 className="text-[22px] font-bold text-foreground">What's New</h2>
-                    <span className="text-[15px] text-muted-foreground">
-                      Version {app.version_name || "1.0"}
-                    </span>
-                  </div>
-                  <div className={`text-[15px] text-foreground leading-[1.6] whitespace-pre-wrap ${!whatsNewExpanded ? 'line-clamp-3' : ''}`}>
-                    {app.whats_new}
-                  </div>
-                  {app.whats_new.length > 120 && (
-                    <button
-                      onClick={() => setWhatsNewExpanded(!whatsNewExpanded)}
-                      className="text-[#007AFF] text-[15px] font-normal mt-1 inline-block"
-                    >
-                      {whatsNewExpanded ? "less" : "more"}
-                    </button>
-                  )}
+                <div className={`text-[15px] text-foreground leading-[1.6] whitespace-pre-wrap ${!aboutExpanded ? 'line-clamp-3' : ''}`}>
+                  {app.full_description}
                 </div>
-              )}
+                {app.full_description.length > 120 && (
+                  <button onClick={() => setAboutExpanded(!aboutExpanded)} className="text-[#007AFF] text-[15px] font-normal mt-1 inline-block">
+                    {aboutExpanded ? "less" : "more"}
+                  </button>
+                )}
+              </div>
+            )}
+
+            {/* ===== RATINGS & REVIEWS ===== */}
+            <div className="py-5 border-t border-border/30">
+              <RatingsReviewsSection
+                appId={app.id}
+                ratingAvg={app.rating_avg}
+                ratingCount={app.rating_count}
+                reviews={reviews}
+                userId={user?.id || null}
+                onReviewSubmit={loadAppData}
+              />
             </div>
 
-            {/* Right column - Information */}
-            <div className="lg:w-[260px] lg:flex-shrink-0">
+            {/* ===== WHAT'S NEW ===== */}
+            {app.whats_new && (
               <div className="py-5 border-t border-border/30">
-                <h2 className="text-[22px] font-bold text-foreground mb-4">Information</h2>
-                <div className="space-y-0">
-                  {[
-                    { label: "Provider", value: app.developer_name || "Unknown" },
-                    { label: "Size", value: fileInfo ? formatFileSize(fileInfo.file_size) : "--" },
-                    { label: "Category", value: app.category || "Productivity" },
-                    { label: "Compatibility", value: "All Devices" },
-                    { label: "Version", value: app.version_name || "1.0" },
-                    { label: "Downloads", value: formatDownloads(actualDownloads) },
-                  ].map((row) => (
-                    <div key={row.label} className="flex justify-between items-center py-3 border-b border-border/15">
-                      <span className="text-[15px] text-muted-foreground">{row.label}</span>
-                      <span className="text-[15px] text-foreground font-normal text-right">{row.value}</span>
-                    </div>
-                  ))}
+                <div className="flex items-center justify-between mb-3">
+                  <h2 className="text-[22px] font-bold text-foreground">What's New</h2>
+                  <span className="text-[15px] text-muted-foreground">Version {app.version_name || "1.0"}</span>
                 </div>
+                <div className={`text-[15px] text-foreground leading-[1.6] whitespace-pre-wrap ${!whatsNewExpanded ? 'line-clamp-3' : ''}`}>
+                  {app.whats_new}
+                </div>
+                {app.whats_new.length > 120 && (
+                  <button onClick={() => setWhatsNewExpanded(!whatsNewExpanded)} className="text-[#007AFF] text-[15px] font-normal mt-1 inline-block">
+                    {whatsNewExpanded ? "less" : "more"}
+                  </button>
+                )}
+              </div>
+            )}
+
+            {/* ===== INFORMATION — 3-column grid like App Store ===== */}
+            <div className="py-5 border-t border-border/30">
+              <h2 className="text-[22px] font-bold text-foreground mb-5">Information</h2>
+              <div className="grid grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-0">
+                {[
+                  { label: "Size", value: fileInfo ? formatFileSize(fileInfo.file_size) : "--" },
+                  { label: "Category", value: app.category || "Productivity" },
+                  { label: "Compatibility", value: "All Devices" },
+                  { label: "Age Rating", value: app.age_rating || "4+" },
+                  { label: "Version", value: app.version_name || "1.0" },
+                  { label: "Downloads", value: formatDownloads(actualDownloads) },
+                  { label: "Provider", value: app.developer_name || "Unknown" },
+                  ...(app.release_date ? [{ label: "Released", value: new Date(app.release_date).toLocaleDateString() }] : []),
+                ].map((row) => (
+                  <div key={row.label} className="py-3 border-b border-border/15">
+                    <span className="text-[13px] text-muted-foreground block">{row.label}</span>
+                    <span className="text-[15px] text-foreground font-normal mt-0.5 block">{row.value}</span>
+                  </div>
+                ))}
               </div>
             </div>
+
+            {/* Developer links */}
+            {app.developer_url && (
+              <div className="py-5 border-t border-border/30 flex items-center gap-6">
+                <a
+                  href={app.developer_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-[#007AFF] text-[15px] font-normal hover:underline flex items-center gap-1"
+                >
+                  Developer Website
+                  <ChevronRight className="h-3.5 w-3.5" />
+                </a>
+              </div>
+            )}
           </div>
 
-          {/* Bottom padding */}
-          <div className="h-8" />
+          <div className="h-10" />
         </main>
       </div>
 
