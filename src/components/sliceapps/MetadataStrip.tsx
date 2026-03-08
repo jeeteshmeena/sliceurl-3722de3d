@@ -83,29 +83,29 @@ export function MetadataStrip({
     {
       label: "AGE",
       value: ageRating,
-      bottom: <span className="text-[10px] text-muted-foreground leading-none">Years Old</span>,
+      bottom: <span style={{ fontSize: 13, color: '#6e6e73' }} className="leading-none">Years Old</span>,
     },
     {
       label: "CATEGORY",
       value: null,
-      center: <CategoryIcon category={category} className="h-[22px] w-[22px] text-muted-foreground" />,
-      bottom: <span className="text-[10px] text-muted-foreground leading-none">{category || "Other"}</span>,
+      center: <CategoryIcon category={category} className="h-[18px] w-[18px]" style={{ color: '#8e8e93' }} />,
+      bottom: <span style={{ fontSize: 13, color: '#6e6e73' }} className="leading-none">{category || "Other"}</span>,
     },
     {
       label: "DEVELOPER",
       value: null,
-      center: <User className="h-[22px] w-[22px] text-muted-foreground" strokeWidth={1.5} />,
-      bottom: <span className="text-[10px] text-muted-foreground leading-none truncate max-w-[80px]">{devFirstName}</span>,
+      center: <User className="h-[18px] w-[18px]" style={{ color: '#8e8e93' }} strokeWidth={1.5} />,
+      bottom: <span style={{ fontSize: 13, color: '#6e6e73' }} className="leading-none truncate max-w-[80px]">{devFirstName}</span>,
     },
     {
       label: "LANGUAGE",
       value: "EN",
-      bottom: <span className="text-[10px] text-muted-foreground leading-none">+ More</span>,
+      bottom: <span style={{ fontSize: 13, color: '#6e6e73' }} className="leading-none">+ More</span>,
     },
     {
       label: "SIZE",
       value: sizeValue,
-      bottom: <span className="text-[10px] text-muted-foreground leading-none">{sizeUnit}</span>,
+      bottom: <span style={{ fontSize: 13, color: '#6e6e73' }} className="leading-none">{sizeUnit}</span>,
     },
   ];
 
