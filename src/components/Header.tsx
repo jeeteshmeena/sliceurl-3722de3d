@@ -93,8 +93,19 @@ export function Header() {
     };
   }, [isAdmin]);
 
+  const { productTheme, setProductTheme } = useTheme();
+
   const handleThemeToggle = () => {
-    setTheme(resolvedTheme === "dark" ? "light" : "dark");
+    if (productTheme === "norris") {
+      // Switch back to default (light)
+      setProductTheme("default");
+      setTheme("light");
+    } else if (resolvedTheme === "light") {
+      setTheme("dark");
+    } else {
+      // From dark, go to norris
+      setProductTheme("norris");
+    }
   };
 
   const handleLogout = async () => {
