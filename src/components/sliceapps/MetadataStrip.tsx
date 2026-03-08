@@ -110,14 +110,38 @@ export function MetadataStrip({
   ];
 
   return (
-    <div className="border-t border-b border-border/30 overflow-x-auto overflow-y-hidden scrollbar-hide scroll-smooth bg-background">
-      <div className="flex min-w-max lg:justify-center">
+    <div
+      className="border-t border-b border-border/30 bg-background"
+      style={{
+        overflowX: 'auto',
+        overflowY: 'hidden',
+        scrollSnapType: 'x mandatory',
+        scrollBehavior: 'smooth',
+        WebkitOverflowScrolling: 'touch',
+        scrollbarWidth: 'none',
+      }}
+    >
+      <style>{`.metadata-grid::-webkit-scrollbar { display: none; }`}</style>
+      <div
+        className="metadata-grid"
+        style={{
+          display: 'grid',
+          gridAutoFlow: 'column',
+          gridTemplateRows: 'repeat(2, auto)',
+          gap: 0,
+        }}
+      >
         {items.map((item, index) => (
           <div
             key={index}
-            className={`flex flex-col items-center justify-between min-w-[95px] lg:min-w-[130px] py-3 lg:py-4 px-2 lg:px-4 ${
-              index < items.length - 1 ? "border-r border-border/20" : ""
-            }`}
+            className="flex flex-col items-center justify-between py-3 lg:py-4 px-2 lg:px-4"
+            style={{
+              minWidth: 110,
+              textAlign: 'center',
+              scrollSnapAlign: 'start',
+              borderRight: index % 3 !== 2 ? '1px solid hsl(var(--border) / 0.2)' : 'none',
+              borderBottom: index < 3 ? '1px solid hsl(var(--border) / 0.15)' : 'none',
+            }}
           >
             {/* Top label */}
             <span className="text-[10px] lg:text-[11px] font-medium text-muted-foreground uppercase tracking-wider leading-none">
