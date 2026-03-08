@@ -36,6 +36,7 @@ const CATEGORY_ICONS: Record<string, LucideIcon> = {
   shopping: ShoppingBag,
   health: HeartPulse,
   utilities: Wrench,
+  tool: Wrench,
   news: Newspaper,
 };
 
