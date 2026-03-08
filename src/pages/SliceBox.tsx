@@ -2,11 +2,12 @@ import { useState, useRef, useCallback, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
-  Upload, Link as LinkIcon, Copy, Check, FileText, Image, Video, Music, 
-  Archive, File, ChevronDown, ChevronUp,
+  Upload, Link as LinkIcon, Copy, Check,
+  ChevronDown, ChevronUp,
   ExternalLink, Share2, HardDrive, Clock, Gauge, Store
 } from "lucide-react";
 import { IsolatedButton, SLICEBOX_COLORS } from "@/components/slicebox/IsolatedButton";
+import { formatFileSize, formatSpeed, formatTime, getFileIcon, isExecutableFile, isApkFile } from "@/lib/fileUtils";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
