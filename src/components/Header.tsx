@@ -138,9 +138,11 @@ export function Header() {
         {/* Right Section - Clean icon layout with consistent spacing */}
         <div className="flex items-center gap-3 shrink-0 mr-2 sm:mr-4 flex-nowrap">
           {/* Theme Toggle - Clean icon, no pill background */}
-          <button
+          <Button
+            variant="ghost"
+            size="icon"
             onClick={handleThemeToggle}
-            className="h-9 w-9 flex items-center justify-center text-foreground hover:text-foreground/70 transition-colors"
+            className="h-9 w-9 rounded-full hover:bg-muted/50"
             aria-label={`Switch to ${resolvedTheme === "dark" ? "light" : "dark"} mode`}
           >
             {resolvedTheme === "dark" ? (
@@ -148,17 +150,19 @@ export function Header() {
             ) : (
               <Moon className="h-[18px] w-[18px]" />
             )}
-          </button>
+          </Button>
 
           {/* Language Selector - Clean icon, no pill background */}
           <Popover open={langOpen} onOpenChange={setLangOpen}>
             <PopoverTrigger asChild>
-              <button
-                className="h-9 w-9 flex items-center justify-center text-foreground hover:text-foreground/70 transition-colors"
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-9 w-9 rounded-full hover:bg-muted/50"
                 aria-label="Change language"
               >
                 <Languages className="h-[18px] w-[18px]" />
-              </button>
+              </Button>
             </PopoverTrigger>
             <PopoverContent
               align="end"
@@ -315,16 +319,18 @@ export function Header() {
               </div>
 
               {/* Mobile Menu Toggle */}
-              <button
+              <Button
+                variant="ghost"
+                size="icon"
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                className="h-9 w-9 flex items-center justify-center text-foreground hover:text-foreground/70 transition-colors sm:hidden"
+                className="h-9 w-9 rounded-full sm:hidden"
               >
                 {mobileMenuOpen ? (
                   <X className="h-5 w-5" />
                 ) : (
                   <Menu className="h-5 w-5" />
                 )}
-              </button>
+              </Button>
             </>
           )}
         </div>
