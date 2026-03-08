@@ -245,90 +245,130 @@ export default function AppPage() {
           {/* Layer 1: Navigation bar */}
           <SliceAppsHeader />
 
-          {/* Layer 2: Hero Section (mobile only) */}
+          {/* Layer 2: Hero Section (mobile only) — App Store style */}
           <div
             className="lg:hidden"
             style={{
-              paddingTop: 28,
-              paddingBottom: 24,
-              paddingLeft: 16,
-              paddingRight: 16,
-              background: '#f5f5f7',
-              borderBottom: '1px solid rgba(0,0,0,0.06)',
+              paddingTop: 32,
+              paddingBottom: 28,
+              paddingLeft: 20,
+              paddingRight: 20,
+              background: 'linear-gradient(180deg, #b0b0b4 0%, #8e8e93 100%)',
             }}
           >
-            <div className="flex items-start" style={{ gap: 16 }}>
-              {/* App Icon */}
+            <div className="flex items-start" style={{ gap: 18 }}>
+              {/* App Icon — 128px like App Store */}
               <div
-                className="flex-shrink-0 overflow-hidden bg-muted shadow-sm"
+                className="flex-shrink-0 overflow-hidden"
                 style={{
-                  width: 96,
-                  height: 96,
-                  borderRadius: 22,
+                  width: 128,
+                  height: 128,
+                  borderRadius: 28,
+                  background: '#fff',
+                  boxShadow: '0 4px 20px rgba(0,0,0,0.15)',
                 }}
               >
                 {app.icon_url ? (
                   <img src={app.icon_url} alt={app.app_name} className="w-full h-full object-cover" loading="lazy" />
                 ) : (
-                  <div className="w-full h-full flex items-center justify-center text-muted-foreground text-4xl font-bold bg-muted">
+                  <div className="w-full h-full flex items-center justify-center text-4xl font-bold" style={{ color: '#8e8e93', background: '#f5f5f7' }}>
                     {app.app_name.charAt(0)}
                   </div>
                 )}
               </div>
 
-              {/* App Info + GET button */}
-              <div className="flex-1 min-w-0 flex flex-col justify-center">
+              {/* App Info */}
+              <div className="flex-1 min-w-0 flex flex-col" style={{ paddingTop: 4 }}>
                 <h1
-                  className="font-bold text-foreground"
-                  style={{ fontSize: 24, lineHeight: 1.2, letterSpacing: '-0.2px', marginBottom: 4 }}
+                  style={{
+                    fontSize: 22,
+                    fontWeight: 700,
+                    lineHeight: 1.2,
+                    letterSpacing: '-0.3px',
+                    color: '#ffffff',
+                    marginBottom: 4,
+                  }}
                 >
                   {app.app_name}
                 </h1>
                 <p
                   className="line-clamp-2"
-                  style={{ fontSize: 15, color: '#6e6e73', fontWeight: 400, marginBottom: 14 }}
+                  style={{
+                    fontSize: 14,
+                    fontWeight: 400,
+                    color: 'rgba(255,255,255,0.85)',
+                    lineHeight: 1.35,
+                    marginBottom: 4,
+                  }}
                 >
                   {app.short_description || `The official app by ${app.developer_name || "Unknown"}`}
                 </p>
+                <p
+                  style={{
+                    fontSize: 13,
+                    fontWeight: 400,
+                    color: 'rgba(255,255,255,0.7)',
+                    marginBottom: 14,
+                  }}
+                >
+                  Free · {app.category || "App"}
+                </p>
 
-                <div className="flex items-center" style={{ gap: 14 }}>
-                  <motion.div
-                    animate={downloadSuccess ? { scale: [1, 1.05, 1] } : {}}
-                    transition={{ duration: 0.25 }}
-                  >
-                    <button
-                      onClick={handleDownload}
-                      disabled={isDownloading || !fileInfo || !!fileUnavailable}
-                      style={{
-                        height: 38,
-                        paddingLeft: 22,
-                        paddingRight: 22,
-                        borderRadius: 19,
-                        background: '#0071e3',
-                        color: 'white',
-                        fontSize: 16,
-                        fontWeight: 600,
-                      }}
-                      className="disabled:opacity-40 active:opacity-80 transition-opacity"
-                    >
-                      {downloadSuccess ? (
-                        <motion.span initial={{ opacity: 0, scale: 0.5 }} animate={{ opacity: 1, scale: 1 }} className="flex items-center gap-1">
-                          <Check className="h-4 w-4" /> Done
-                        </motion.span>
-                      ) : isDownloading ? "..." : "GET"}
-                    </button>
-                  </motion.div>
-
-                  <button
-                    onClick={handleShare}
-                    className="flex items-center justify-center"
-                    style={{ width: 38, height: 38, color: '#0071e3' }}
-                    aria-label="Share"
-                  >
-                    <Share2 style={{ width: 20, height: 20 }} strokeWidth={1.8} />
-                  </button>
-                </div>
+                {/* Share button — pill style like App Store */}
+                <button
+                  onClick={handleShare}
+                  className="flex items-center justify-center active:opacity-70 transition-opacity"
+                  style={{
+                    height: 32,
+                    paddingLeft: 14,
+                    paddingRight: 16,
+                    borderRadius: 16,
+                    background: 'rgba(255,255,255,0.25)',
+                    color: '#ffffff',
+                    fontSize: 15,
+                    fontWeight: 500,
+                    gap: 6,
+                    width: 'fit-content',
+                    backdropFilter: 'blur(8px)',
+                    WebkitBackdropFilter: 'blur(8px)',
+                  }}
+                >
+                  <Share2 style={{ width: 16, height: 16 }} strokeWidth={2} />
+                  Share
+                </button>
               </div>
+            </div>
+
+            {/* GET button row — full width below icon+info like some App Store layouts */}
+            <div style={{ marginTop: 20 }}>
+              <motion.div
+                animate={downloadSuccess ? { scale: [1, 1.02, 1] } : {}}
+                transition={{ duration: 0.2 }}
+              >
+                <button
+                  onClick={handleDownload}
+                  disabled={isDownloading || !fileInfo || !!fileUnavailable}
+                  className="disabled:opacity-40 active:opacity-80 transition-opacity"
+                  style={{
+                    width: '100%',
+                    height: 44,
+                    borderRadius: 12,
+                    background: 'rgba(255,255,255,0.95)',
+                    color: '#007AFF',
+                    fontSize: 17,
+                    fontWeight: 700,
+                    letterSpacing: '-0.2px',
+                    border: 'none',
+                    cursor: 'pointer',
+                  }}
+                >
+                  {downloadSuccess ? (
+                    <motion.span initial={{ opacity: 0, scale: 0.5 }} animate={{ opacity: 1, scale: 1 }} className="flex items-center justify-center gap-1.5">
+                      <Check style={{ width: 18, height: 18 }} /> Done
+                    </motion.span>
+                  ) : isDownloading ? "..." : "GET"}
+                </button>
+              </motion.div>
             </div>
           </div>
         </div>
