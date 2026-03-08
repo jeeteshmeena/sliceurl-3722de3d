@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
 
-type Theme = "dark" | "light" | "system" | "maggie" | "racing";
+type Theme = "dark" | "light" | "system" | "maggie" | "racing" | "meridian";
 
 type ThemeProviderProps = {
   children: React.ReactNode;
@@ -8,10 +8,12 @@ type ThemeProviderProps = {
   storageKey?: string;
 };
 
+type ResolvedTheme = "dark" | "light" | "maggie" | "racing" | "meridian";
+
 type ThemeProviderState = {
   theme: Theme;
   setTheme: (theme: Theme) => void;
-  resolvedTheme: "dark" | "light" | "maggie" | "racing";
+  resolvedTheme: ResolvedTheme;
 };
 
 const initialState: ThemeProviderState = {
@@ -21,6 +23,8 @@ const initialState: ThemeProviderState = {
 };
 
 const ThemeProviderContext = createContext<ThemeProviderState>(initialState);
+
+const CUSTOM_THEMES = ["maggie", "racing", "meridian"] as const;
 
 export function ThemeProvider({
   children,
@@ -32,26 +36,23 @@ export function ThemeProvider({
     () => (localStorage.getItem(storageKey) as Theme) || defaultTheme
   );
 
-  const [resolvedTheme, setResolvedTheme] = useState<"dark" | "light" | "maggie" | "racing">("light");
+  const [resolvedTheme, setResolvedTheme] = useState<ResolvedTheme>("light");
 
   useEffect(() => {
     const root = window.document.documentElement;
     root.classList.add("theme-transitioning");
-    root.classList.remove("light", "dark", "maggie", "racing");
+    root.classList.remove("light", "dark", ...CUSTOM_THEMES);
 
-    if (theme === "maggie") {
-      root.classList.add("maggie");
-      setResolvedTheme("maggie");
-    } else if (theme === "racing") {
-      root.classList.add("racing");
-      setResolvedTheme("racing");
+    if ((CUSTOM_THEMES as readonly string[]).includes(theme)) {
+      root.classList.add(theme);
+      setResolvedTheme(theme as ResolvedTheme);
     } else if (theme === "system") {
       const systemTheme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
       root.classList.add(systemTheme);
       setResolvedTheme(systemTheme);
     } else {
       root.classList.add(theme);
-      setResolvedTheme(theme);
+      setResolvedTheme(theme as ResolvedTheme);
     }
 
     requestAnimationFrame(() => {
@@ -66,7 +67,7 @@ export function ThemeProvider({
     const handleChange = () => {
       if (theme === "system") {
         const root = window.document.documentElement;
-        root.classList.remove("light", "dark", "maggie", "racing");
+        root.classList.remove("light", "dark", ...CUSTOM_THEMES);
         const systemTheme = mediaQuery.matches ? "dark" : "light";
         root.classList.add(systemTheme);
         setResolvedTheme(systemTheme);

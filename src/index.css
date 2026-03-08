@@ -281,6 +281,61 @@
     --shadow-lg: 0 8px 24px 0 hsl(52 100% 50% / 0.06);
     --shadow-xl: 0 16px 40px -8px hsl(52 100% 50% / 0.1);
   }
+
+  /* Meridian Theme - Modern SaaS, clean white, orange accent */
+  .meridian {
+    --background: 30 20% 98%;
+    --foreground: 0 0% 10%;
+    
+    --card: 0 0% 100%;
+    --card-foreground: 0 0% 10%;
+    
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 0% 10%;
+    
+    --primary: 14 88% 54%;
+    --primary-foreground: 0 0% 100%;
+    
+    --secondary: 30 15% 95%;
+    --secondary-foreground: 0 0% 15%;
+    
+    --muted: 30 10% 94%;
+    --muted-foreground: 0 0% 45%;
+    
+    --accent: 14 88% 54%;
+    --accent-foreground: 0 0% 100%;
+    
+    --destructive: 0 72% 50%;
+    --destructive-foreground: 0 0% 100%;
+    
+    --success: 142 72% 42%;
+    --success-foreground: 0 0% 100%;
+    
+    --warning: 38 95% 48%;
+    --warning-foreground: 0 0% 100%;
+    
+    --border: 30 10% 90%;
+    --input: 30 10% 90%;
+    --ring: 14 88% 54%;
+    
+    --radius: 0.625rem;
+    
+    --sidebar-background: 30 15% 97%;
+    --sidebar-foreground: 0 0% 20%;
+    --sidebar-primary: 14 88% 54%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 30 12% 93%;
+    --sidebar-accent-foreground: 0 0% 12%;
+    --sidebar-border: 30 10% 88%;
+    --sidebar-ring: 14 88% 54%;
+    
+    --glass: 30 20% 98% / 0.9;
+    --glass-border: 0 0% 0% / 0.04;
+    --shadow-sm: 0 1px 2px 0 hsl(0 0% 0% / 0.03);
+    --shadow-md: 0 2px 8px 0 hsl(0 0% 0% / 0.06);
+    --shadow-lg: 0 8px 24px 0 hsl(0 0% 0% / 0.08);
+    --shadow-xl: 0 16px 40px -8px hsl(0 0% 0% / 0.12);
+  }
 }
 
 @layer base {
