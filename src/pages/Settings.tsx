@@ -875,7 +875,7 @@ export default function Settings() {
             <Button
               onClick={handleChangePassword}
               disabled={isChangingPassword}
-              className="bg-neutral-900 dark:bg-neutral-100 text-white dark:text-neutral-900"
+              className="bg-primary text-primary-foreground"
             >
               {isChangingPassword && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
               {hasPassword ? "Change Password" : "Set Password"}
