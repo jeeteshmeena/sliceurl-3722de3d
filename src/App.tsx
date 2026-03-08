@@ -188,6 +188,11 @@ const App = () => (
                       <AppPage />
                     </Suspense>
                   } />
+                  <Route path="/apps" element={
+                    <Suspense fallback={<PageLoader />}>
+                      <SliceAppsHome />
+                    </Suspense>
+                  } />
                   {/* Feedback Routes */}
                   <Route path="/feedback" element={
                     <AuthGuard>
