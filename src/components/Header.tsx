@@ -141,13 +141,16 @@ export function Header() {
 
         {/* Right Section - Apple-style icon controls */}
         <div className="flex items-center gap-1.5 shrink-0 flex-nowrap">
-          {/* Theme Toggle */}
+          {/* Theme Toggle - 3-way cycle: Light → Dark → Maggie */}
           <button
-            onClick={handleThemeToggle}
+            onClick={handleThemeCycle}
             className="h-[42px] w-[42px] flex items-center justify-center rounded-full text-foreground/70 hover:text-foreground hover:bg-foreground/[0.06] active:scale-[0.96] transition-all duration-150"
-            aria-label={`Switch to ${resolvedTheme === "dark" ? "light" : "dark"} mode`}
+            aria-label={`Theme: ${themeLabel}. Click to switch.`}
+            title={`Theme: ${themeLabel}`}
           >
-            {resolvedTheme === "dark" ? (
+            {resolvedTheme === "maggie" ? (
+              <span className="text-base">🩷</span>
+            ) : resolvedTheme === "dark" ? (
               <Sun className="h-5 w-5" strokeWidth={1.7} />
             ) : (
               <Moon className="h-5 w-5" strokeWidth={1.7} />
