@@ -258,14 +258,14 @@ export default function AppPage() {
             padding: '24px 20px',
           }}
         >
-          <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-            {/* App Icon — 96px */}
+          <div style={{ display: 'flex', alignItems: 'center' }}>
+            {/* App Icon — 112px */}
             <div
               className="flex-shrink-0 overflow-hidden"
               style={{
-                width: 96,
-                height: 96,
-                borderRadius: 22,
+                width: 112,
+                height: 112,
+                borderRadius: 24,
                 boxShadow: '0 8px 24px rgba(0,0,0,0.12)',
               }}
             >
@@ -279,13 +279,13 @@ export default function AppPage() {
             </div>
 
             {/* Text Block */}
-            <div style={{ display: 'flex', flexDirection: 'column', flex: 1, minWidth: 0 }}>
+            <div style={{ display: 'flex', flexDirection: 'column', flex: 1, minWidth: 0, marginLeft: 20 }}>
               <h1
                 style={{
                   fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Display", system-ui, sans-serif',
                   fontWeight: 600,
-                  fontSize: 22,
-                  lineHeight: '26px',
+                  fontSize: 20,
+                  lineHeight: '24px',
                   letterSpacing: '-0.01em',
                   color: '#ffffff',
                   margin: 0,
@@ -298,8 +298,8 @@ export default function AppPage() {
                 style={{
                   fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Text", system-ui, sans-serif',
                   fontWeight: 400,
-                  fontSize: 14,
-                  lineHeight: '20px',
+                  fontSize: 13,
+                  lineHeight: '18px',
                   color: 'rgba(255,255,255,0.85)',
                   marginTop: 6,
                   marginBottom: 0,
@@ -309,7 +309,7 @@ export default function AppPage() {
               </p>
 
               {/* Button Row */}
-              <div style={{ display: 'flex', alignItems: 'center', marginTop: 12, gap: 12 }}>
+              <div style={{ display: 'flex', alignItems: 'center', marginTop: 10, gap: 12 }}>
                 <motion.div
                   animate={downloadSuccess ? { scale: [1, 1.02, 1] } : {}}
                   transition={{ duration: 0.2 }}
