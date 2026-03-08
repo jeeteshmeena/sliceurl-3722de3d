@@ -17,20 +17,17 @@ export function SliceAppsHeader() {
     <>
       {/* Mobile Header — always sticky, App Store style */}
       <header
-        className="lg:hidden"
+        className="lg:hidden bg-[#f5f5f7] dark:bg-[#1c1c1e]"
         style={{
           position: 'sticky',
           top: 0,
           zIndex: 999,
-          background: '#f5f5f7',
           height: 56,
           borderBottom: '1px solid rgba(0,0,0,0.06)',
         }}
       >
-        <div className="dark:hidden" style={{ position: 'absolute', inset: 0, background: '#f5f5f7' }} />
-        <div className="hidden dark:block" style={{ position: 'absolute', inset: 0, background: '#1c1c1e' }} />
         <div
-          className="relative flex items-center justify-between"
+          className="flex items-center justify-between"
           style={{ height: 56, paddingLeft: 16, paddingRight: 16 }}
         >
           <button
