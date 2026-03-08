@@ -143,6 +143,7 @@ export default function AppPage() {
       a.click();
       document.body.removeChild(a);
       setFileInfo(prev => prev ? { ...prev, download_count: (prev.download_count || 0) + 1 } : null);
+      setApp(prev => prev ? { ...prev, total_downloads: (prev.total_downloads || 0) + 1 } : null);
       setDownloadSuccess(true);
       setTimeout(() => setDownloadSuccess(false), 1500);
       toast.success("Download started!");
@@ -231,7 +232,7 @@ export default function AppPage() {
     );
   }
 
-  const actualDownloads = fileInfo?.download_count || 0;
+  const actualDownloads = app?.total_downloads || fileInfo?.download_count || 0;
 
   return (
     <div className="min-h-dvh bg-background flex">

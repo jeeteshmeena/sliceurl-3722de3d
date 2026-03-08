@@ -86,9 +86,9 @@ export function MetadataStrip({
       bottom: <span style={{ fontSize: 13, color: '#6e6e73' }} className="leading-none">Years Old</span>,
     },
     {
-      label: "LANGUAGE",
-      value: "EN",
-      bottom: <span style={{ fontSize: 13, color: '#6e6e73' }} className="leading-none">+ More</span>,
+      label: "DOWNLOAD",
+      value: downloads || "0",
+      bottom: <span style={{ fontSize: 13, color: '#6e6e73' }} className="leading-none">Downloads</span>,
     },
     {
       label: "DEVELOPER",
@@ -110,7 +110,7 @@ export function MetadataStrip({
   ];
 
   return (
-    <div className="border-t border-b border-border/30 bg-background">
+    <div className="bg-background">
       <style>{`.metadata-row::-webkit-scrollbar { display: none; }`}</style>
       <div
         className="metadata-row"
