@@ -212,8 +212,8 @@ export default function CreateAppListing() {
     setIsSubmitting(true);
 
     try {
-      const { data: fileRecord, error: fileError } = await supabase
-        .from("slicebox_files").select("id, service_type").eq("file_id", fileData.fileId).single();
+      const { data: fileRecord, error: fileError } = await (supabase
+        .from("slicebox_files_safe" as any).select("id, service_type").eq("file_id", fileData.fileId).single()) as any as { data: { id: string; service_type: string | null } | null; error: any };
       if (fileError || !fileRecord) throw new Error("File not found");
 
       const slugCode = generateSlug(formData.appName.trim());
