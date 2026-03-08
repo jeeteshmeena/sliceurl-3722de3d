@@ -471,59 +471,48 @@ export default function AppPage() {
                   {app.short_description || `The official app by ${app.developer_name || "Unknown"}`}
                 </p>
                 <div style={{ display: 'flex', alignItems: 'center', marginTop: 10, gap: 12 }}>
-                  <motion.div
-                    animate={downloadSuccess ? { scale: [1, 1.05, 1] } : {}}
-                    transition={{ duration: 0.25 }}
-                  >
-                    {isDownloading ? (
-                      <div style={{ width: 36, height: 36, position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                        <svg width={36} height={36} style={{ transform: 'rotate(-90deg)' }}>
-                          <circle cx={18} cy={18} r={15} fill="none" stroke="rgba(255,255,255,0.2)" strokeWidth={3} />
-                          <circle
-                            cx={18} cy={18} r={15} fill="none"
-                            stroke="#0A84FF" strokeWidth={3}
-                            strokeLinecap="round"
-                            strokeDasharray={2 * Math.PI * 15}
-                            strokeDashoffset={2 * Math.PI * 15 * (1 - downloadProgress / 100)}
-                            style={{ transition: 'stroke-dashoffset 0.2s ease' }}
-                          />
-                        </svg>
-                        <button onClick={cancelDownload} aria-label="Cancel download" style={{ position: 'absolute', width: 36, height: 36, background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 0 }}>
-                          <div style={{ width: 10, height: 10, borderRadius: 2, background: '#0A84FF' }} />
-                        </button>
-                      </div>
-                    ) : (
-                      <button
-                        onClick={handleDownload}
-                        disabled={!fileInfo || !!fileUnavailable}
-                        className="disabled:opacity-40"
-                        style={{
-                          height: 36,
-                          padding: '8px 22px',
-                          borderRadius: 20,
-                          background: '#0A84FF',
-                          color: '#ffffff',
-                          fontSize: 16,
-                          fontWeight: 600,
-                          border: 'none',
-                          cursor: 'pointer',
-                          transition: 'background 0.15s ease, transform 0.12s ease',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                        }}
-                        onPointerDown={(e) => { e.currentTarget.style.background = '#0077ED'; e.currentTarget.style.transform = 'scale(0.96)'; }}
-                        onPointerUp={(e) => { e.currentTarget.style.background = '#0A84FF'; e.currentTarget.style.transform = 'scale(1)'; }}
-                        onPointerLeave={(e) => { e.currentTarget.style.background = '#0A84FF'; e.currentTarget.style.transform = 'scale(1)'; }}
-                      >
-                        {downloadSuccess ? (
-                          <motion.span initial={{ opacity: 0, scale: 0.5 }} animate={{ opacity: 1, scale: 1 }} className="flex items-center gap-1">
-                            <Check className="h-4 w-4" /> Done
-                          </motion.span>
-                        ) : "DOWNLOAD"}
-                      </button>
-                    )}
-                  </motion.div>
+                <button
+                  onClick={isDownloading ? cancelDownload : handleDownload}
+                  disabled={(!fileInfo || !!fileUnavailable) && !isDownloading}
+                  className="disabled:opacity-40"
+                  style={{
+                    height: 36,
+                    minWidth: 110,
+                    padding: '0 22px',
+                    borderRadius: 20,
+                    background: '#0A84FF',
+                    color: '#ffffff',
+                    fontSize: 16,
+                    fontWeight: 600,
+                    border: 'none',
+                    cursor: 'pointer',
+                    position: 'relative',
+                    overflow: 'hidden',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    transition: 'transform 0.12s ease',
+                  }}
+                  onPointerDown={(e) => { if (!isDownloading) e.currentTarget.style.transform = 'scale(0.96)'; }}
+                  onPointerUp={(e) => { e.currentTarget.style.transform = 'scale(1)'; }}
+                  onPointerLeave={(e) => { e.currentTarget.style.transform = 'scale(1)'; }}
+                >
+                  {isDownloading && (
+                    <div style={{
+                      position: 'absolute',
+                      left: 0,
+                      top: 0,
+                      bottom: 0,
+                      width: `${downloadProgress}%`,
+                      background: 'rgba(255,255,255,0.25)',
+                      borderRadius: 20,
+                      transition: 'width 0.2s ease',
+                    }} />
+                  )}
+                  <span style={{ position: 'relative', zIndex: 1 }}>
+                    {downloadSuccess ? "OPEN" : isDownloading ? `${downloadProgress}%` : "DOWNLOAD"}
+                  </span>
+                </button>
                 </div>
               </div>
             </div>
