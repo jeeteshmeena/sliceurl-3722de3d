@@ -83,7 +83,7 @@ export function MetadataStrip({
     {
       label: "AGES",
       value: ageRating,
-      bottom: <span style={{ fontSize: 13, color: '#6e6e73' }} className="leading-none">Years Old</span>,
+      bottom: <span style={{ fontSize: 13, fontWeight: 400, color: '#a1a1a6' }} className="leading-none">Years Old</span>,
     },
     {
       label: "CATEGORY",
