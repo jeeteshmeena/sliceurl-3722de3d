@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import { Menu, X, Link2, HardDrive, Package, ChevronRight, Info, BookOpen, Mail } from "lucide-react";
+import { Menu, X, Link2, HardDrive, Package, ChevronRight } from "lucide-react";
 
 const products = [
   {
@@ -32,11 +32,19 @@ const footerLinks = [
 export function SliceAppsHeader() {
   const navigate = useNavigate();
   const [menuOpen, setMenuOpen] = useState(false);
+  const [closing, setClosing] = useState(false);
+
+  const closeMenu = useCallback(() => {
+    setClosing(true);
+    setTimeout(() => {
+      setMenuOpen(false);
+      setClosing(false);
+    }, 240);
+  }, []);
 
   const handleNavigate = (path: string) => {
-    setMenuOpen(false);
-    // Small delay so close animation plays before navigation
-    setTimeout(() => navigate(path), 150);
+    closeMenu();
+    setTimeout(() => navigate(path), 260);
   };
 
   return (
@@ -65,9 +73,13 @@ export function SliceAppsHeader() {
       {/* Backdrop */}
       {menuOpen && (
         <div
-          className="fixed inset-0 z-[60] bg-black/35 transition-opacity duration-[280ms]"
-          style={{ animation: "sliceapps-backdrop-in 280ms cubic-bezier(0.32, 0.72, 0, 1) forwards" }}
-          onClick={() => setMenuOpen(false)}
+          className="fixed inset-0 z-[60] bg-black/35"
+          style={{
+            animation: closing
+              ? "sliceapps-backdrop-out 240ms cubic-bezier(0.32, 0.72, 0, 1) forwards"
+              : "sliceapps-backdrop-in 280ms cubic-bezier(0.32, 0.72, 0, 1) forwards",
+          }}
+          onClick={closeMenu}
         />
       )}
 
@@ -77,7 +89,9 @@ export function SliceAppsHeader() {
           className="fixed inset-y-0 left-0 z-[70] w-[82vw] max-w-[360px] md:max-w-[420px] bg-background flex flex-col"
           style={{
             borderRadius: "0 20px 20px 0",
-            animation: "sliceapps-drawer-in 280ms cubic-bezier(0.32, 0.72, 0, 1) forwards",
+            animation: closing
+              ? "sliceapps-drawer-out 240ms cubic-bezier(0.32, 0.72, 0, 1) forwards"
+              : "sliceapps-drawer-in 280ms cubic-bezier(0.32, 0.72, 0, 1) forwards",
           }}
         >
           {/* Header */}
@@ -86,7 +100,7 @@ export function SliceAppsHeader() {
               SliceAPPs
             </span>
             <button
-              onClick={() => setMenuOpen(false)}
+              onClick={closeMenu}
               className="w-[34px] h-[34px] rounded-full flex items-center justify-center transition-all duration-150 hover:bg-foreground/[0.06] active:scale-[0.96]"
               aria-label="Close menu"
             >
@@ -104,12 +118,9 @@ export function SliceAppsHeader() {
                 onClick={() => handleNavigate(item.path)}
                 className="w-full flex items-center gap-3 px-4 py-[14px] rounded-2xl transition-colors duration-[120ms] ease-out hover:bg-foreground/[0.04] active:bg-foreground/[0.07] group"
               >
-                {/* Icon container */}
                 <div className="w-10 h-10 rounded-xl bg-muted/60 flex items-center justify-center shrink-0">
                   <item.icon className="h-[22px] w-[22px] text-muted-foreground" strokeWidth={1.7} />
                 </div>
-
-                {/* Text */}
                 <div className="flex-1 text-left min-w-0">
                   <div className="text-[15px] font-semibold text-foreground leading-tight">
                     {item.label}
@@ -118,8 +129,6 @@ export function SliceAppsHeader() {
                     {item.description}
                   </div>
                 </div>
-
-                {/* Arrow */}
                 <ChevronRight className="h-4 w-4 text-muted-foreground/50 shrink-0 group-hover:text-muted-foreground transition-colors" strokeWidth={1.8} />
               </button>
             ))}
@@ -149,9 +158,17 @@ export function SliceAppsHeader() {
           from { transform: translateX(-100%); }
           to { transform: translateX(0); }
         }
+        @keyframes sliceapps-drawer-out {
+          from { transform: translateX(0); }
+          to { transform: translateX(-100%); }
+        }
         @keyframes sliceapps-backdrop-in {
           from { opacity: 0; }
           to { opacity: 1; }
+        }
+        @keyframes sliceapps-backdrop-out {
+          from { opacity: 1; }
+          to { opacity: 0; }
         }
       `}</style>
     </>
