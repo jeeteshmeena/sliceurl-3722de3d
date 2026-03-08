@@ -623,7 +623,7 @@ export default function Settings() {
                   Connected Accounts
                 </h3>
 
-                <div className="flex items-center justify-between p-3 bg-white dark:bg-neutral-800 rounded-lg border border-neutral-200 dark:border-neutral-700">
+                <div className="flex items-center justify-between p-3 bg-card rounded-lg border border-border">
                   <div className="flex items-center gap-3">
                     <div className="h-8 w-8 rounded-full bg-white dark:bg-neutral-700 flex items-center justify-center border border-neutral-200 dark:border-neutral-600">
                       <svg className="h-4 w-4" viewBox="0 0 24 24">
