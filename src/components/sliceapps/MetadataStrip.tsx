@@ -177,7 +177,7 @@ export function MetadataStrip({
             {/* Center: value or icon */}
             <div className="my-2 flex items-center justify-center min-h-[28px]">
               {item.value && (
-                <span className="leading-none tracking-tight" style={{ fontSize: 17, fontWeight: 500, color: '#ffffff' }}>
+                <span className="leading-none tracking-tight text-foreground" style={{ fontSize: 17, fontWeight: 600 }}>
                   {item.value}
                 </span>
               )}
