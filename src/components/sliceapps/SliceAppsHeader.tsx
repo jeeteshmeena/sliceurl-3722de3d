@@ -66,17 +66,17 @@ export function SliceAppsHeader() {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.2 }}
-              className="fixed inset-0 z-[100] bg-black/30 lg:hidden"
+              className="fixed inset-0 z-[100] bg-black/[0.35] lg:hidden"
               onClick={() => setMenuOpen(false)}
             />
             <motion.div
               initial={{ x: "-100%" }}
               animate={{ x: 0 }}
               exit={{ x: "-100%" }}
-              transition={{ type: "spring", damping: 30, stiffness: 300 }}
-              className="fixed inset-y-0 left-0 z-[101] w-[280px] bg-background lg:hidden"
+              transition={{ duration: 0.2, ease: "easeOut" }}
+              className="fixed inset-y-0 left-0 z-[101] w-[80vw] max-w-[340px] bg-background lg:hidden"
             >
-              <div className="h-12 flex items-center justify-between px-4 border-b border-border/30">
+              <div className="h-14 flex items-center justify-between px-5 border-b border-border/30">
                 <button onClick={() => setMenuOpen(false)} className="w-10 h-10 flex items-center justify-center" aria-label="Close menu">
                   <X className="w-6 h-6 text-[#007AFF]" strokeWidth={2} />
                 </button>
@@ -90,27 +90,18 @@ export function SliceAppsHeader() {
                 </div>
                 <div className="w-10" />
               </div>
-              <div className="py-4 overflow-y-auto h-[calc(100%-48px)]">
-                <nav className="px-4 space-y-1">
-                  {menuItems.map((item) => (
-                    <button key={item.label} onClick={() => { setMenuOpen(false); navigate(item.path); }} className="w-full flex items-center gap-4 py-3 text-left">
-                      <item.icon className="h-6 w-6 text-[#007AFF]" strokeWidth={1.5} fill="currentColor" />
-                      <span className="text-[17px] font-medium text-foreground">{item.label}</span>
-                    </button>
-                  ))}
-                </nav>
-                <div className="mt-6 px-4">
-                  <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-3 px-1">Categories</p>
-                  <nav className="space-y-1">
-                    {categoryItems.map((item) => (
-                      <button key={item.label} onClick={() => setMenuOpen(false)} className="w-full flex items-center gap-4 py-3 text-left">
-                        <item.icon className="h-6 w-6 text-[#007AFF]" strokeWidth={1.5} fill="currentColor" />
-                        <span className="text-[17px] font-medium text-foreground">{item.label}</span>
-                      </button>
-                    ))}
-                  </nav>
-                </div>
-              </div>
+              <nav className="pt-2">
+                {menuItems.map((item) => (
+                  <button
+                    key={item.label}
+                    onClick={() => { setMenuOpen(false); navigate(item.path); }}
+                    className="w-full h-[52px] flex items-center gap-[14px] pl-5 text-left"
+                  >
+                    <item.icon className="h-6 w-6 text-[#007AFF]" strokeWidth={1.5} />
+                    <span className="text-[16px] font-medium text-foreground">{item.label}</span>
+                  </button>
+                ))}
+              </nav>
             </motion.div>
           </>
         )}
