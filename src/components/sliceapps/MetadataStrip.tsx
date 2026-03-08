@@ -1,8 +1,7 @@
 import {
   Star,
-  User,
+  CircleUserRound,
   Gamepad2,
-  Briefcase,
   Wrench,
   Users,
   BookOpen,
@@ -11,6 +10,7 @@ import {
   Music,
   Clapperboard,
   Navigation,
+  Grid2x2,
 } from "lucide-react";
 
 interface MetadataStripProps {
@@ -23,18 +23,8 @@ interface MetadataStripProps {
   developer: string;
 }
 
-function CategoryIcon({ category, className }: { category: string; className?: string }) {
-  const cls = className || "h-6 w-6 text-muted-foreground";
-  const cat = category.toLowerCase();
-  if (cat.includes("music")) return <Music className={cls} strokeWidth={1.5} />;
-  if (cat.includes("entertainment")) return <Clapperboard className={cls} strokeWidth={1.5} />;
-  if (cat.includes("game") || cat.includes("action")) return <Gamepad2 className={cls} strokeWidth={1.5} />;
-  if (cat.includes("productiv")) return <Navigation className={cls} strokeWidth={1.5} />;
-  if (cat.includes("tool")) return <Wrench className={cls} strokeWidth={1.5} />;
-  if (cat.includes("social")) return <Users className={cls} strokeWidth={1.5} />;
-  if (cat.includes("education")) return <BookOpen className={cls} strokeWidth={1.5} />;
-  if (cat.includes("utilit")) return <Settings className={cls} strokeWidth={1.5} />;
-  return <LayoutGrid className={cls} strokeWidth={1.5} />;
+function CategoryIcon({ className }: { className?: string }) {
+  return <Grid2x2 className={className || "h-[22px] w-[22px]"} strokeWidth={1.8} style={{ color: '#8e8e93' }} />;
 }
 
 function StarRow({ rating }: { rating: number }) {
@@ -81,31 +71,31 @@ export function MetadataStrip({
       bottom: <StarRow rating={ratingAvg || 0} />,
     },
     {
-      label: "AGE",
+      label: "AGES",
       value: ageRating,
-      bottom: <span style={{ fontSize: 14, color: '#a1a1a6' }} className="leading-none">Years Old</span>,
+      bottom: <span style={{ fontSize: 14, fontWeight: 400, color: '#a1a1a6' }} className="leading-none">Years Old</span>,
     },
     {
       label: "DOWNLOAD",
       value: downloads || "0",
-      bottom: <span style={{ fontSize: 14, color: '#a1a1a6' }} className="leading-none">Downloads</span>,
+      bottom: <span style={{ fontSize: 14, fontWeight: 400, color: '#a1a1a6' }} className="leading-none">Downloads</span>,
     },
     {
       label: "DEVELOPER",
       value: null,
-      center: <User className="h-[18px] w-[18px] text-[#8e8e93]" strokeWidth={1.5} />,
-      bottom: <span style={{ fontSize: 14, color: '#a1a1a6' }} className="leading-none truncate max-w-[80px]">{devFirstName}</span>,
+      center: <CircleUserRound className="h-[22px] w-[22px]" strokeWidth={1.8} style={{ color: '#8e8e93' }} />,
+      bottom: <span style={{ fontSize: 14, fontWeight: 400, color: '#a1a1a6' }} className="leading-none truncate max-w-[80px]">{devFirstName}</span>,
     },
     {
       label: "CATEGORY",
       value: null,
-      center: <CategoryIcon category={category} className="h-[18px] w-[18px] text-[#8e8e93]" />,
-      bottom: <span style={{ fontSize: 14, color: '#a1a1a6' }} className="leading-none">{category || "Other"}</span>,
+      center: <CategoryIcon />,
+      bottom: <span style={{ fontSize: 14, fontWeight: 400, color: '#a1a1a6' }} className="leading-none">{category || "Other"}</span>,
     },
     {
       label: "SIZE",
       value: sizeValue,
-      bottom: <span style={{ fontSize: 14, color: '#a1a1a6' }} className="leading-none">{sizeUnit}</span>,
+      bottom: <span style={{ fontSize: 14, fontWeight: 400, color: '#a1a1a6' }} className="leading-none">{sizeUnit}</span>,
     },
   ];
 
@@ -141,22 +131,19 @@ export function MetadataStrip({
               scrollSnapAlign: 'start',
             }}
           >
-            {/* Top label */}
             <span style={{ fontSize: 12, fontWeight: 600, letterSpacing: '0.06em', color: '#8e8e93' }} className="uppercase leading-none">
               {item.label}
             </span>
 
-            {/* Center: value or icon */}
             <div className="my-2 flex items-center justify-center min-h-[28px]">
               {item.value && (
-                <span className="text-foreground leading-none tracking-tight" style={{ fontSize: 24, fontWeight: 700 }}>
+                <span className="leading-none tracking-tight" style={{ fontSize: 20, fontWeight: 700, color: '#ffffff' }}>
                   {item.value}
                 </span>
               )}
               {item.center && item.center}
             </div>
 
-            {/* Bottom */}
             <div className="flex items-center justify-center">
               {item.bottom}
             </div>
