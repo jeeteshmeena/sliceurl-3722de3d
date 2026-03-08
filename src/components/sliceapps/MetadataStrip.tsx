@@ -24,7 +24,7 @@ interface MetadataStripProps {
 }
 
 function CategoryIcon({ category, className }: { category: string; className?: string }) {
-  const cls = className || "h-7 w-7 text-muted-foreground";
+  const cls = className || "h-6 w-6 text-muted-foreground";
   const cat = category.toLowerCase();
   if (cat.includes("music")) return <Music className={cls} strokeWidth={1.5} />;
   if (cat.includes("entertainment")) return <Clapperboard className={cls} strokeWidth={1.5} />;
@@ -44,7 +44,7 @@ function StarRow({ rating }: { rating: number }) {
       {[1, 2, 3, 4, 5].map((s) => (
         <Star
           key={s}
-          className={`h-2.5 w-2.5 ${s <= rounded ? "fill-muted-foreground text-muted-foreground" : "text-muted-foreground/30"}`}
+          className={`h-[9px] w-[9px] ${s <= rounded ? "fill-muted-foreground text-muted-foreground" : "fill-muted-foreground/25 text-muted-foreground/25"}`}
           strokeWidth={0}
         />
       ))}
@@ -68,7 +68,7 @@ export function MetadataStrip({
   category,
   developer,
 }: MetadataStripProps) {
-  const devName = developer || "Unknown";
+  const devFirstName = (developer || "Unknown").split(" ")[0];
 
   const sizeMatch = fileSize.match(/^([\d.]+)\s*(.*)$/);
   const sizeValue = sizeMatch ? sizeMatch[1] : fileSize;
@@ -81,49 +81,61 @@ export function MetadataStrip({
       bottom: <StarRow rating={ratingAvg || 0} />,
     },
     {
-      label: "AGES",
+      label: "AGE",
       value: ageRating,
-      bottom: <span className="text-[11px] text-muted-foreground">Years Old</span>,
+      bottom: <span className="text-[10px] text-muted-foreground leading-none">Years Old</span>,
     },
     {
       label: "CATEGORY",
       value: null,
-      center: <CategoryIcon category={category} />,
-      bottom: <span className="text-[11px] text-muted-foreground">{category || "Other"}</span>,
+      center: <CategoryIcon category={category} className="h-[22px] w-[22px] text-muted-foreground" />,
+      bottom: <span className="text-[10px] text-muted-foreground leading-none">{category || "Other"}</span>,
     },
     {
       label: "DEVELOPER",
       value: null,
-      center: <User className="h-7 w-7 text-muted-foreground" strokeWidth={1.5} />,
-      bottom: <span className="text-[11px] text-muted-foreground truncate max-w-[100px]">{devName}</span>,
+      center: <User className="h-[22px] w-[22px] text-muted-foreground" strokeWidth={1.5} />,
+      bottom: <span className="text-[10px] text-muted-foreground leading-none truncate max-w-[80px]">{devFirstName}</span>,
+    },
+    {
+      label: "LANGUAGE",
+      value: "EN",
+      bottom: <span className="text-[10px] text-muted-foreground leading-none">+ More</span>,
     },
     {
       label: "SIZE",
       value: sizeValue,
-      bottom: <span className="text-[11px] text-muted-foreground">{sizeUnit}</span>,
+      bottom: <span className="text-[10px] text-muted-foreground leading-none">{sizeUnit}</span>,
     },
   ];
 
   return (
-    <div className="border-t border-b border-border/40 overflow-x-auto overflow-y-hidden scrollbar-hide -mx-4 lg:mx-0 scroll-smooth bg-background">
+    <div className="border-t border-b border-border/30 overflow-x-auto overflow-y-hidden scrollbar-hide scroll-smooth bg-background">
       <div className="flex min-w-max lg:justify-center">
         {items.map((item, index) => (
           <div
             key={index}
-            className={`flex flex-col items-center justify-center min-w-[110px] lg:min-w-[140px] py-4 px-3 lg:px-5 ${
+            className={`flex flex-col items-center justify-between min-w-[95px] lg:min-w-[130px] py-3 lg:py-4 px-2 lg:px-4 ${
               index < items.length - 1 ? "border-r border-border/20" : ""
             }`}
           >
-            <span className="text-[11px] font-medium text-muted-foreground uppercase tracking-wide">
+            {/* Top label */}
+            <span className="text-[10px] lg:text-[11px] font-medium text-muted-foreground uppercase tracking-wider leading-none">
               {item.label}
             </span>
-            {item.value && (
-              <span className="text-[28px] font-bold text-foreground mt-1 leading-none">
-                {item.value}
-              </span>
-            )}
-            {item.center && <div className="mt-2">{item.center}</div>}
-            <div className="mt-1.5">{item.bottom}</div>
+
+            {/* Center: value or icon */}
+            <div className="my-1.5 flex items-center justify-center min-h-[26px]">
+              {item.value && (
+                <span className="text-[22px] lg:text-[26px] font-bold text-foreground leading-none tracking-tight">
+                  {item.value}
+                </span>
+              )}
+              {item.center && item.center}
+            </div>
+
+            {/* Bottom */}
+            <div className="flex items-center justify-center">{item.bottom}</div>
           </div>
         ))}
       </div>
