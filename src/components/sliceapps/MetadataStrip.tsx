@@ -3,49 +3,15 @@ import {
   Download,
   User,
   Gamepad2,
+  Briefcase,
   Wrench,
   Users,
-  GraduationCap,
-  Camera,
-  Popcorn,
-  Send,
-  Wallet,
-  Navigation,
-  Armchair,
-  Sparkles,
-  Music,
-  ShoppingBag,
-  HeartPulse,
-  Newspaper,
+  BookOpen,
+  Settings,
   LayoutGrid,
-  type LucideIcon,
+  Music,
+  Clapperboard,
 } from "lucide-react";
-
-const CATEGORY_ICONS: Record<string, LucideIcon> = {
-  photography: Camera,
-  social: Users,
-  entertainment: Popcorn,
-  education: GraduationCap,
-  productivity: Send,
-  finance: Wallet,
-  navigation: Navigation,
-  lifestyle: Armchair,
-  action: Sparkles,
-  game: Gamepad2,
-  music: Music,
-  shopping: ShoppingBag,
-  health: HeartPulse,
-  utilities: Wrench,
-  tool: Wrench,
-  news: Newspaper,
-};
-
-function CategoryIcon({ category }: { category: string }) {
-  const cat = category.toLowerCase();
-  const matched = Object.entries(CATEGORY_ICONS).find(([key]) => cat.includes(key));
-  const Icon = matched ? matched[1] : LayoutGrid;
-  return <Icon className="h-6 w-6 text-muted-foreground" strokeWidth={1.8} />;
-}
 
 interface MetadataStripProps {
   ratingAvg: number | null;
@@ -55,6 +21,20 @@ interface MetadataStripProps {
   ageRating?: string;
   category: string;
   developer: string;
+}
+
+function CategoryIcon({ category }: { category: string }) {
+  const cls = "h-6 w-6 text-foreground fill-foreground";
+  const cat = category.toLowerCase();
+  if (cat.includes("music")) return <Music className={cls} strokeWidth={0} />;
+  if (cat.includes("entertainment")) return <Clapperboard className={cls} strokeWidth={0} />;
+  if (cat.includes("game") || cat.includes("action")) return <Gamepad2 className={cls} strokeWidth={0} />;
+  if (cat.includes("productiv")) return <Briefcase className={cls} strokeWidth={0} />;
+  if (cat.includes("tool")) return <Wrench className={cls} strokeWidth={0} />;
+  if (cat.includes("social")) return <Users className={cls} strokeWidth={0} />;
+  if (cat.includes("education")) return <BookOpen className={cls} strokeWidth={0} />;
+  if (cat.includes("utilit")) return <Settings className={cls} strokeWidth={0} />;
+  return <LayoutGrid className={cls} strokeWidth={0} />;
 }
 
 function StarRow({ rating }: { rating: number }) {
@@ -80,10 +60,6 @@ function formatRatingCount(count: number | null): string {
   return `${count} Ratings`;
 }
 
-function Divider() {
-  return <div className="w-px self-stretch my-3 bg-border/50 flex-shrink-0" />;
-}
-
 export function MetadataStrip({
   ratingAvg,
   ratingCount,
@@ -95,63 +71,62 @@ export function MetadataStrip({
 }: MetadataStripProps) {
   const devFirstWord = developer ? developer.split(" ")[0] : "Unknown";
 
-  const items = [
-    // RATINGS
-    <div key="ratings" className="flex flex-col items-center justify-between min-w-[100px] w-[100px] flex-shrink-0 snap-start py-3 px-1">
-      <span className="text-[10px] font-semibold tracking-widest text-muted-foreground/70 uppercase">Ratings</span>
-      <span className="text-[20px] font-bold text-foreground mt-1 whitespace-nowrap leading-none">
-        {ratingAvg?.toFixed(1) || "—"}
-      </span>
-      <div className="mt-1.5 flex flex-col items-center gap-0.5">
-        <StarRow rating={ratingAvg || 0} />
-        {ratingCount != null && ratingCount > 0 && (
-          <span className="text-[10px] text-muted-foreground/60 text-center leading-tight mt-0.5">{formatRatingCount(ratingCount)}</span>
-        )}
-      </div>
-    </div>,
-
-    // AGES
-    <div key="ages" className="flex flex-col items-center justify-between min-w-[80px] w-[80px] flex-shrink-0 snap-start py-3 px-1">
-      <span className="text-[10px] font-semibold tracking-widest text-muted-foreground/70 uppercase">Age</span>
-      <span className="text-[20px] font-bold text-foreground mt-1 whitespace-nowrap leading-none">{ageRating}</span>
-      <span className="mt-1.5 text-[10px] text-muted-foreground/60 text-center leading-tight">Years Old</span>
-    </div>,
-
-    // CATEGORY
-    <div key="category" className="flex flex-col items-center justify-between min-w-[90px] w-[90px] flex-shrink-0 snap-start py-3 px-1">
-      <span className="text-[10px] font-semibold tracking-widest text-muted-foreground/70 uppercase">Category</span>
-      <div className="mt-1">
-        <CategoryIcon category={category} />
-      </div>
-      <span className="mt-1.5 text-[10px] text-muted-foreground/60 text-center leading-tight capitalize">{category || "Other"}</span>
-    </div>,
-
-    // DEVELOPER
-    <div key="developer" className="flex flex-col items-center justify-between min-w-[90px] w-[90px] flex-shrink-0 snap-start py-3 px-1">
-      <span className="text-[10px] font-semibold tracking-widest text-muted-foreground/70 uppercase">Developer</span>
-      <div className="mt-1">
-        <User className="h-6 w-6 text-muted-foreground" strokeWidth={1.8} />
-      </div>
-      <span className="mt-1.5 text-[10px] text-muted-foreground/60 text-center leading-tight truncate max-w-[80px]">{devFirstWord}</span>
-    </div>,
-
-    // SIZE
-    <div key="size" className="flex flex-col items-center justify-between min-w-[80px] w-[80px] flex-shrink-0 snap-start py-3 px-1">
-      <span className="text-[10px] font-semibold tracking-widest text-muted-foreground/70 uppercase">Size</span>
-      <span className="text-[20px] font-bold text-foreground mt-1 whitespace-nowrap leading-none">{fileSize || "—"}</span>
-      <span className="mt-1.5 text-[10px] text-muted-foreground/60 invisible">—</span>
-    </div>,
-  ];
-
   return (
     <div className="mt-5 overflow-x-auto overflow-y-hidden scrollbar-hide -mx-4 px-4 scroll-smooth">
-      <div className="flex snap-x snap-mandatory items-stretch">
-        {items.map((item, i) => (
-          <div key={i} className="flex items-stretch">
-            {item}
-            {i < items.length - 1 && <Divider />}
+      <div className="flex snap-x snap-mandatory">
+        {/* RATINGS */}
+        <div className="flex flex-col items-center justify-between min-w-[110px] w-[110px] flex-shrink-0 snap-start py-3 px-2">
+          <span className="text-[11px] font-medium tracking-wider text-muted-foreground uppercase">Ratings</span>
+          <span className="text-[22px] font-semibold text-foreground mt-1 whitespace-nowrap leading-tight">
+            {ratingAvg?.toFixed(1) || "0.0"}
+          </span>
+          <div className="mt-1 flex flex-col items-center gap-0.5">
+            <StarRow rating={ratingAvg || 0} />
+            {ratingCount && ratingCount > 0 && (
+              <span className="text-[11px] text-muted-foreground text-center leading-tight">{formatRatingCount(ratingCount)}</span>
+            )}
           </div>
-        ))}
+        </div>
+
+        {/* AGES */}
+        <div className="flex flex-col items-center justify-between min-w-[110px] w-[110px] flex-shrink-0 snap-start py-3 px-2">
+          <span className="text-[11px] font-medium tracking-wider text-muted-foreground uppercase">Ages</span>
+          <span className="text-[22px] font-semibold text-foreground mt-1 whitespace-nowrap leading-tight">{ageRating}</span>
+          <span className="mt-1 text-[11px] text-muted-foreground text-center leading-tight">Years Old</span>
+        </div>
+
+        {/* CATEGORY */}
+        <div className="flex flex-col items-center justify-between min-w-[110px] w-[110px] flex-shrink-0 snap-start py-3 px-2">
+          <span className="text-[11px] font-medium tracking-wider text-muted-foreground uppercase">Category</span>
+          <div className="mt-1">
+            <CategoryIcon category={category} />
+          </div>
+          <span className="mt-1 text-[11px] text-muted-foreground text-center leading-tight">{category || "Other"}</span>
+        </div>
+
+        {/* DEVELOPER */}
+        <div className="flex flex-col items-center justify-between min-w-[110px] w-[110px] flex-shrink-0 snap-start py-3 px-2">
+          <span className="text-[11px] font-medium tracking-wider text-muted-foreground uppercase">Developer</span>
+          <div className="mt-1">
+            <User className="h-6 w-6 text-foreground fill-foreground" strokeWidth={0} />
+          </div>
+          <span className="mt-1 text-[11px] text-muted-foreground text-center leading-tight">{devFirstWord}</span>
+        </div>
+
+        {/* SIZE */}
+        <div className="flex flex-col items-center justify-between min-w-[110px] w-[110px] flex-shrink-0 snap-start py-3 px-2">
+          <span className="text-[11px] font-medium tracking-wider text-muted-foreground uppercase">Size</span>
+          <span className="text-[22px] font-semibold text-foreground mt-1 whitespace-nowrap leading-tight">{fileSize || "--"}</span>
+        </div>
+
+        {/* DOWNLOADS */}
+        <div className="flex flex-col items-center justify-between min-w-[110px] w-[110px] flex-shrink-0 snap-start py-3 px-2">
+          <span className="text-[11px] font-medium tracking-wider text-muted-foreground uppercase">Downloads</span>
+          <div className="flex items-center gap-1 mt-1">
+            <Download className="h-4 w-4 text-foreground fill-foreground" strokeWidth={0} />
+            <span className="text-[22px] font-semibold text-foreground whitespace-nowrap leading-tight">{downloads}</span>
+          </div>
+        </div>
       </div>
     </div>
   );

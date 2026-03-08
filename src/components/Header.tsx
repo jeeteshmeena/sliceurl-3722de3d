@@ -113,11 +113,11 @@ export function Header() {
   const isOnDashboard = location.pathname === "/dashboard";
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-[100] bg-background/80 backdrop-blur-xl border-b border-border/20 safe-top max-w-[100vw]" style={{ height: '64px' }}>
+    <header className="fixed top-0 left-0 right-0 z-[100] bg-background border-b border-border/40 safe-top max-w-[100vw] overflow-x-hidden" style={{ height: '64px' }}>
       <SliceLine />
-      <div className="max-w-[1280px] mx-auto h-full flex items-center justify-between flex-nowrap px-4 sm:px-5">
+      <div className="max-w-[1280px] mx-auto h-full flex items-center justify-between flex-nowrap">
         {/* Left Section - Brand */}
-        <div className="flex items-center gap-3 shrink-0">
+        <div className="flex items-center gap-3 shrink-0 ml-2 sm:ml-4">
           <Link to="/" className="shrink-0 hover:opacity-80 transition-opacity">
             <div className="flex items-center gap-2">
               <img
@@ -135,61 +135,54 @@ export function Header() {
           </Link>
         </div>
 
-        {/* Right Section - Apple-style icon controls */}
-        <div className="flex items-center gap-1.5 shrink-0 flex-nowrap">
-          {/* Theme Toggle */}
+        {/* Right Section - Clean icon layout with consistent spacing */}
+        <div className="flex items-center gap-3 shrink-0 mr-2 sm:mr-4 flex-nowrap">
+          {/* Theme Toggle - Clean icon, no pill background */}
           <button
             onClick={handleThemeToggle}
-            className="h-[42px] w-[42px] flex items-center justify-center rounded-full text-foreground/70 hover:text-foreground hover:bg-foreground/[0.06] active:scale-[0.96] transition-all duration-150"
+            className="h-9 w-9 flex items-center justify-center text-foreground/80 hover:text-foreground transition-colors"
             aria-label={`Switch to ${resolvedTheme === "dark" ? "light" : "dark"} mode`}
           >
             {resolvedTheme === "dark" ? (
-              <Sun className="h-5 w-5" strokeWidth={1.7} />
+              <Sun className="h-[18px] w-[18px]" />
             ) : (
-              <Moon className="h-5 w-5" strokeWidth={1.7} />
+              <Moon className="h-[18px] w-[18px]" />
             )}
           </button>
 
-          {/* Language Selector - Apple-style floating panel */}
-          <Popover open={langOpen} onOpenChange={(open) => { setLangOpen(open); if (!open) setLangSearch(""); }}>
+          {/* Language Selector - Clean icon, no pill background */}
+          <Popover open={langOpen} onOpenChange={setLangOpen}>
             <PopoverTrigger asChild>
               <button
-                className="h-[42px] w-[42px] flex items-center justify-center rounded-full text-foreground/70 hover:text-foreground hover:bg-foreground/[0.06] active:scale-[0.96] transition-all duration-150"
+                className="h-9 w-9 flex items-center justify-center text-foreground/80 hover:text-foreground transition-colors"
                 aria-label="Change language"
               >
-                <Languages className="h-5 w-5" strokeWidth={1.7} />
+                <Languages className="h-[18px] w-[18px]" />
               </button>
             </PopoverTrigger>
             <PopoverContent
               align="end"
-              sideOffset={12}
-              className="w-56 p-0 border-0 z-[200] bg-popover/95 backdrop-blur-xl rounded-2xl overflow-hidden"
-              style={{
-                boxShadow: '0 8px 40px -8px rgba(0,0,0,0.16), 0 2px 12px -4px rgba(0,0,0,0.08)',
-                animation: 'scale-in 120ms ease-out',
-              }}
+              sideOffset={8}
+              className="w-48 p-0 bg-popover border border-border shadow-lg rounded-xl overflow-hidden"
             >
-              {/* Search */}
-              <div className="p-2.5 pb-1.5">
+              {/* Search Input */}
+              <div className="border-b border-border/50 p-2">
                 <div className="relative">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground/60" />
+                  <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
                   <Input
                     value={langSearch}
                     onChange={(e) => setLangSearch(e.target.value)}
-                    placeholder="Search language"
-                    className="h-9 pl-9 text-sm bg-muted/50 border-0 rounded-xl focus-visible:ring-1 focus-visible:ring-foreground/10"
+                    placeholder="Search..."
+                    className="h-8 pl-8 text-sm bg-background border-border/60 rounded-lg"
                   />
                 </div>
               </div>
-
-              {/* Divider */}
-              <div className="mx-3 h-px bg-border/40" />
               
               {/* Language List */}
-              <ScrollArea className="h-[220px]">
-                <div className="p-1.5">
+              <ScrollArea className="h-[200px]">
+                <div className="p-1">
                   {filteredLanguages.length === 0 ? (
-                    <p className="px-3 py-4 text-xs text-muted-foreground text-center">
+                    <p className="px-3 py-2 text-xs text-muted-foreground text-center">
                       No languages found
                     </p>
                   ) : (
@@ -201,15 +194,15 @@ export function Header() {
                           setLangOpen(false);
                           setLangSearch("");
                         }}
-                        className={`w-full flex items-center justify-between px-3 py-2.5 text-[13px] rounded-xl transition-colors cursor-pointer ${
+                        className={`w-full flex items-center justify-between px-3 py-2 text-sm rounded-lg transition-colors cursor-pointer ${
                           language === lang
-                            ? "bg-foreground/[0.06] text-foreground font-medium"
-                            : "hover:bg-foreground/[0.04] text-foreground/80"
+                            ? "bg-primary/10 text-primary font-medium"
+                            : "hover:bg-muted/50 text-foreground"
                         }`}
                       >
                         <span>{languageNames[lang]}</span>
                         {language === lang && (
-                          <Check className="h-3.5 w-3.5 text-foreground/50" />
+                          <Check className="h-3.5 w-3.5 text-primary" />
                         )}
                       </button>
                     ))
@@ -225,10 +218,10 @@ export function Header() {
               {isAdmin && (
                 <button
                   onClick={() => navigate("/admin/inbox")}
-                  className="h-[42px] w-[42px] flex items-center justify-center rounded-full text-foreground/70 hover:text-foreground hover:bg-foreground/[0.06] active:scale-[0.96] transition-all duration-150 relative"
+                  className="h-9 w-9 flex items-center justify-center text-foreground/80 hover:text-foreground transition-colors relative"
                   aria-label="Admin Inbox"
                 >
-                  <Bell className="h-5 w-5" strokeWidth={1.7} />
+                  <Bell className="h-[18px] w-[18px]" />
                   {unreadCount > 0 && (
                     <span className="absolute -top-0.5 -right-0.5 h-4 min-w-[16px] px-1 flex items-center justify-center bg-destructive text-destructive-foreground text-[10px] font-bold rounded-full">
                       {unreadCount > 99 ? "99+" : unreadCount}
@@ -322,12 +315,12 @@ export function Header() {
               {/* Mobile Menu Toggle */}
               <button
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                className="h-[42px] w-[42px] flex items-center justify-center rounded-full text-foreground/70 hover:text-foreground hover:bg-foreground/[0.06] active:scale-[0.96] transition-all duration-150 sm:hidden"
+                className="h-9 w-9 flex items-center justify-center text-foreground/80 hover:text-foreground transition-colors sm:hidden"
               >
                 {mobileMenuOpen ? (
-                  <X className="h-5 w-5" strokeWidth={1.7} />
+                  <X className="h-5 w-5" />
                 ) : (
-                  <Menu className="h-5 w-5" strokeWidth={1.7} />
+                  <Menu className="h-5 w-5" />
                 )}
               </button>
             </>

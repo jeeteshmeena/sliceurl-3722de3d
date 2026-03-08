@@ -164,13 +164,6 @@ export type Database = {
             referencedRelation: "slicebox_files"
             referencedColumns: ["id"]
           },
-          {
-            foreignKeyName: "app_listings_file_id_fkey"
-            columns: ["file_id"]
-            isOneToOne: false
-            referencedRelation: "slicebox_files_safe"
-            referencedColumns: ["id"]
-          },
         ]
       }
       app_reviews: {
@@ -1160,63 +1153,6 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
-      }
-      slicebox_files_safe: {
-        Row: {
-          created_at: string | null
-          download_count: number | null
-          encryption_iv: string | null
-          expires_at: string | null
-          file_id: string | null
-          file_size: number | null
-          id: string | null
-          is_deleted: boolean | null
-          is_encrypted: boolean | null
-          is_password_protected: boolean | null
-          mime_type: string | null
-          original_name: string | null
-          service_type: string | null
-          short_code: string | null
-          storage_path: string | null
-          user_id: string | null
-        }
-        Insert: {
-          created_at?: string | null
-          download_count?: number | null
-          encryption_iv?: string | null
-          expires_at?: string | null
-          file_id?: string | null
-          file_size?: number | null
-          id?: string | null
-          is_deleted?: boolean | null
-          is_encrypted?: boolean | null
-          is_password_protected?: never
-          mime_type?: string | null
-          original_name?: string | null
-          service_type?: string | null
-          short_code?: string | null
-          storage_path?: string | null
-          user_id?: string | null
-        }
-        Update: {
-          created_at?: string | null
-          download_count?: number | null
-          encryption_iv?: string | null
-          expires_at?: string | null
-          file_id?: string | null
-          file_size?: number | null
-          id?: string | null
-          is_deleted?: boolean | null
-          is_encrypted?: boolean | null
-          is_password_protected?: never
-          mime_type?: string | null
-          original_name?: string | null
-          service_type?: string | null
-          short_code?: string | null
-          storage_path?: string | null
-          user_id?: string | null
-        }
-        Relationships: []
       }
     }
     Functions: {

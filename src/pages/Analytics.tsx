@@ -81,7 +81,7 @@ const Analytics = () => {
   };
 
   // Monochrome colors for sources
-  const sourceColors = ["hsl(var(--foreground))", "hsl(var(--foreground) / 0.7)", "hsl(var(--foreground) / 0.5)", "hsl(var(--foreground) / 0.35)", "hsl(var(--foreground) / 0.2)", "hsl(var(--foreground) / 0.12)", "hsl(var(--foreground) / 0.08)", "hsl(var(--foreground) / 0.05)"];
+  const sourceColors = ["#1a1a1a", "#404040", "#666666", "#888888", "#aaaaaa", "#cccccc", "#e5e5e5", "#f5f5f5"];
 
   if (loading) {
     return (
@@ -243,8 +243,8 @@ const Analytics = () => {
                 <AreaChart data={summary.clicksTimeline}>
                   <defs>
                     <linearGradient id="colorClicksMono" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="hsl(var(--foreground))" stopOpacity={0.2} />
-                      <stop offset="95%" stopColor="hsl(var(--foreground))" stopOpacity={0} />
+                      <stop offset="5%" stopColor="#1a1a1a" stopOpacity={0.2} />
+                      <stop offset="95%" stopColor="#1a1a1a" stopOpacity={0} />
                     </linearGradient>
                   </defs>
                   <XAxis 
@@ -274,7 +274,7 @@ const Analytics = () => {
                   <Area 
                     type="monotone" 
                     dataKey="clicks" 
-                    stroke="hsl(var(--foreground))" 
+                    stroke="#1a1a1a" 
                     fill="url(#colorClicksMono)" 
                     strokeWidth={2}
                   />
@@ -614,7 +614,7 @@ const Analytics = () => {
                           borderRadius: "8px"
                         }}
                       />
-                      <Bar dataKey="value" fill="hsl(var(--foreground))" radius={[0, 6, 6, 0]} />
+                      <Bar dataKey="value" fill="#1a1a1a" radius={[0, 6, 6, 0]} />
                     </BarChart>
                   </ResponsiveContainer>
                 </div>

@@ -31,7 +31,7 @@ interface SharedAnalyticsData {
   views_count: number;
 }
 
-const MONO_COLORS = ["hsl(var(--foreground))", "hsl(var(--foreground) / 0.7)", "hsl(var(--foreground) / 0.5)", "hsl(var(--foreground) / 0.35)", "hsl(var(--foreground) / 0.2)", "hsl(var(--foreground) / 0.1)"];
+const MONO_COLORS = ["#1a1a1a", "#404040", "#666666", "#888888", "#aaaaaa", "#cccccc"];
 
 const SharedAnalytics = () => {
   const { token } = useParams<{ token: string }>();
@@ -269,8 +269,8 @@ const SharedAnalytics = () => {
                 <AreaChart data={data.summary.timeline}>
                   <defs>
                     <linearGradient id="sharedColorClicks" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="hsl(var(--foreground))" stopOpacity={0.2} />
-                      <stop offset="95%" stopColor="hsl(var(--foreground))" stopOpacity={0} />
+                      <stop offset="5%" stopColor="#1a1a1a" stopOpacity={0.2} />
+                      <stop offset="95%" stopColor="#1a1a1a" stopOpacity={0} />
                     </linearGradient>
                   </defs>
                   <XAxis 
@@ -296,7 +296,7 @@ const SharedAnalytics = () => {
                   <Area 
                     type="monotone" 
                     dataKey="clicks" 
-                    stroke="hsl(var(--foreground))" 
+                    stroke="#1a1a1a" 
                     fill="url(#sharedColorClicks)" 
                     strokeWidth={2}
                   />
