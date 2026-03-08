@@ -26,15 +26,15 @@ interface MetadataStripProps {
 function CategoryIcon({ category, className }: { category: string; className?: string }) {
   const cls = className || "h-6 w-6 text-muted-foreground";
   const cat = category.toLowerCase();
-  if (cat.includes("music")) return <Music className={cls} strokeWidth={0} fill="currentColor" />;
-  if (cat.includes("entertainment")) return <Clapperboard className={cls} strokeWidth={0} fill="currentColor" />;
-  if (cat.includes("game") || cat.includes("action")) return <Gamepad2 className={cls} strokeWidth={0} fill="currentColor" />;
-  if (cat.includes("productiv")) return <Navigation className={cls} strokeWidth={0} fill="currentColor" />;
-  if (cat.includes("tool")) return <Wrench className={cls} strokeWidth={0} fill="currentColor" />;
-  if (cat.includes("social")) return <Users className={cls} strokeWidth={0} fill="currentColor" />;
-  if (cat.includes("education")) return <BookOpen className={cls} strokeWidth={0} fill="currentColor" />;
-  if (cat.includes("utilit")) return <Settings className={cls} strokeWidth={0} fill="currentColor" />;
-  return <LayoutGrid className={cls} strokeWidth={0} fill="currentColor" />;
+  if (cat.includes("music")) return <Music className={cls} fill="currentColor" strokeWidth={0} />;
+  if (cat.includes("entertainment")) return <Clapperboard className={cls} fill="currentColor" strokeWidth={0} />;
+  if (cat.includes("game") || cat.includes("action")) return <Gamepad2 className={cls} fill="currentColor" strokeWidth={0} />;
+  if (cat.includes("productiv")) return <Navigation className={cls} fill="currentColor" strokeWidth={0} />;
+  if (cat.includes("tool")) return <Wrench className={cls} fill="currentColor" strokeWidth={0} />;
+  if (cat.includes("social")) return <Users className={cls} fill="currentColor" strokeWidth={0} />;
+  if (cat.includes("education")) return <BookOpen className={cls} fill="currentColor" strokeWidth={0} />;
+  if (cat.includes("utilit")) return <Settings className={cls} fill="currentColor" strokeWidth={0} />;
+  return <LayoutGrid className={cls} fill="currentColor" strokeWidth={0} />;
 }
 
 function StarRow({ rating }: { rating: number }) {
@@ -79,6 +79,7 @@ export function MetadataStrip({
       label: formatRatingCount(ratingCount),
       value: ratingAvg?.toFixed(1) || "0.0",
       bottom: <StarRow rating={ratingAvg || 0} />,
+      isRating: true,
     },
     {
       label: "AGES",
@@ -86,21 +87,21 @@ export function MetadataStrip({
       bottom: <span style={{ fontSize: 13, fontWeight: 400, color: '#a1a1a6' }} className="leading-none">Years Old</span>,
     },
     {
-      label: "CATEGORY",
-      value: null,
-      center: <CategoryIcon category={category} className="h-[18px] w-[18px] text-[#8e8e93]" />,
-      bottom: <span style={{ fontSize: 13, fontWeight: 400, color: '#a1a1a6' }} className="leading-none">{category || "Other"}</span>,
+      label: "DOWNLOAD",
+      value: downloads || "0",
+      bottom: <span style={{ fontSize: 13, fontWeight: 400, color: '#a1a1a6' }} className="leading-none">Downloads</span>,
     },
     {
       label: "DEVELOPER",
       value: null,
-      center: <User className="h-[18px] w-[18px] text-[#8e8e93]" strokeWidth={0} fill="#8e8e93" />,
+      center: <User className="h-[18px] w-[18px] text-[#8e8e93]" fill="#8e8e93" strokeWidth={0} />,
       bottom: <span style={{ fontSize: 13, fontWeight: 400, color: '#a1a1a6' }} className="leading-none truncate max-w-[80px]">{devFirstName}</span>,
     },
     {
-      label: "LANGUAGE",
-      value: "EN",
-      bottom: <span style={{ fontSize: 13, fontWeight: 400, color: '#a1a1a6' }} className="leading-none">+ More</span>,
+      label: "CATEGORY",
+      value: null,
+      center: <CategoryIcon category={category} className="h-[18px] w-[18px] text-[#8e8e93]" />,
+      bottom: <span style={{ fontSize: 13, fontWeight: 400, color: '#a1a1a6' }} className="leading-none">{category || "Other"}</span>,
     },
     {
       label: "SIZE",
@@ -110,20 +111,20 @@ export function MetadataStrip({
   ];
 
   return (
-    <div className="border-t border-b border-border/30 bg-background">
+    <div className="bg-background">
       <style>{`.metadata-row::-webkit-scrollbar { display: none; }`}</style>
       <div
         className="metadata-row"
         style={{
           display: 'flex',
           flexDirection: 'row',
-          gap: 0,
+          gap: 22,
           overflowX: 'auto',
           overflowY: 'hidden',
           paddingLeft: 16,
           paddingRight: 16,
-          paddingTop: 18,
-          paddingBottom: 18,
+          paddingTop: 16,
+          paddingBottom: 16,
           scrollSnapType: 'x mandatory',
           scrollBehavior: 'smooth',
           WebkitOverflowScrolling: 'touch',
@@ -135,13 +136,10 @@ export function MetadataStrip({
             key={index}
             className="flex flex-col items-center justify-between"
             style={{
-              minWidth: 120,
+              minWidth: 110,
               flexShrink: 0,
               textAlign: 'center',
               scrollSnapAlign: 'start',
-              paddingLeft: 14,
-              paddingRight: 14,
-              borderRight: index < items.length - 1 ? '1px solid hsl(var(--border) / 0.2)' : 'none',
             }}
           >
             {/* Top label */}
@@ -150,9 +148,9 @@ export function MetadataStrip({
             </span>
 
             {/* Center: value or icon */}
-            <div className="my-1.5 flex items-center justify-center min-h-[26px]">
+            <div className="my-2 flex items-center justify-center min-h-[28px]">
               {item.value && (
-                <span className="leading-none tracking-tight" style={{ fontSize: 17, fontWeight: 500, color: '#ffffff' }}>
+                <span className="text-foreground leading-none tracking-tight" style={{ fontSize: 17, fontWeight: 500 }}>
                   {item.value}
                 </span>
               )}
@@ -160,7 +158,9 @@ export function MetadataStrip({
             </div>
 
             {/* Bottom */}
-            <div className="flex items-center justify-center">{item.bottom}</div>
+            <div className="flex items-center justify-center">
+              {item.bottom}
+            </div>
           </div>
         ))}
       </div>
