@@ -184,20 +184,20 @@ const Index = () => {
                 transition={{ delay: 0.3 }}
                 className="mt-4 text-[11px] sm:text-xs text-muted-foreground max-w-md mx-auto leading-snug"
               >
-                Sign up for SliceURL to unlock analytics, custom slugs, link management, QR codes, and secure tracking—{" "}
+                {t("signup_prompt_text")}{" "}
                 {user ? (
                   <button
                     onClick={() => navigate("/dashboard")}
                     className="text-muted-foreground hover:text-foreground transition-colors underline underline-offset-2"
                   >
-                    Go to dashboard
+                    {t("go_dashboard")}
                   </button>
                 ) : (
                   <button
                     onClick={() => navigate("/register")}
                     className="text-muted-foreground hover:text-foreground transition-colors underline underline-offset-2"
                   >
-                    Register your account now
+                    {t("signup_prompt_link")}
                   </button>
                 )}
               </motion.p>
