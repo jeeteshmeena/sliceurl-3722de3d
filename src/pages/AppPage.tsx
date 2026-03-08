@@ -241,28 +241,28 @@ export default function AppPage() {
       {/* Main Content */}
       <div className="flex-1 min-w-0">
         {/* Mobile Sticky Header Wrapper */}
-        <div className="sticky top-0 z-[100] bg-background lg:relative lg:z-auto">
+        <div className="sticky top-0 z-[999] bg-background lg:relative lg:z-auto">
           {/* Layer 1: Navigation bar */}
           <SliceAppsHeader />
 
-          {/* Layer 2: Hero Section - collapses on scroll (mobile only) */}
+          {/* Layer 2: Hero Section (mobile only) */}
           <div
-            className="lg:hidden border-b border-border/10 transition-all duration-[180ms] ease-out overflow-hidden"
+            className="lg:hidden border-b border-foreground/[0.06]"
             style={{
-              paddingTop: scrolled ? 6 : 16,
-              paddingBottom: scrolled ? 4 : 12,
+              paddingTop: 24,
+              paddingBottom: 20,
               paddingLeft: 16,
               paddingRight: 16,
             }}
           >
             <div className="flex items-start gap-4">
-              {/* App Icon - scales down on scroll */}
+              {/* App Icon */}
               <div
-                className="flex-shrink-0 overflow-hidden bg-muted shadow-sm border border-border/10 transition-all duration-[180ms] ease-out origin-top-left"
+                className="flex-shrink-0 overflow-hidden bg-muted shadow-sm border border-border/10"
                 style={{
-                  width: scrolled ? 74 : 92,
-                  height: scrolled ? 74 : 92,
-                  borderRadius: scrolled ? 16 : 20,
+                  width: 96,
+                  height: 96,
+                  borderRadius: 22,
                 }}
               >
                 {app.icon_url ? (
@@ -276,20 +276,14 @@ export default function AppPage() {
 
               {/* App Info + GET button */}
               <div className="flex-1 min-w-0 flex flex-col">
-                <h1 className="text-[22px] font-bold text-foreground leading-[1.2]">
+                <h1 className="text-[24px] font-bold text-foreground leading-[1.25] mb-[6px]">
                   {app.app_name}
                 </h1>
-                <p
-                  className="text-[14px] text-[#6e6e73] mt-1 line-clamp-2 transition-all duration-[180ms] ease-out"
-                  style={{
-                    marginBottom: scrolled ? 6 : 12,
-                    opacity: scrolled ? 0.7 : 1,
-                  }}
-                >
+                <p className="text-[15px] text-[#6e6e73] line-clamp-2 mb-[14px]">
                   {app.short_description || `The official app by ${app.developer_name || "Unknown"}`}
                 </p>
 
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-[14px]">
                   <motion.div
                     animate={downloadSuccess ? { scale: [1, 1.05, 1] } : {}}
                     transition={{ duration: 0.25 }}
@@ -297,7 +291,7 @@ export default function AppPage() {
                     <button
                       onClick={handleDownload}
                       disabled={isDownloading || !fileInfo || !!fileUnavailable}
-                      className="h-9 px-[18px] text-[15px] font-semibold rounded-full bg-[#007AFF] text-white disabled:opacity-40 active:opacity-80 transition-opacity"
+                      className="h-[38px] px-[22px] text-[16px] font-semibold rounded-[19px] bg-[#007AFF] text-white disabled:opacity-40 active:opacity-80 transition-opacity"
                     >
                       {downloadSuccess ? (
                         <motion.span initial={{ opacity: 0, scale: 0.5 }} animate={{ opacity: 1, scale: 1 }} className="flex items-center gap-1">
@@ -309,7 +303,7 @@ export default function AppPage() {
 
                   <button
                     onClick={handleShare}
-                    className="w-9 h-9 flex items-center justify-center rounded-full text-[#007AFF]"
+                    className="w-[38px] h-[38px] flex items-center justify-center rounded-full text-[#007AFF]"
                     aria-label="Share"
                   >
                     <Share2 className="h-5 w-5" strokeWidth={1.8} />
@@ -371,14 +365,16 @@ export default function AppPage() {
         </div>
 
         {/* ===== METADATA STRIP ===== */}
-        <MetadataStrip
-          ratingAvg={app.rating_avg}
-          ratingCount={app.rating_count}
-          downloads={formatDownloads(actualDownloads)}
-          fileSize={fileInfo ? formatFileSize(fileInfo.file_size) : "--"}
-          category={app.category || "Productivity"}
-          developer={app.developer_name || "Unknown"}
-        />
+        <div className="mt-4">
+          <MetadataStrip
+            ratingAvg={app.rating_avg}
+            ratingCount={app.rating_count}
+            downloads={formatDownloads(actualDownloads)}
+            fileSize={fileInfo ? formatFileSize(fileInfo.file_size) : "--"}
+            category={app.category || "Productivity"}
+            developer={app.developer_name || "Unknown"}
+          />
+        </div>
 
         {/* ===== CONTENT ===== */}
         <main className="max-w-5xl mx-auto">
