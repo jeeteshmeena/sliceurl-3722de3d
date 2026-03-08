@@ -315,11 +315,9 @@ export function Header() {
               </div>
 
               {/* Mobile Menu Toggle */}
-              <Button
-                variant="ghost"
-                size="icon"
+              <button
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                className="h-9 w-9 rounded-full sm:hidden"
+                className="h-9 w-9 flex items-center justify-center text-foreground hover:text-foreground/70 transition-colors sm:hidden"
               >
                 {mobileMenuOpen ? (
                   <X className="h-5 w-5" />
