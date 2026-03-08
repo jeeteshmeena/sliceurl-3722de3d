@@ -238,11 +238,11 @@ export default function AppPage() {
 
         {/* ===== HERO SECTION ===== */}
         {/* Mobile: white bg, compact. Desktop: subtle grey banner */}
-        <div className="px-5 lg:px-10 pt-5 pb-4 lg:py-10 lg:bg-gradient-to-b lg:from-muted/40 lg:to-transparent">
+        <div className="px-4 lg:px-10 pt-6 pb-4 mt-2 lg:mt-0 lg:py-10 lg:bg-gradient-to-b lg:from-muted/40 lg:to-transparent">
           <div className="max-w-5xl mx-auto">
-            <div className="flex gap-4 lg:gap-8">
-              {/* App Icon - exactly like App Store: 118px mobile, 170px desktop */}
-              <div className="w-[118px] h-[118px] lg:w-[170px] lg:h-[170px] rounded-[26px] lg:rounded-[36px] flex-shrink-0 overflow-hidden bg-muted shadow-sm border border-border/10">
+            <div className="flex items-start gap-4 lg:gap-8">
+              {/* App Icon */}
+              <div className="w-[92px] h-[92px] lg:w-[170px] lg:h-[170px] rounded-[20px] lg:rounded-[36px] flex-shrink-0 overflow-hidden bg-muted shadow-sm border border-border/10">
                 {app.icon_url ? (
                   <img src={app.icon_url} alt={app.app_name} className="w-full h-full object-cover" loading="lazy" />
                 ) : (
@@ -254,18 +254,15 @@ export default function AppPage() {
 
               {/* App Info + GET button */}
               <div className="flex-1 min-w-0 flex flex-col">
-                <h1 className="text-[22px] lg:text-[32px] font-bold text-foreground leading-tight">
+                <h1 className="text-[22px] lg:text-[32px] font-bold text-foreground leading-[1.2]">
                   {app.app_name}
                 </h1>
-                <p className="text-[15px] lg:text-[17px] text-muted-foreground mt-0.5 line-clamp-2">
+                <p className="text-[14px] lg:text-[17px] text-[#6e6e73] mt-1 lg:mt-0.5 mb-3 line-clamp-2">
                   {app.short_description || `The official app by ${app.developer_name || "Unknown"}`}
                 </p>
 
-                {/* Spacer to push button to bottom */}
-                <div className="flex-1" />
-
-                {/* Mobile: GET button + share - App Store style */}
-                <div className="flex items-center gap-3 mt-3 lg:mt-5">
+                {/* GET button + share */}
+                <div className="flex items-center gap-3">
                   <motion.div
                     animate={downloadSuccess ? { scale: [1, 1.05, 1] } : {}}
                     transition={{ duration: 0.25 }}
@@ -273,7 +270,7 @@ export default function AppPage() {
                     <button
                       onClick={handleDownload}
                       disabled={isDownloading || !fileInfo || !!fileUnavailable}
-                      className="h-[32px] lg:h-[38px] px-7 lg:px-8 text-[15px] lg:text-[16px] font-bold rounded-full bg-[#007AFF] text-white disabled:opacity-40 active:opacity-80 transition-opacity"
+                      className="h-9 lg:h-[38px] px-[18px] lg:px-8 text-[15px] lg:text-[16px] font-semibold rounded-full bg-[#007AFF] text-white disabled:opacity-40 active:opacity-80 transition-opacity"
                     >
                       {downloadSuccess ? (
                         <motion.span initial={{ opacity: 0, scale: 0.5 }} animate={{ opacity: 1, scale: 1 }} className="flex items-center gap-1">
@@ -285,10 +282,10 @@ export default function AppPage() {
 
                   <button
                     onClick={handleShare}
-                    className="w-[32px] h-[32px] lg:w-10 lg:h-10 flex items-center justify-center text-[#007AFF]"
+                    className="w-9 h-9 lg:w-10 lg:h-10 flex items-center justify-center rounded-full text-[#007AFF]"
                     aria-label="Share"
                   >
-                    <Share2 className="h-[20px] w-[20px] lg:h-[22px] lg:w-[22px]" strokeWidth={1.8} />
+                    <Share2 className="h-5 w-5 lg:h-[22px] lg:w-[22px]" strokeWidth={1.8} />
                   </button>
                 </div>
               </div>
