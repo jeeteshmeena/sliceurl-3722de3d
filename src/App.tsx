@@ -34,6 +34,7 @@ const ShortFileView = lazy(() => import("@/pages/ShortFileView"));
 const LegacySliceBoxRedirect = lazy(() => import("@/pages/LegacySliceBoxRedirect"));
 const CreateAppListing = lazy(() => import("@/pages/CreateAppListing"));
 const AppPage = lazy(() => import("@/pages/AppPage"));
+const SliceAppsHome = lazy(() => import("@/pages/SliceAppsHome"));
 
 const Feedback = lazy(() => import("@/pages/Feedback"));
 const FeedbackAdmin = lazy(() => import("@/pages/FeedbackAdmin"));
