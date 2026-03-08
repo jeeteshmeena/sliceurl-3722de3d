@@ -438,7 +438,7 @@ export default function Settings() {
                   onChange={(e) => setDisplayName(e.target.value)}
                   placeholder="Your name"
                   disabled={!editingName}
-                  className="bg-white dark:bg-neutral-800 border-neutral-200 dark:border-neutral-700 text-neutral-900 dark:text-neutral-100 h-9 text-sm flex-1"
+                  className="bg-card border-input text-foreground h-9 text-sm flex-1"
                 />
                 {editingName ? (
                   <>
