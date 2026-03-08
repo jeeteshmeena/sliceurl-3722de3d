@@ -338,6 +338,48 @@
     --shadow-xl: 0 16px 40px -8px hsl(0 0% 0% / 0.12);
   }
 
+  /* Supahero Theme - Ultra-clean minimal white, generous spacing */
+  .supahero {
+    --background: 0 0% 99%;
+    --foreground: 0 0% 9%;
+    --card: 0 0% 100%;
+    --card-foreground: 0 0% 9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 0% 9%;
+    --primary: 0 0% 9%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 0 0% 96%;
+    --secondary-foreground: 0 0% 20%;
+    --muted: 0 0% 96%;
+    --muted-foreground: 0 0% 50%;
+    --accent: 0 0% 9%;
+    --accent-foreground: 0 0% 100%;
+    --destructive: 0 72% 50%;
+    --destructive-foreground: 0 0% 100%;
+    --success: 142 72% 42%;
+    --success-foreground: 0 0% 100%;
+    --warning: 38 95% 48%;
+    --warning-foreground: 0 0% 100%;
+    --border: 0 0% 92%;
+    --input: 0 0% 92%;
+    --ring: 0 0% 9%;
+    --radius: 0.75rem;
+    --sidebar-background: 0 0% 98%;
+    --sidebar-foreground: 0 0% 20%;
+    --sidebar-primary: 0 0% 9%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 0 0% 95%;
+    --sidebar-accent-foreground: 0 0% 12%;
+    --sidebar-border: 0 0% 92%;
+    --sidebar-ring: 0 0% 9%;
+    --glass: 0 0% 100% / 0.92;
+    --glass-border: 0 0% 0% / 0.04;
+    --shadow-sm: 0 1px 2px 0 hsl(0 0% 0% / 0.03);
+    --shadow-md: 0 2px 8px 0 hsl(0 0% 0% / 0.05);
+    --shadow-lg: 0 8px 24px 0 hsl(0 0% 0% / 0.07);
+    --shadow-xl: 0 20px 50px -12px hsl(0 0% 0% / 0.1);
+  }
+
   /* Designgud Theme - Bold yellow, playful, high energy */
   .designgud {
     --background: 52 100% 90%;
@@ -1017,6 +1059,32 @@ textarea:focus-visible,
 
 .meridian button {
   font-weight: 600;
+}
+
+/* Supahero theme typography & style overrides */
+.supahero body,
+.supahero {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  letter-spacing: -0.015em;
+}
+
+.supahero h1, .supahero h2, .supahero h3 {
+  font-weight: 700;
+  letter-spacing: -0.035em;
+}
+
+.supahero h1 {
+  font-weight: 800;
+}
+
+.supahero button {
+  font-weight: 500;
+  border-radius: 0.5rem;
+}
+
+.supahero [class*="rounded-lg"],
+.supahero [class*="rounded-md"] {
+  border-radius: 0.75rem;
 }
 
 /* Designgud theme typography & style overrides */
