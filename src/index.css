@@ -733,9 +733,9 @@ textarea:focus-visible,
   animation: heart-beat 1.5s ease-in-out infinite;
 }
 
-/* Disable transitions during theme switch */
+/* Disable transitions during theme switch — except SliceAPPs hero */
 .theme-transitioning,
-.theme-transitioning * {
+.theme-transitioning *:not([data-theme-transition]) {
   transition: none !important;
 }
 

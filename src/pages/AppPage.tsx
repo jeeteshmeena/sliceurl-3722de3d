@@ -247,7 +247,8 @@ export default function AppPage() {
 
           {/* Layer 2: Hero Section (mobile only) — App Store style */}
           <div
-            className="lg:hidden bg-gradient-to-b from-[#b0b0b4] to-[#8e8e93] dark:from-[#2c2c2e] dark:to-[#1c1c1e]"
+            data-theme-transition
+            className="lg:hidden bg-gradient-to-b from-[#b0b0b4] to-[#8e8e93] dark:from-[#2c2c2e] dark:to-[#1c1c1e] transition-all duration-500 ease-out"
             style={{
               paddingTop: 32,
               paddingBottom: 28,
@@ -345,9 +346,10 @@ export default function AppPage() {
                 transition={{ duration: 0.2 }}
               >
                 <button
+                  data-theme-transition
                   onClick={handleDownload}
                   disabled={isDownloading || !fileInfo || !!fileUnavailable}
-                  className="disabled:opacity-40 active:opacity-80 transition-opacity"
+                  className="disabled:opacity-40 active:opacity-80 transition-all duration-500 ease-out"
                   style={{
                     width: '100%',
                     height: 44,
