@@ -135,18 +135,18 @@ export function Header() {
           </Link>
         </div>
 
-        {/* Right Section - Clean icon layout with consistent spacing */}
-        <div className="flex items-center gap-3 shrink-0 mr-2 sm:mr-4 flex-nowrap">
-          {/* Theme Toggle - Clean icon, no pill background */}
+        {/* Right Section - Apple-style icon controls */}
+        <div className="flex items-center gap-1.5 shrink-0 flex-nowrap">
+          {/* Theme Toggle */}
           <button
             onClick={handleThemeToggle}
-            className="h-9 w-9 flex items-center justify-center text-foreground/80 hover:text-foreground transition-colors"
+            className="h-[42px] w-[42px] flex items-center justify-center rounded-full text-foreground/70 hover:text-foreground hover:bg-foreground/[0.06] active:scale-[0.96] transition-all duration-150"
             aria-label={`Switch to ${resolvedTheme === "dark" ? "light" : "dark"} mode`}
           >
             {resolvedTheme === "dark" ? (
-              <Sun className="h-[18px] w-[18px]" />
+              <Sun className="h-5 w-5" strokeWidth={1.7} />
             ) : (
-              <Moon className="h-[18px] w-[18px]" />
+              <Moon className="h-5 w-5" strokeWidth={1.7} />
             )}
           </button>
 
