@@ -102,9 +102,10 @@ export function Header() {
     { value: "designgud", label: "Designgud", swatch: "hsl(52,100%,70%)" },
     { value: "supahero", label: "Supahero", swatch: "hsl(0,0%,96%)" },
     { value: "opencall", label: "OpenCall", swatch: "hsl(130,30%,80%)" },
+    { value: "shuttle", label: "Shuttle", swatch: "linear-gradient(135deg, hsl(25,95%,55%), hsl(20,10%,7%))" },
   ];
 
-  const themeLabelMap: Record<string, string> = { light: "Light", dark: "Dark", maggie: "Maggie", racing: "Racing", meridian: "Meridian", designgud: "Designgud", supahero: "Supahero", opencall: "OpenCall" };
+  const themeLabelMap: Record<string, string> = { light: "Light", dark: "Dark", maggie: "Maggie", racing: "Racing", meridian: "Meridian", designgud: "Designgud", supahero: "Supahero", opencall: "OpenCall", shuttle: "Shuttle" };
   const themeLabel = themeLabelMap[resolvedTheme] || "Light";
 
   const handleLogout = async () => {
@@ -155,7 +156,9 @@ export function Header() {
                 aria-label={`Theme: ${themeLabel}. Click to change.`}
                 title={`Theme: ${themeLabel}`}
               >
-                {resolvedTheme === "opencall" ? (
+                {resolvedTheme === "shuttle" ? (
+                  <span className="text-base">🚀</span>
+                ) : resolvedTheme === "opencall" ? (
                   <span className="text-base">📞</span>
                 ) : resolvedTheme === "supahero" ? (
                   <span className="text-base">🦸</span>
