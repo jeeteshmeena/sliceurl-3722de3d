@@ -888,7 +888,7 @@ export default function Settings() {
       {/* FORGOT PASSWORD DIALOG */}
       {/* ═══════════════════════════════════════════════════════════════════════ */}
       <Dialog open={forgotPasswordDialogOpen} onOpenChange={setForgotPasswordDialogOpen}>
-        <DialogContent className="bg-white dark:bg-neutral-900 border-neutral-200 dark:border-neutral-800">
+        <DialogContent className="bg-popover border-border">
           <DialogHeader>
             <DialogTitle>Reset Password</DialogTitle>
             <DialogDescription>
