@@ -582,8 +582,8 @@ export default function Settings() {
             </div>
 
             {/* Sessions Subsection */}
-            <div className="pt-3 border-t border-neutral-200 dark:border-neutral-700">
-              <h3 className="text-xs font-medium text-neutral-500 dark:text-neutral-400 uppercase tracking-wide mb-3">
+            <div className="pt-3 border-t border-border">
+              <h3 className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-3">
                 Sessions
               </h3>
 
