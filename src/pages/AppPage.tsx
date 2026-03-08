@@ -380,7 +380,7 @@ export default function AppPage() {
                 <p className="text-[17px] text-muted-foreground mt-0.5 mb-3 line-clamp-2">
                   {app.short_description || `The official app by ${app.developer_name || "Unknown"}`}
                 </p>
-                <div className="flex items-center gap-3">
+                <div className="flex items-center" style={{ gap: 12 }}>
                   <motion.div
                     animate={downloadSuccess ? { scale: [1, 1.05, 1] } : {}}
                     transition={{ duration: 0.25 }}
@@ -388,7 +388,21 @@ export default function AppPage() {
                     <button
                       onClick={handleDownload}
                       disabled={isDownloading || !fileInfo || !!fileUnavailable}
-                      className="h-[38px] px-8 text-[16px] font-semibold rounded-full bg-primary text-primary-foreground disabled:opacity-40 active:opacity-80 transition-opacity"
+                      className="disabled:opacity-40"
+                      style={{
+                        padding: '8px 22px',
+                        borderRadius: 20,
+                        background: '#0A84FF',
+                        color: '#ffffff',
+                        fontSize: 16,
+                        fontWeight: 600,
+                        border: 'none',
+                        cursor: 'pointer',
+                        transition: 'background 0.15s ease',
+                      }}
+                      onPointerDown={(e) => (e.currentTarget.style.background = '#0077ED')}
+                      onPointerUp={(e) => (e.currentTarget.style.background = '#0A84FF')}
+                      onPointerLeave={(e) => (e.currentTarget.style.background = '#0A84FF')}
                     >
                       {downloadSuccess ? (
                         <motion.span initial={{ opacity: 0, scale: 0.5 }} animate={{ opacity: 1, scale: 1 }} className="flex items-center gap-1">
@@ -399,10 +413,10 @@ export default function AppPage() {
                   </motion.div>
                   <button
                     onClick={handleShare}
-                    className="w-10 h-10 flex items-center justify-center rounded-full text-primary"
                     aria-label="Share"
+                    style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
                   >
-                    <Share2 className="h-[22px] w-[22px]" strokeWidth={1.8} />
+                    <Share2 style={{ width: 22, height: 22, color: '#0A84FF' }} strokeWidth={1.8} />
                   </button>
                 </div>
               </div>
