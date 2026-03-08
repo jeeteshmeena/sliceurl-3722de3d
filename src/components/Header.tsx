@@ -150,8 +150,8 @@ export function Header() {
             )}
           </button>
 
-          {/* Language Selector - Clean icon, no pill background */}
-          <Popover open={langOpen} onOpenChange={setLangOpen}>
+          {/* Language Selector - Apple-style floating panel */}
+          <Popover open={langOpen} onOpenChange={(open) => { setLangOpen(open); if (!open) setLangSearch(""); }}>
             <PopoverTrigger asChild>
               <button
                 className="h-9 w-9 flex items-center justify-center text-foreground/80 hover:text-foreground transition-colors"
@@ -163,26 +163,33 @@ export function Header() {
             <PopoverContent
               align="end"
               sideOffset={12}
-              className="w-48 p-0 bg-popover border border-border shadow-lg rounded-xl overflow-hidden z-[200]"
+              className="w-56 p-0 border-0 z-[200] bg-popover/95 backdrop-blur-xl rounded-2xl overflow-hidden"
+              style={{
+                boxShadow: '0 8px 40px -8px rgba(0,0,0,0.16), 0 2px 12px -4px rgba(0,0,0,0.08)',
+                animation: 'scale-in 120ms ease-out',
+              }}
             >
-              {/* Search Input */}
-              <div className="border-b border-border/50 p-2">
+              {/* Search */}
+              <div className="p-2.5 pb-1.5">
                 <div className="relative">
-                  <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground/60" />
                   <Input
                     value={langSearch}
                     onChange={(e) => setLangSearch(e.target.value)}
-                    placeholder="Search..."
-                    className="h-8 pl-8 text-sm bg-background border-border/60 rounded-lg"
+                    placeholder="Search language"
+                    className="h-9 pl-9 text-sm bg-muted/50 border-0 rounded-xl focus-visible:ring-1 focus-visible:ring-foreground/10"
                   />
                 </div>
               </div>
+
+              {/* Divider */}
+              <div className="mx-3 h-px bg-border/40" />
               
               {/* Language List */}
-              <ScrollArea className="h-[200px]">
-                <div className="p-1">
+              <ScrollArea className="h-[220px]">
+                <div className="p-1.5">
                   {filteredLanguages.length === 0 ? (
-                    <p className="px-3 py-2 text-xs text-muted-foreground text-center">
+                    <p className="px-3 py-4 text-xs text-muted-foreground text-center">
                       No languages found
                     </p>
                   ) : (
@@ -194,15 +201,15 @@ export function Header() {
                           setLangOpen(false);
                           setLangSearch("");
                         }}
-                        className={`w-full flex items-center justify-between px-3 py-2 text-sm rounded-lg transition-colors cursor-pointer ${
+                        className={`w-full flex items-center justify-between px-3 py-2.5 text-[13px] rounded-xl transition-colors cursor-pointer ${
                           language === lang
-                            ? "bg-primary/10 text-primary font-medium"
-                            : "hover:bg-muted/50 text-foreground"
+                            ? "bg-foreground/[0.06] text-foreground font-medium"
+                            : "hover:bg-foreground/[0.04] text-foreground/80"
                         }`}
                       >
                         <span>{languageNames[lang]}</span>
                         {language === lang && (
-                          <Check className="h-3.5 w-3.5 text-primary" />
+                          <Check className="h-3.5 w-3.5 text-foreground/50" />
                         )}
                       </button>
                     ))
