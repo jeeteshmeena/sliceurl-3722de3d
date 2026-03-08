@@ -634,8 +634,8 @@ export default function Settings() {
                       </svg>
                     </div>
                     <div>
-                      <p className="text-sm font-medium text-neutral-900 dark:text-neutral-100">Google</p>
-                      <p className="text-xs text-neutral-500 dark:text-neutral-400">
+                      <p className="text-sm font-medium text-foreground">Google</p>
+                      <p className="text-xs text-muted-foreground">
                         {googleIdentity.identity_data?.email || 'Connected'}
                       </p>
                     </div>
