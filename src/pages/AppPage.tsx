@@ -496,7 +496,9 @@ export default function AppPage() {
                             style={{ transition: 'stroke-dashoffset 0.2s ease' }}
                           />
                         </svg>
-                        <div style={{ position: 'absolute', width: 10, height: 10, borderRadius: 2, background: '#0A84FF' }} />
+                        <button onClick={cancelDownload} aria-label="Cancel download" style={{ position: 'absolute', width: 36, height: 36, background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 0 }}>
+                          <div style={{ width: 10, height: 10, borderRadius: 2, background: '#0A84FF' }} />
+                        </button>
                       </div>
                     ) : (
                       <button
