@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { motion, AnimatePresence } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import { ArrowLeft, Loader2, Eye, EyeOff, AlertCircle, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
@@ -34,6 +34,48 @@ interface FormAlert {
     onClick: () => void;
   };
 }
+
+const SUBTITLES_LOGIN = [
+  "Access your account and manage your links",
+  "Track clicks and analytics in one place",
+  "Manage apps, files, and URLs from one dashboard",
+  "Simplify sharing with powerful link tools",
+];
+
+const SUBTITLES_SIGNUP = [
+  "Create an account to start shortening links",
+  "Manage and organize your links effortlessly",
+  "Create secure and fast short links",
+  "Simplify sharing with powerful link tools",
+];
+
+const RotatingSubtitle = ({ texts }: { texts: string[] }) => {
+  const [index, setIndex] = useState(0);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setIndex((prev) => (prev + 1) % texts.length);
+    }, 3500);
+    return () => clearInterval(interval);
+  }, [texts.length]);
+
+  return (
+    <div className="mt-2 h-6 relative overflow-hidden">
+      <AnimatePresence mode="wait">
+        <motion.p
+          key={index}
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -8 }}
+          transition={{ duration: 0.3 }}
+          className="text-muted-foreground text-base absolute inset-x-0"
+        >
+          {texts[index]}
+        </motion.p>
+      </AnimatePresence>
+    </div>
+  );
+};
 
 const FieldError = ({ message }: { message?: string }) => (
   <AnimatePresence mode="wait">
@@ -138,7 +180,6 @@ const Auth = ({ mode: initialMode = "login" }: AuthProps) => {
       return `${base} border-destructive/60 focus-visible:ring-destructive/30`;
     }
     if (touched[field]) {
-      // Check if field is valid
       let valid = false;
       if (field === "email") valid = isEmailValid(email);
       else if (field === "fullName") valid = fullName.trim().length >= 2;
@@ -300,50 +341,46 @@ const Auth = ({ mode: initialMode = "login" }: AuthProps) => {
     );
   }
 
+  const isSignup = mode === "signup";
+
   return (
-    <div className="h-[100dvh] bg-background flex flex-col overflow-hidden">
-      {/* Back arrow */}
-      <button
-        type="button"
-        onClick={() => navigate(-1)}
-        className="absolute top-5 left-5 h-10 w-10 rounded-full flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors z-10"
-        aria-label="Go back"
-      >
-        <ArrowLeft className="h-5 w-5" />
-      </button>
+    <div className={`bg-background flex flex-col ${isSignup ? "min-h-[100dvh]" : "h-[100dvh] overflow-hidden"}`}>
+      {/* Back arrow — inside content flow, not absolute */}
+      <div className="px-6 sm:px-8 pt-5">
+        <div className="w-full max-w-sm mx-auto">
+          <button
+            type="button"
+            onClick={() => navigate(-1)}
+            className="h-10 w-10 -ml-2 rounded-full flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors"
+            aria-label="Go back"
+          >
+            <ArrowLeft className="h-5 w-5" />
+          </button>
+        </div>
+      </div>
 
       {/* Content area */}
-      <div className="flex-1 flex flex-col justify-center px-6 sm:px-8 pt-14 pb-6">
+      <div className={`flex-1 flex flex-col ${isSignup ? "" : "justify-center"} px-6 sm:px-8 ${isSignup ? "pt-4 pb-8" : "pb-6"}`}>
         <div className="w-full max-w-sm mx-auto">
           {/* Heading */}
-          <motion.div
-            key={mode + "-heading"}
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4 }}
-            className="mb-6"
-          >
+          <div className="mb-6">
             <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground">
               {mode === "signup" ? "Sign up" : mode === "forgot-password" ? "Reset password" : "Sign in"}
             </h1>
-            <p className="mt-2 text-muted-foreground text-base">
-              {mode === "signup"
-                ? "Create an account to start shortening links"
-                : mode === "forgot-password"
-                ? "Enter your email and we'll send you a reset link"
-                : "Access your account and manage your links"}
-            </p>
-          </motion.div>
+            {mode === "forgot-password" ? (
+              <p className="mt-2 text-muted-foreground text-base">
+                Enter your email and we'll send you a reset link
+              </p>
+            ) : (
+              <RotatingSubtitle texts={mode === "signup" ? SUBTITLES_SIGNUP : SUBTITLES_LOGIN} />
+            )}
+          </div>
 
           {/* Form Alert */}
           <FormAlertBanner alert={formAlert} />
 
           {/* Form */}
-          <motion.form
-            key={mode + "-form"}
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4, delay: 0.05 }}
+          <form
             onSubmit={handleSubmit}
             className="space-y-4"
           >
@@ -480,17 +517,11 @@ const Auth = ({ mode: initialMode = "login" }: AuthProps) => {
                 Back to sign in
               </Button>
             )}
-          </motion.form>
+          </form>
 
           {/* Account Switcher */}
           {mode !== "forgot-password" && (
-            <motion.p
-              key={mode + "-switch"}
-              initial={{ opacity: 0, y: 12 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.4, delay: 0.08 }}
-              className="mt-4 text-sm text-muted-foreground text-center"
-            >
+            <p className="mt-4 text-sm text-muted-foreground text-center">
               {mode === "login" ? "Don't have an account? " : "Already have an account? "}
               <Link
                 to={mode === "login" ? "/register" : "/login"}
@@ -498,7 +529,7 @@ const Auth = ({ mode: initialMode = "login" }: AuthProps) => {
               >
                 {mode === "login" ? "Sign up" : "Sign in"}
               </Link>
-            </motion.p>
+            </p>
           )}
 
           {/* Divider */}
@@ -515,12 +546,7 @@ const Auth = ({ mode: initialMode = "login" }: AuthProps) => {
 
           {/* Google Sign-In */}
           {mode !== "forgot-password" && (
-            <motion.div
-              key={mode + "-google"}
-              initial={{ opacity: 0, y: 12 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.4, delay: 0.1 }}
-            >
+            <div>
               <Button
                 type="button"
                 variant="outline"
@@ -540,18 +566,12 @@ const Auth = ({ mode: initialMode = "login" }: AuthProps) => {
                 )}
                 Continue with Google
               </Button>
-            </motion.div>
+            </div>
           )}
 
           {/* Consent Text */}
           {mode !== "forgot-password" && (
-            <motion.p
-              key={mode + "-consent"}
-              initial={{ opacity: 0, y: 12 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.4, delay: 0.18 }}
-              className="mt-6 text-xs text-muted-foreground/70 text-center leading-relaxed"
-            >
+            <p className="mt-6 text-xs text-muted-foreground/70 text-center leading-relaxed pb-2">
               By {mode === "login" ? "signing in" : "signing up"}, you agree to our{" "}
               <Link to="/terms" className="text-muted-foreground underline hover:no-underline">
                 Terms of Service
@@ -560,7 +580,7 @@ const Auth = ({ mode: initialMode = "login" }: AuthProps) => {
               <Link to="/privacy" className="text-muted-foreground underline hover:no-underline">
                 Privacy Policy
               </Link>.
-            </motion.p>
+            </p>
           )}
         </div>
       </div>
