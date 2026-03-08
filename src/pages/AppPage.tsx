@@ -293,7 +293,7 @@ export default function AppPage() {
 
               {/* Description */}
               <p
-                className="line-clamp-2"
+                className="line-clamp-2 dark:text-[#98989d]"
                 style={{
                   fontSize: 14,
                   fontWeight: 400,
