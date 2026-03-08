@@ -246,19 +246,15 @@ export default function AppPage() {
         {/* Hero Section (mobile only) — Apple App Store style */}
         <div
           data-theme-transition
-          className="lg:hidden transition-all duration-500 ease-out"
+          className="lg:hidden transition-all duration-500 ease-out bg-[#f5f5f7] dark:bg-[#1c1c1e]"
           style={{
             paddingTop: 24,
             paddingBottom: 24,
             paddingLeft: 20,
             paddingRight: 20,
-            background: '#f5f5f7',
           }}
         >
-          {/* Dark mode background layer */}
-          <div className="dark:hidden" style={{ position: 'absolute', inset: 0, background: '#f5f5f7' }} />
-
-          <div className="flex items-start relative" style={{ gap: 16 }}>
+          <div className="flex items-start" style={{ gap: 16 }}>
             {/* App Icon — 104px */}
             <div
               className="flex-shrink-0 overflow-hidden"
