@@ -248,69 +248,66 @@ export default function AppPage() {
           <SliceAppsHeader />
         </div>
 
-        {/* Mobile Hero Section — App Store style */}
+        {/* Mobile Hero Section — Apple App Store style */}
         <div
-          data-theme-transition
-          className="lg:hidden transition-all duration-500 ease-out bg-[var(--sa-hero-bg)]"
+          className="lg:hidden"
           style={{
-            paddingTop: 24,
-            paddingBottom: 24,
-            paddingLeft: 20,
-            paddingRight: 20,
-            borderBottom: '1px solid var(--sa-border)',
+            background: 'linear-gradient(135deg, #9ea3aa 0%, #8d9198 40%, #7c8087 100%)',
+            backdropFilter: 'blur(6px)',
+            paddingTop: 28,
+            paddingBottom: 26,
+            paddingLeft: 16,
+            paddingRight: 16,
           }}
         >
-          <div className="flex items-start" style={{ gap: 16 }}>
-            {/* App Icon — 104px */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 18 }}>
+            {/* App Icon — 112px */}
             <div
               className="flex-shrink-0 overflow-hidden"
               style={{
-                width: 104,
-                height: 104,
-                borderRadius: 24,
-                background: 'var(--sa-icon-bg)',
-                boxShadow: '0 2px 12px var(--sa-shadow)',
+                width: 112,
+                height: 112,
+                borderRadius: 26,
+                boxShadow: '0 10px 30px rgba(0,0,0,0.15)',
               }}
             >
               {app.icon_url ? (
                 <img src={app.icon_url} alt={app.app_name} className="w-full h-full object-cover" loading="lazy" />
               ) : (
-                <div className="w-full h-full flex items-center justify-center text-3xl font-bold text-muted-foreground bg-muted">
+                <div className="w-full h-full flex items-center justify-center text-3xl font-bold bg-muted text-muted-foreground">
                   {app.app_name.charAt(0)}
                 </div>
               )}
             </div>
 
-            {/* App Info + Actions */}
-            <div className="flex-1 min-w-0 flex flex-col">
+            {/* Text Block */}
+            <div style={{ display: 'flex', flexDirection: 'column', flex: 1, minWidth: 0 }}>
               <h1
-                className="transition-colors duration-500"
                 style={{
-                  fontSize: 22,
+                  fontSize: 26,
                   fontWeight: 700,
                   lineHeight: 1.2,
-                  color: 'var(--sa-title)',
-                  marginBottom: 2,
+                  color: '#ffffff',
+                  marginBottom: 4,
                 }}
               >
                 {app.app_name}
               </h1>
               <p
-                className="line-clamp-2 transition-colors duration-500"
+                className="line-clamp-2"
                 style={{
-                  fontSize: 14,
+                  fontSize: 15,
                   fontWeight: 400,
-                  color: 'var(--sa-desc)',
+                  color: 'rgba(255,255,255,0.85)',
                   lineHeight: 1.35,
-                  marginTop: 2,
-                  marginBottom: 12,
+                  marginBottom: 14,
                 }}
               >
                 {app.short_description || `The official app by ${app.developer_name || "Unknown"}`}
               </p>
 
-              {/* GET + Share row */}
-              <div className="flex items-center" style={{ gap: 14 }}>
+              {/* Button Row */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
                 <motion.div
                   animate={downloadSuccess ? { scale: [1, 1.02, 1] } : {}}
                   transition={{ duration: 0.2 }}
@@ -318,18 +315,19 @@ export default function AppPage() {
                   <button
                     onClick={handleDownload}
                     disabled={isDownloading || !fileInfo || !!fileUnavailable}
-                    className="disabled:opacity-40 transition-transform"
+                    className="disabled:opacity-40"
                     style={{
-                      height: 38,
-                      paddingLeft: 22,
-                      paddingRight: 22,
-                      borderRadius: 19,
-                      background: 'var(--sa-get-bg)',
-                      color: 'var(--sa-get-color)',
+                      height: 40,
+                      paddingLeft: 26,
+                      paddingRight: 26,
+                      borderRadius: 20,
+                      background: '#ffffff',
+                      color: '#0071e3',
                       fontSize: 16,
                       fontWeight: 600,
                       border: 'none',
                       cursor: 'pointer',
+                      transition: 'transform 0.12s ease',
                     }}
                     onPointerDown={(e) => (e.currentTarget.style.transform = 'scale(0.96)')}
                     onPointerUp={(e) => (e.currentTarget.style.transform = 'scale(1)')}
@@ -345,19 +343,21 @@ export default function AppPage() {
 
                 <button
                   onClick={handleShare}
-                  className="flex items-center justify-center active:opacity-70 transition-opacity"
+                  aria-label="Share"
                   style={{
-                    width: 36,
-                    height: 36,
+                    width: 38,
+                    height: 38,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
                     borderRadius: '50%',
-                    background: 'transparent',
+                    background: 'rgba(255,255,255,0.2)',
                     border: 'none',
                     cursor: 'pointer',
                     padding: 0,
                   }}
-                  aria-label="Share"
                 >
-                  <Share2 style={{ width: 20, height: 20, color: 'var(--sa-accent)' }} strokeWidth={1.8} />
+                  <Share2 style={{ width: 20, height: 20, color: '#ffffff' }} strokeWidth={1.8} />
                 </button>
               </div>
             </div>
