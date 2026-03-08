@@ -90,15 +90,21 @@ export function SliceAppsHeader() {
                 </div>
                 <div className="w-10" />
               </div>
-              <nav className="pt-2">
+              <nav className="px-5 pt-4" style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
                 {menuItems.map((item) => (
                   <button
                     key={item.label}
                     onClick={() => { setMenuOpen(false); navigate(item.path); }}
-                    className="w-full h-[52px] flex items-center gap-[14px] pl-5 text-left"
+                    className="w-full text-left"
+                    style={{ display: 'flex', alignItems: 'center', gap: 14, paddingTop: 14, paddingBottom: 14 }}
                   >
-                    <item.icon className="h-6 w-6 text-[#007AFF]" strokeWidth={1.5} />
-                    <span className="text-[16px] font-medium text-foreground">{item.label}</span>
+                    <div style={{ width: 40, height: 40, borderRadius: 10, background: 'rgba(0,122,255,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                      <item.icon style={{ width: 24, height: 24, color: '#007AFF' }} strokeWidth={1.5} />
+                    </div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                      <span style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Text", system-ui, sans-serif', fontSize: 17, fontWeight: 600, color: 'var(--foreground)' }}>{item.label}</span>
+                      <span style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Text", system-ui, sans-serif', fontSize: 13, fontWeight: 400, color: '#8e8e93' }}>{item.subtitle}</span>
+                    </div>
                   </button>
                 ))}
               </nav>
