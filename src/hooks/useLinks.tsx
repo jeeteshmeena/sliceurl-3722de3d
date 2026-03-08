@@ -290,7 +290,7 @@ export function useLinks() {
   const togglePin = async (id: string) => {
     const link = links.find((l) => l.id === id);
     if (link) {
-      await updateLink(id, { is_pinned: !link.is_pinned } as any);
+      await updateLink(id, { is_pinned: !link.is_pinned });
     }
   };
 
