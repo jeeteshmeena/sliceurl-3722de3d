@@ -247,13 +247,12 @@ export default function AppPage() {
 
           {/* Layer 2: Hero Section (mobile only) — App Store style */}
           <div
-            className="lg:hidden"
+            className="lg:hidden bg-gradient-to-b from-[#b0b0b4] to-[#8e8e93] dark:from-[#2c2c2e] dark:to-[#1c1c1e]"
             style={{
               paddingTop: 32,
               paddingBottom: 28,
               paddingLeft: 20,
               paddingRight: 20,
-              background: 'linear-gradient(180deg, #b0b0b4 0%, #8e8e93 100%)',
             }}
           >
             <div className="flex items-start" style={{ gap: 18 }}>
