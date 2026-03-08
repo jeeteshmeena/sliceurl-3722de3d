@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { motion } from "framer-motion";
 import { useParams, Link } from "react-router-dom";
 import { Lock, AlertTriangle, Check, Share2, ChevronRight } from "lucide-react";
@@ -69,6 +69,7 @@ export default function AppPage() {
   const [downloadSuccess, setDownloadSuccess] = useState(false);
   const [downloadProgress, setDownloadProgress] = useState(0);
   const [fileUnavailable, setFileUnavailable] = useState<string | null>(null);
+  const downloadControllerRef = useRef<AbortController | null>(null);
   
   const [showPasswordDialog, setShowPasswordDialog] = useState(false);
   const [password, setPassword] = useState("");
@@ -133,18 +134,19 @@ export default function AppPage() {
 
   const initiateDownload = async (passwordForDownload?: string) => {
     if (!fileInfo) return;
+    const controller = new AbortController();
+    downloadControllerRef.current = controller;
     setIsDownloading(true);
     setDownloadProgress(0);
     try {
       const streamUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/file-stream?fileId=${fileInfo.file_id}${passwordForDownload ? '&verified=true' : ''}`;
-      const response = await fetch(streamUrl);
+      const response = await fetch(streamUrl, { signal: controller.signal });
       if (!response.ok) throw new Error("Download failed");
 
       const contentLength = response.headers.get("content-length");
       const total = contentLength ? parseInt(contentLength, 10) : 0;
 
       if (!response.body || !total) {
-        // Fallback: no streaming support or unknown size
         const blob = await response.blob();
         const url = URL.createObjectURL(blob);
         const a = document.createElement("a");
@@ -159,12 +161,17 @@ export default function AppPage() {
         const chunks: BlobPart[] = [];
         let received = 0;
 
-        while (true) {
-          const { done, value } = await reader.read();
-          if (done) break;
-          chunks.push(value);
-          received += value.length;
-          setDownloadProgress(Math.min(Math.round((received / total) * 100), 100));
+        try {
+          while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+            chunks.push(value);
+            received += value.length;
+            setDownloadProgress(Math.min(Math.round((received / total) * 100), 100));
+          }
+        } catch (readErr) {
+          reader.cancel();
+          throw readErr;
         }
 
         const blob = new Blob(chunks);
@@ -184,13 +191,22 @@ export default function AppPage() {
       setDownloadSuccess(true);
       setTimeout(() => { setDownloadSuccess(false); setDownloadProgress(0); }, 1500);
       toast.success("Download complete!");
-    } catch (err) {
-      console.error("Download failed:", err);
+    } catch (err: unknown) {
+      if (err instanceof DOMException && err.name === 'AbortError') {
+        toast("Download cancelled");
+      } else {
+        console.error("Download failed:", err);
+        toast.error("This file is temporarily unavailable. Please try again later.");
+      }
       setDownloadProgress(0);
-      toast.error("This file is temporarily unavailable. Please try again later.");
     } finally {
+      downloadControllerRef.current = null;
       setIsDownloading(false);
     }
+  };
+
+  const cancelDownload = () => {
+    downloadControllerRef.current?.abort();
   };
 
   const handlePasswordSubmit = async () => {
@@ -365,7 +381,9 @@ export default function AppPage() {
                           style={{ transition: 'stroke-dashoffset 0.2s ease' }}
                         />
                       </svg>
-                      <div style={{ position: 'absolute', width: 10, height: 10, borderRadius: 2, background: '#0A84FF' }} />
+                      <button onClick={cancelDownload} aria-label="Cancel download" style={{ position: 'absolute', width: 36, height: 36, background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 0 }}>
+                        <div style={{ width: 10, height: 10, borderRadius: 2, background: '#0A84FF' }} />
+                      </button>
                     </div>
                   ) : (
                     <button
@@ -478,7 +496,9 @@ export default function AppPage() {
                             style={{ transition: 'stroke-dashoffset 0.2s ease' }}
                           />
                         </svg>
-                        <div style={{ position: 'absolute', width: 10, height: 10, borderRadius: 2, background: '#0A84FF' }} />
+                        <button onClick={cancelDownload} aria-label="Cancel download" style={{ position: 'absolute', width: 36, height: 36, background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 0 }}>
+                          <div style={{ width: 10, height: 10, borderRadius: 2, background: '#0A84FF' }} />
+                        </button>
                       </div>
                     ) : (
                       <button
