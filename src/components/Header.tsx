@@ -117,7 +117,7 @@ export function Header() {
       <SliceLine />
       <div className="max-w-[1280px] mx-auto h-full flex items-center justify-between flex-nowrap px-4 sm:px-5">
         {/* Left Section - Brand */}
-        <div className="flex items-center gap-3 shrink-0 ml-2 sm:ml-4">
+        <div className="flex items-center gap-3 shrink-0">
           <Link to="/" className="shrink-0 hover:opacity-80 transition-opacity">
             <div className="flex items-center gap-2">
               <img
