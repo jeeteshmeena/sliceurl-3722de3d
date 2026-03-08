@@ -476,7 +476,7 @@ export default function Settings() {
 
             {/* Email Field */}
             <div className="space-y-1.5">
-              <Label className="text-xs text-neutral-500 dark:text-neutral-400 flex items-center gap-1.5">
+              <Label className="text-xs text-muted-foreground flex items-center gap-1.5">
                 <Mail className="h-3.5 w-3.5" />
                 Email
               </Label>
