@@ -247,13 +247,12 @@ export default function AppPage() {
 
           {/* Layer 2: Hero Section (mobile only) — App Store style */}
           <div
-            className="lg:hidden"
+            className="lg:hidden bg-gradient-to-b from-[#b0b0b4] to-[#8e8e93] dark:from-[#2c2c2e] dark:to-[#1c1c1e]"
             style={{
               paddingTop: 32,
               paddingBottom: 28,
               paddingLeft: 20,
               paddingRight: 20,
-              background: 'linear-gradient(180deg, #b0b0b4 0%, #8e8e93 100%)',
             }}
           >
             <div className="flex items-start" style={{ gap: 18 }}>
@@ -271,7 +270,7 @@ export default function AppPage() {
                 {app.icon_url ? (
                   <img src={app.icon_url} alt={app.app_name} className="w-full h-full object-cover" loading="lazy" />
                 ) : (
-                  <div className="w-full h-full flex items-center justify-center text-4xl font-bold" style={{ color: '#8e8e93', background: '#f5f5f7' }}>
+                  <div className="w-full h-full flex items-center justify-center text-4xl font-bold text-muted-foreground bg-muted">
                     {app.app_name.charAt(0)}
                   </div>
                 )}
@@ -353,8 +352,8 @@ export default function AppPage() {
                     width: '100%',
                     height: 44,
                     borderRadius: 12,
-                    background: 'rgba(255,255,255,0.95)',
-                    color: '#007AFF',
+                    background: 'var(--sliceapps-get-bg, rgba(255,255,255,0.95))',
+                    color: 'var(--sliceapps-get-color, #007AFF)',
                     fontSize: 17,
                     fontWeight: 700,
                     letterSpacing: '-0.2px',
@@ -390,7 +389,7 @@ export default function AppPage() {
                 <h1 className="text-[32px] font-bold text-foreground leading-[1.2]">
                   {app.app_name}
                 </h1>
-                <p className="text-[17px] text-[#6e6e73] mt-0.5 mb-3 line-clamp-2">
+                <p className="text-[17px] text-muted-foreground mt-0.5 mb-3 line-clamp-2">
                   {app.short_description || `The official app by ${app.developer_name || "Unknown"}`}
                 </p>
                 <div className="flex items-center gap-3">
@@ -401,7 +400,7 @@ export default function AppPage() {
                     <button
                       onClick={handleDownload}
                       disabled={isDownloading || !fileInfo || !!fileUnavailable}
-                      className="h-[38px] px-8 text-[16px] font-semibold rounded-full bg-[#007AFF] text-white disabled:opacity-40 active:opacity-80 transition-opacity"
+                      className="h-[38px] px-8 text-[16px] font-semibold rounded-full bg-primary text-primary-foreground disabled:opacity-40 active:opacity-80 transition-opacity"
                     >
                       {downloadSuccess ? (
                         <motion.span initial={{ opacity: 0, scale: 0.5 }} animate={{ opacity: 1, scale: 1 }} className="flex items-center gap-1">
@@ -412,7 +411,7 @@ export default function AppPage() {
                   </motion.div>
                   <button
                     onClick={handleShare}
-                    className="w-10 h-10 flex items-center justify-center rounded-full text-[#007AFF]"
+                    className="w-10 h-10 flex items-center justify-center rounded-full text-primary"
                     aria-label="Share"
                   >
                     <Share2 className="h-[22px] w-[22px]" strokeWidth={1.8} />
