@@ -1,7 +1,6 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
 
 type Theme = "dark" | "light" | "system";
-type StyleTheme = "classic" | "ctrl";
 
 type ThemeProviderProps = {
   children: React.ReactNode;
@@ -13,21 +12,15 @@ type ThemeProviderState = {
   theme: Theme;
   setTheme: (theme: Theme) => void;
   resolvedTheme: "dark" | "light";
-  styleTheme: StyleTheme;
-  setStyleTheme: (styleTheme: StyleTheme) => void;
 };
 
 const initialState: ThemeProviderState = {
   theme: "system",
   setTheme: () => null,
   resolvedTheme: "light",
-  styleTheme: "classic",
-  setStyleTheme: () => null,
 };
 
 const ThemeProviderContext = createContext<ThemeProviderState>(initialState);
-
-const STYLE_THEME_KEY = "sliceurl-style-theme";
 
 export function ThemeProvider({
   children,
@@ -39,16 +32,14 @@ export function ThemeProvider({
     () => (localStorage.getItem(storageKey) as Theme) || defaultTheme
   );
 
-  const [styleTheme, setStyleThemeState] = useState<StyleTheme>(
-    () => (localStorage.getItem(STYLE_THEME_KEY) as StyleTheme) || "classic"
-  );
-
   const [resolvedTheme, setResolvedTheme] = useState<"dark" | "light">("light");
 
-  // Apply light/dark theme
   useEffect(() => {
     const root = window.document.documentElement;
+
+    // Add transition-disabling class
     root.classList.add("theme-transitioning");
+
     root.classList.remove("light", "dark");
 
     if (theme === "system") {
@@ -56,6 +47,7 @@ export function ThemeProvider({
         .matches
         ? "dark"
         : "light";
+
       root.classList.add(systemTheme);
       setResolvedTheme(systemTheme);
     } else {
@@ -63,6 +55,7 @@ export function ThemeProvider({
       setResolvedTheme(theme);
     }
 
+    // Remove transition-disabling class after repaint using double rAF
     requestAnimationFrame(() => {
       requestAnimationFrame(() => {
         root.classList.remove("theme-transitioning");
@@ -70,18 +63,6 @@ export function ThemeProvider({
     });
   }, [theme]);
 
-  // Apply style theme (classic/ctrl)
-  useEffect(() => {
-    const root = window.document.documentElement;
-    root.classList.remove("theme-classic", "theme-ctrl");
-    if (styleTheme === "ctrl") {
-      root.classList.add("theme-ctrl");
-    } else {
-      root.classList.add("theme-classic");
-    }
-  }, [styleTheme]);
-
-  // Listen for system theme changes
   useEffect(() => {
     const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
     
@@ -99,11 +80,6 @@ export function ThemeProvider({
     return () => mediaQuery.removeEventListener("change", handleChange);
   }, [theme]);
 
-  const setStyleTheme = (st: StyleTheme) => {
-    localStorage.setItem(STYLE_THEME_KEY, st);
-    setStyleThemeState(st);
-  };
-
   const value = {
     theme,
     setTheme: (theme: Theme) => {
@@ -111,8 +87,6 @@ export function ThemeProvider({
       setTheme(theme);
     },
     resolvedTheme,
-    styleTheme,
-    setStyleTheme,
   };
 
   return (
