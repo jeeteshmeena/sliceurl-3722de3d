@@ -62,6 +62,7 @@ export function RatingsReviewsSection({
 }: RatingsReviewsSectionProps) {
   const [reviewRating, setReviewRating] = useState(5);
   const [reviewText, setReviewText] = useState("");
+  const [displayName, setDisplayName] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [userProfiles, setUserProfiles] = useState<Record<string, string>>({});
   const [myReview, setMyReview] = useState<Review | null>(null);
