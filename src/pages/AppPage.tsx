@@ -240,20 +240,35 @@ export default function AppPage() {
 
       {/* Main Content */}
       <div className="flex-1 min-w-0">
-        {/* Mobile Header */}
-        <SliceAppsHeader />
+        {/* Mobile Sticky Header Wrapper */}
+        <div className="sticky top-0 z-[100] bg-background lg:relative lg:z-auto">
+          {/* Layer 1: Navigation bar */}
+          <SliceAppsHeader />
 
-        {/* ===== HERO SECTION ===== */}
-        {/* Mobile: white bg, compact. Desktop: subtle grey banner */}
-        <div className="px-4 lg:px-10 pt-6 pb-4 mt-2 lg:mt-0 lg:py-10 lg:bg-gradient-to-b lg:from-muted/40 lg:to-transparent">
-          <div className="max-w-5xl mx-auto">
-            <div className="flex items-start gap-4 lg:gap-8">
-              {/* App Icon */}
-              <div className="w-[92px] h-[92px] lg:w-[170px] lg:h-[170px] rounded-[20px] lg:rounded-[36px] flex-shrink-0 overflow-hidden bg-muted shadow-sm border border-border/10">
+          {/* Layer 2: Hero Section - collapses on scroll (mobile only) */}
+          <div
+            className="lg:hidden border-b border-border/10 transition-all duration-[180ms] ease-out overflow-hidden"
+            style={{
+              paddingTop: scrolled ? 6 : 16,
+              paddingBottom: scrolled ? 4 : 12,
+              paddingLeft: 16,
+              paddingRight: 16,
+            }}
+          >
+            <div className="flex items-start gap-4">
+              {/* App Icon - scales down on scroll */}
+              <div
+                className="flex-shrink-0 overflow-hidden bg-muted shadow-sm border border-border/10 transition-all duration-[180ms] ease-out origin-top-left"
+                style={{
+                  width: scrolled ? 74 : 92,
+                  height: scrolled ? 74 : 92,
+                  borderRadius: scrolled ? 16 : 20,
+                }}
+              >
                 {app.icon_url ? (
                   <img src={app.icon_url} alt={app.app_name} className="w-full h-full object-cover" loading="lazy" />
                 ) : (
-                  <div className="w-full h-full flex items-center justify-center text-muted-foreground text-4xl lg:text-5xl font-bold bg-muted">
+                  <div className="w-full h-full flex items-center justify-center text-muted-foreground text-4xl font-bold bg-muted">
                     {app.app_name.charAt(0)}
                   </div>
                 )}
@@ -261,14 +276,19 @@ export default function AppPage() {
 
               {/* App Info + GET button */}
               <div className="flex-1 min-w-0 flex flex-col">
-                <h1 className="text-[22px] lg:text-[32px] font-bold text-foreground leading-[1.2]">
+                <h1 className="text-[22px] font-bold text-foreground leading-[1.2]">
                   {app.app_name}
                 </h1>
-                <p className="text-[14px] lg:text-[17px] text-[#6e6e73] mt-1 lg:mt-0.5 mb-3 line-clamp-2">
+                <p
+                  className="text-[14px] text-[#6e6e73] mt-1 line-clamp-2 transition-all duration-[180ms] ease-out"
+                  style={{
+                    marginBottom: scrolled ? 6 : 12,
+                    opacity: scrolled ? 0.7 : 1,
+                  }}
+                >
                   {app.short_description || `The official app by ${app.developer_name || "Unknown"}`}
                 </p>
 
-                {/* GET button + share */}
                 <div className="flex items-center gap-3">
                   <motion.div
                     animate={downloadSuccess ? { scale: [1, 1.05, 1] } : {}}
@@ -277,7 +297,7 @@ export default function AppPage() {
                     <button
                       onClick={handleDownload}
                       disabled={isDownloading || !fileInfo || !!fileUnavailable}
-                      className="h-9 lg:h-[38px] px-[18px] lg:px-8 text-[15px] lg:text-[16px] font-semibold rounded-full bg-[#007AFF] text-white disabled:opacity-40 active:opacity-80 transition-opacity"
+                      className="h-9 px-[18px] text-[15px] font-semibold rounded-full bg-[#007AFF] text-white disabled:opacity-40 active:opacity-80 transition-opacity"
                     >
                       {downloadSuccess ? (
                         <motion.span initial={{ opacity: 0, scale: 0.5 }} animate={{ opacity: 1, scale: 1 }} className="flex items-center gap-1">
@@ -289,10 +309,60 @@ export default function AppPage() {
 
                   <button
                     onClick={handleShare}
-                    className="w-9 h-9 lg:w-10 lg:h-10 flex items-center justify-center rounded-full text-[#007AFF]"
+                    className="w-9 h-9 flex items-center justify-center rounded-full text-[#007AFF]"
                     aria-label="Share"
                   >
-                    <Share2 className="h-5 w-5 lg:h-[22px] lg:w-[22px]" strokeWidth={1.8} />
+                    <Share2 className="h-5 w-5" strokeWidth={1.8} />
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Desktop Hero (non-collapsing) */}
+        <div className="hidden lg:block px-10 py-10 bg-gradient-to-b from-muted/40 to-transparent">
+          <div className="max-w-5xl mx-auto">
+            <div className="flex items-start gap-8">
+              <div className="w-[170px] h-[170px] rounded-[36px] flex-shrink-0 overflow-hidden bg-muted shadow-sm border border-border/10">
+                {app.icon_url ? (
+                  <img src={app.icon_url} alt={app.app_name} className="w-full h-full object-cover" loading="lazy" />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center text-muted-foreground text-5xl font-bold bg-muted">
+                    {app.app_name.charAt(0)}
+                  </div>
+                )}
+              </div>
+              <div className="flex-1 min-w-0 flex flex-col">
+                <h1 className="text-[32px] font-bold text-foreground leading-[1.2]">
+                  {app.app_name}
+                </h1>
+                <p className="text-[17px] text-[#6e6e73] mt-0.5 mb-3 line-clamp-2">
+                  {app.short_description || `The official app by ${app.developer_name || "Unknown"}`}
+                </p>
+                <div className="flex items-center gap-3">
+                  <motion.div
+                    animate={downloadSuccess ? { scale: [1, 1.05, 1] } : {}}
+                    transition={{ duration: 0.25 }}
+                  >
+                    <button
+                      onClick={handleDownload}
+                      disabled={isDownloading || !fileInfo || !!fileUnavailable}
+                      className="h-[38px] px-8 text-[16px] font-semibold rounded-full bg-[#007AFF] text-white disabled:opacity-40 active:opacity-80 transition-opacity"
+                    >
+                      {downloadSuccess ? (
+                        <motion.span initial={{ opacity: 0, scale: 0.5 }} animate={{ opacity: 1, scale: 1 }} className="flex items-center gap-1">
+                          <Check className="h-4 w-4" /> Done
+                        </motion.span>
+                      ) : isDownloading ? "..." : "GET"}
+                    </button>
+                  </motion.div>
+                  <button
+                    onClick={handleShare}
+                    className="w-10 h-10 flex items-center justify-center rounded-full text-[#007AFF]"
+                    aria-label="Share"
+                  >
+                    <Share2 className="h-[22px] w-[22px]" strokeWidth={1.8} />
                   </button>
                 </div>
               </div>
