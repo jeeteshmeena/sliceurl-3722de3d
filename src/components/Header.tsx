@@ -138,11 +138,9 @@ export function Header() {
         {/* Right Section - Clean icon layout with consistent spacing */}
         <div className="flex items-center gap-3 shrink-0 mr-2 sm:mr-4 flex-nowrap">
           {/* Theme Toggle - Clean icon, no pill background */}
-          <Button
-            variant="ghost"
-            size="icon"
+          <button
             onClick={handleThemeToggle}
-            className="h-9 w-9 rounded-full hover:bg-muted/50"
+            className="h-9 w-9 flex items-center justify-center text-foreground/80 hover:text-foreground transition-colors"
             aria-label={`Switch to ${resolvedTheme === "dark" ? "light" : "dark"} mode`}
           >
             {resolvedTheme === "dark" ? (
@@ -150,19 +148,17 @@ export function Header() {
             ) : (
               <Moon className="h-[18px] w-[18px]" />
             )}
-          </Button>
+          </button>
 
           {/* Language Selector - Clean icon, no pill background */}
           <Popover open={langOpen} onOpenChange={setLangOpen}>
             <PopoverTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-9 w-9 rounded-full hover:bg-muted/50"
+              <button
+                className="h-9 w-9 flex items-center justify-center text-foreground/80 hover:text-foreground transition-colors"
                 aria-label="Change language"
               >
                 <Languages className="h-[18px] w-[18px]" />
-              </Button>
+              </button>
             </PopoverTrigger>
             <PopoverContent
               align="end"
@@ -220,11 +216,9 @@ export function Header() {
             <>
               {/* Admin Notification Bell - Clean icon, no pill background */}
               {isAdmin && (
-                <Button
-                  variant="ghost"
-                  size="icon"
+                <button
                   onClick={() => navigate("/admin/inbox")}
-                  className="h-9 w-9 rounded-full relative hover:bg-muted/50"
+                  className="h-9 w-9 flex items-center justify-center text-foreground/80 hover:text-foreground transition-colors relative"
                   aria-label="Admin Inbox"
                 >
                   <Bell className="h-[18px] w-[18px]" />
@@ -233,7 +227,7 @@ export function Header() {
                       {unreadCount > 99 ? "99+" : unreadCount}
                     </span>
                   )}
-                </Button>
+                </button>
               )}
               
               {/* Separator - only visible on desktop */}
@@ -319,18 +313,16 @@ export function Header() {
               </div>
 
               {/* Mobile Menu Toggle */}
-              <Button
-                variant="ghost"
-                size="icon"
+              <button
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                className="h-9 w-9 rounded-full hover:bg-muted/50 sm:hidden"
+                className="h-9 w-9 flex items-center justify-center text-foreground/80 hover:text-foreground transition-colors sm:hidden"
               >
                 {mobileMenuOpen ? (
                   <X className="h-5 w-5" />
                 ) : (
                   <Menu className="h-5 w-5" />
                 )}
-              </Button>
+              </button>
             </>
           )}
         </div>
