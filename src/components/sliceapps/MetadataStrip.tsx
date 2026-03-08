@@ -23,8 +23,8 @@ interface MetadataStripProps {
   developer: string;
 }
 
-function CategoryIcon({ category }: { category: string }) {
-  const cls = "h-7 w-7 text-muted-foreground";
+function CategoryIcon({ category, className }: { category: string; className?: string }) {
+  const cls = className || "h-7 w-7 text-muted-foreground";
   const cat = category.toLowerCase();
   if (cat.includes("music")) return <Music className={cls} strokeWidth={1.5} />;
   if (cat.includes("entertainment")) return <Clapperboard className={cls} strokeWidth={1.5} />;
@@ -68,60 +68,64 @@ export function MetadataStrip({
   category,
   developer,
 }: MetadataStripProps) {
-  const devFirstWord = developer ? developer.split(" ")[0] : "Unknown";
+  const devName = developer || "Unknown";
 
-  // Parse file size to show value and unit separately
   const sizeMatch = fileSize.match(/^([\d.]+)\s*(.*)$/);
   const sizeValue = sizeMatch ? sizeMatch[1] : fileSize;
   const sizeUnit = sizeMatch ? sizeMatch[2] : "";
 
+  const items = [
+    {
+      label: formatRatingCount(ratingCount),
+      value: ratingAvg?.toFixed(1) || "0.0",
+      bottom: <StarRow rating={ratingAvg || 0} />,
+    },
+    {
+      label: "AGES",
+      value: ageRating,
+      bottom: <span className="text-[11px] text-muted-foreground">Years Old</span>,
+    },
+    {
+      label: "CATEGORY",
+      value: null,
+      center: <CategoryIcon category={category} />,
+      bottom: <span className="text-[11px] text-muted-foreground">{category || "Other"}</span>,
+    },
+    {
+      label: "DEVELOPER",
+      value: null,
+      center: <User className="h-7 w-7 text-muted-foreground" strokeWidth={1.5} />,
+      bottom: <span className="text-[11px] text-muted-foreground truncate max-w-[100px]">{devName}</span>,
+    },
+    {
+      label: "SIZE",
+      value: sizeValue,
+      bottom: <span className="text-[11px] text-muted-foreground">{sizeUnit}</span>,
+    },
+  ];
+
   return (
-    <div className="border-t border-b border-border/40 overflow-x-auto overflow-y-hidden scrollbar-hide -mx-4 scroll-smooth bg-background">
-      <div className="flex min-w-max">
-        {/* RATINGS - App Store exact style */}
-        <div className="flex flex-col items-center justify-center min-w-[120px] py-4 px-3 border-r border-border/20">
-          <span className="text-[11px] font-medium text-muted-foreground uppercase tracking-wide">
-            {formatRatingCount(ratingCount).split(" ")[0]} RATINGS
-          </span>
-          <span className="text-[28px] font-bold text-foreground mt-1 leading-none">
-            {ratingAvg?.toFixed(1) || "0.0"}
-          </span>
-          <div className="mt-1.5">
-            <StarRow rating={ratingAvg || 0} />
+    <div className="border-t border-b border-border/40 overflow-x-auto overflow-y-hidden scrollbar-hide -mx-4 lg:mx-0 scroll-smooth bg-background">
+      <div className="flex min-w-max lg:justify-center">
+        {items.map((item, index) => (
+          <div
+            key={index}
+            className={`flex flex-col items-center justify-center min-w-[110px] lg:min-w-[140px] py-4 px-3 lg:px-5 ${
+              index < items.length - 1 ? "border-r border-border/20" : ""
+            }`}
+          >
+            <span className="text-[11px] font-medium text-muted-foreground uppercase tracking-wide">
+              {item.label}
+            </span>
+            {item.value && (
+              <span className="text-[28px] font-bold text-foreground mt-1 leading-none">
+                {item.value}
+              </span>
+            )}
+            {item.center && <div className="mt-2">{item.center}</div>}
+            <div className="mt-1.5">{item.bottom}</div>
           </div>
-        </div>
-
-        {/* AGES - App Store exact style */}
-        <div className="flex flex-col items-center justify-center min-w-[100px] py-4 px-3 border-r border-border/20">
-          <span className="text-[11px] font-medium text-muted-foreground uppercase tracking-wide">AGES</span>
-          <span className="text-[28px] font-bold text-foreground mt-1 leading-none">{ageRating}</span>
-          <span className="text-[11px] text-muted-foreground mt-1.5">Years Old</span>
-        </div>
-
-        {/* CATEGORY - App Store exact style with icon */}
-        <div className="flex flex-col items-center justify-center min-w-[110px] py-4 px-3 border-r border-border/20">
-          <span className="text-[11px] font-medium text-muted-foreground uppercase tracking-wide">CATEGORY</span>
-          <div className="mt-2">
-            <CategoryIcon category={category} />
-          </div>
-          <span className="text-[11px] text-muted-foreground mt-1.5">{category || "Other"}</span>
-        </div>
-
-        {/* DEVELOPER - App Store exact style */}
-        <div className="flex flex-col items-center justify-center min-w-[120px] py-4 px-3 border-r border-border/20">
-          <span className="text-[11px] font-medium text-muted-foreground uppercase tracking-wide">DEVELOPER</span>
-          <div className="mt-2">
-            <User className="h-7 w-7 text-muted-foreground" strokeWidth={1.5} />
-          </div>
-          <span className="text-[11px] text-muted-foreground mt-1.5">{devFirstWord}</span>
-        </div>
-
-        {/* SIZE - App Store exact style */}
-        <div className="flex flex-col items-center justify-center min-w-[100px] py-4 px-3">
-          <span className="text-[11px] font-medium text-muted-foreground uppercase tracking-wide">SIZE</span>
-          <span className="text-[28px] font-bold text-foreground mt-1 leading-none">{sizeValue}</span>
-          <span className="text-[11px] text-muted-foreground mt-1.5">{sizeUnit}</span>
-        </div>
+        ))}
       </div>
     </div>
   );
