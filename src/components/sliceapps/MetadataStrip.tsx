@@ -79,6 +79,7 @@ export function MetadataStrip({
       label: formatRatingCount(ratingCount),
       value: ratingAvg?.toFixed(1) || "0.0",
       bottom: <StarRow rating={ratingAvg || 0} />,
+      isRating: true,
     },
     {
       label: "AGES",
