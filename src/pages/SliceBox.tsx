@@ -41,59 +41,6 @@ interface FileUploadState {
   startTime: number;
 }
 
-// Executable file extensions for warning
-const EXECUTABLE_EXTENSIONS = ['apk', 'exe', 'ipa', 'dmg', 'msi', 'deb', 'rpm', 'bat', 'cmd', 'sh'];
-const EXECUTABLE_MIME_TYPES = [
-  'application/vnd.android.package-archive',
-  'application/x-msdownload',
-  'application/octet-stream',
-  'application/x-apple-diskimage',
-];
-
-function isExecutableFile(file: File): boolean {
-  const ext = file.name.split('.').pop()?.toLowerCase() || '';
-  return EXECUTABLE_EXTENSIONS.includes(ext) || EXECUTABLE_MIME_TYPES.includes(file.type);
-}
-
-function isApkFile(fileName: string, mimeType?: string): boolean {
-  // Check file extension first (most reliable)
-  if (fileName.toLowerCase().endsWith('.apk')) return true;
-  // Also check MIME type
-  if (mimeType === 'application/vnd.android.package-archive') return true;
-  return false;
-}
-
-function getFileIcon(mimeType: string) {
-  if (mimeType.startsWith("image/")) return Image;
-  if (mimeType.startsWith("video/")) return Video;
-  if (mimeType.startsWith("audio/")) return Music;
-  if (mimeType === "application/pdf") return FileText;
-  if (mimeType.includes("zip") || mimeType.includes("rar") || mimeType.includes("7z")) return Archive;
-  return File;
-}
-
-function formatFileSize(bytes: number): string {
-  if (bytes === 0) return "0 B";
-  const k = 1024;
-  const sizes = ["B", "KB", "MB", "GB"];
-  const i = Math.floor(Math.log(bytes) / Math.log(k));
-  return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
-}
-
-function formatSpeed(bytesPerSecond: number): string {
-  if (bytesPerSecond === 0) return "0 B/s";
-  const k = 1024;
-  const sizes = ["B/s", "KB/s", "MB/s", "GB/s"];
-  const i = Math.floor(Math.log(bytesPerSecond) / Math.log(k));
-  return parseFloat((bytesPerSecond / Math.pow(k, i)).toFixed(1)) + " " + sizes[i];
-}
-
-function formatTime(seconds: number): string {
-  if (seconds === 0 || !isFinite(seconds)) return "--";
-  if (seconds < 60) return `${Math.round(seconds)}s`;
-  if (seconds < 3600) return `${Math.floor(seconds / 60)}m ${Math.round(seconds % 60)}s`;
-  return `${Math.floor(seconds / 3600)}h ${Math.floor((seconds % 3600) / 60)}m`;
-}
 
 export default function SliceBox() {
   const { user } = useAuth();
