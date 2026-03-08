@@ -70,12 +70,38 @@ export function PWAInstallPrompt() {
   useEffect(() => {
     if (!deferredPrompt || !mounted) return;
 
+    let timeReady = false;
+    let scrollReady = false;
+    let triggered = false;
+
+    const tryShow = () => {
+      if (timeReady && scrollReady && !triggered) {
+        triggered = true;
+        requestPopup(POPUP_ID, PopupPriority.PWA_INSTALL);
+        setShowPrompt(true);
+      }
+    };
+
     const showTimer = setTimeout(() => {
-      requestPopup(POPUP_ID, PopupPriority.PWA_INSTALL);
-      setShowPrompt(true);
+      timeReady = true;
+      tryShow();
     }, SHOW_DELAY_MS);
 
-    return () => clearTimeout(showTimer);
+    const handleScroll = () => {
+      const scrollPercent = (window.scrollY + window.innerHeight) / document.documentElement.scrollHeight;
+      if (scrollPercent >= 0.5) {
+        scrollReady = true;
+        tryShow();
+      }
+    };
+
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    handleScroll(); // check initial position
+
+    return () => {
+      clearTimeout(showTimer);
+      window.removeEventListener("scroll", handleScroll);
+    };
   }, [deferredPrompt, mounted, requestPopup]);
 
   useEffect(() => {
