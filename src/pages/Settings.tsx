@@ -789,12 +789,12 @@ export default function Settings() {
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
-            className="bg-white dark:bg-neutral-950 rounded-xl border-2 border-red-200 dark:border-red-900/50 p-5 space-y-4"
+            className="bg-card rounded-xl border-2 border-destructive/30 p-5 space-y-4"
           >
-            <h2 className="text-sm font-medium text-red-600 dark:text-red-400 uppercase tracking-wide">
+            <h2 className="text-sm font-medium text-destructive uppercase tracking-wide">
               Danger Zone
             </h2>
-            <p className="text-xs text-neutral-500 dark:text-neutral-400">
+            <p className="text-xs text-muted-foreground">
               Permanently delete your account and all associated data.
             </p>
             <Button
