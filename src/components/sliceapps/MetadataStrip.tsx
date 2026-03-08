@@ -100,7 +100,7 @@ export function MetadataStrip({
     {
       label: "LANGUAGE",
       value: "EN",
-      bottom: <span style={{ fontSize: 13, color: '#6e6e73' }} className="leading-none">+ More</span>,
+      bottom: <span style={{ fontSize: 13, fontWeight: 400, color: '#a1a1a6' }} className="leading-none">+ More</span>,
     },
     {
       label: "SIZE",
