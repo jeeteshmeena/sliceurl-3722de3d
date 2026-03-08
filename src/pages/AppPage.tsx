@@ -15,6 +15,7 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { SliceAppsHeader, RatingsReviewsSection } from "@/components/sliceapps";
+import { MetadataStrip } from "@/components/sliceapps/MetadataStrip";
 
 interface AppListing {
   id: string;
@@ -309,6 +310,16 @@ export default function AppPage() {
             </Button>
           </motion.div>
         </div>
+
+        {/* Metadata Strip */}
+        <MetadataStrip
+          ratingAvg={app.rating_avg}
+          ratingCount={app.rating_count}
+          downloads={formatDownloads(actualDownloads)}
+          fileSize={fileInfo ? formatFileSize(fileInfo.file_size) : "--"}
+          category={app.category || "Other"}
+          developer={app.developer_name || "Unknown"}
+        />
 
         {/* File Unavailable Warning */}
         {fileUnavailable && (
