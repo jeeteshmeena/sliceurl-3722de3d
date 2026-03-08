@@ -501,7 +501,7 @@ export default function Settings() {
                     </Button>
                     <button
                       type="button"
-                      className="text-sm text-neutral-500 hover:text-neutral-900 dark:hover:text-neutral-100 px-2"
+                      className="text-sm text-muted-foreground hover:text-foreground px-2"
                       onClick={() => {
                         setEmail(originalEmail);
                         setEditingEmail(false);
