@@ -83,29 +83,29 @@ export function MetadataStrip({
     {
       label: "AGE",
       value: ageRating,
-      bottom: <span style={{ fontSize: 13, color: '#6e6e73' }} className="leading-none">Years Old</span>,
+      bottom: <span style={{ fontSize: 14, color: '#a1a1a6' }} className="leading-none">Years Old</span>,
     },
     {
       label: "DOWNLOAD",
       value: downloads || "0",
-      bottom: <span style={{ fontSize: 13, color: '#6e6e73' }} className="leading-none">Downloads</span>,
+      bottom: <span style={{ fontSize: 14, color: '#a1a1a6' }} className="leading-none">Downloads</span>,
     },
     {
       label: "DEVELOPER",
       value: null,
       center: <User className="h-[18px] w-[18px] text-[#8e8e93]" strokeWidth={1.5} />,
-      bottom: <span style={{ fontSize: 13, color: '#6e6e73' }} className="leading-none truncate max-w-[80px]">{devFirstName}</span>,
+      bottom: <span style={{ fontSize: 14, color: '#a1a1a6' }} className="leading-none truncate max-w-[80px]">{devFirstName}</span>,
     },
     {
       label: "CATEGORY",
       value: null,
       center: <CategoryIcon category={category} className="h-[18px] w-[18px] text-[#8e8e93]" />,
-      bottom: <span style={{ fontSize: 13, color: '#6e6e73' }} className="leading-none">{category || "Other"}</span>,
+      bottom: <span style={{ fontSize: 14, color: '#a1a1a6' }} className="leading-none">{category || "Other"}</span>,
     },
     {
       label: "SIZE",
       value: sizeValue,
-      bottom: <span style={{ fontSize: 13, color: '#6e6e73' }} className="leading-none">{sizeUnit}</span>,
+      bottom: <span style={{ fontSize: 14, color: '#a1a1a6' }} className="leading-none">{sizeUnit}</span>,
     },
   ];
 
@@ -117,13 +117,13 @@ export function MetadataStrip({
         style={{
           display: 'flex',
           flexDirection: 'row',
-          gap: 0,
+          gap: 22,
           overflowX: 'auto',
           overflowY: 'hidden',
           paddingLeft: 16,
           paddingRight: 16,
-          paddingTop: 18,
-          paddingBottom: 18,
+          paddingTop: 16,
+          paddingBottom: 16,
           scrollSnapType: 'x mandatory',
           scrollBehavior: 'smooth',
           WebkitOverflowScrolling: 'touch',
@@ -135,24 +135,21 @@ export function MetadataStrip({
             key={index}
             className="flex flex-col items-center justify-between"
             style={{
-              minWidth: 120,
+              minWidth: 110,
               flexShrink: 0,
               textAlign: 'center',
               scrollSnapAlign: 'start',
-              paddingLeft: 14,
-              paddingRight: 14,
-              borderRight: 'none',
             }}
           >
             {/* Top label */}
-            <span style={{ fontSize: 11, fontWeight: 600, letterSpacing: '0.06em', color: '#8e8e93' }} className="uppercase leading-none">
+            <span style={{ fontSize: 12, fontWeight: 600, letterSpacing: '0.06em', color: '#8e8e93' }} className="uppercase leading-none">
               {item.label}
             </span>
 
             {/* Center: value or icon */}
-            <div className="my-1.5 flex items-center justify-center min-h-[26px]">
+            <div className="my-2 flex items-center justify-center min-h-[28px]">
               {item.value && (
-                <span className="text-foreground leading-none tracking-tight" style={{ fontSize: 20, fontWeight: 700 }}>
+                <span className="text-foreground leading-none tracking-tight" style={{ fontSize: 24, fontWeight: 700 }}>
                   {item.value}
                 </span>
               )}
@@ -160,7 +157,9 @@ export function MetadataStrip({
             </div>
 
             {/* Bottom */}
-            <div className="flex items-center justify-center">{item.bottom}</div>
+            <div className="flex items-center justify-center">
+              {item.bottom}
+            </div>
           </div>
         ))}
       </div>
