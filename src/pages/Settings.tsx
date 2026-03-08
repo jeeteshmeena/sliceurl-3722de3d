@@ -568,7 +568,7 @@ export default function Settings() {
             {/* Forgot Password Row */}
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <KeyRound className="h-4 w-4 text-neutral-500 dark:text-neutral-400" />
+                <KeyRound className="h-4 w-4 text-muted-foreground" />
                 <span className="text-sm text-neutral-700 dark:text-neutral-300">Forgot Password</span>
               </div>
               <Button
