@@ -137,11 +137,12 @@ export function SliceAppsSidebar() {
         </div>
       </div>
 
-      {/* Main Nav */}
+      {/* Navigation */}
       <nav className="px-2 space-y-0.5">
-        {mainNavItems.map((item) => (
+        {menuItems.map((item) => (
           <button
             key={item.label}
+            onClick={() => navigate(item.path)}
             className="w-full flex items-center gap-3 px-2.5 py-[7px] rounded-md text-left hover:bg-muted/50 transition-colors"
           >
             <item.icon className="h-[18px] w-[18px] text-[#007AFF]" strokeWidth={1.8} />
@@ -149,49 +150,6 @@ export function SliceAppsSidebar() {
           </button>
         ))}
       </nav>
-
-      {/* Divider */}
-      <div className="mx-4 my-3 border-t border-border/30" />
-
-      {/* Categories */}
-      <div className="px-2">
-        <p className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider mb-1.5 px-2.5">
-          Categories
-        </p>
-        <nav className="space-y-0.5">
-          {categoryItems.map((item) => (
-            <button
-              key={item.label}
-              className="w-full flex items-center gap-3 px-2.5 py-[7px] rounded-md text-left hover:bg-muted/50 transition-colors"
-            >
-              <item.icon className="h-[18px] w-[18px] text-[#007AFF]" strokeWidth={1.8} />
-              <span className="text-[13px] text-foreground">{item.label}</span>
-            </button>
-          ))}
-        </nav>
-      </div>
-
-      {/* Divider */}
-      <div className="mx-4 my-3 border-t border-border/30" />
-
-      {/* Navigate links */}
-      <div className="px-2 pb-6">
-        <p className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider mb-1.5 px-2.5">
-          Navigate
-        </p>
-        <nav className="space-y-0.5">
-          {menuItems.map((item) => (
-            <button
-              key={item.label}
-              onClick={() => navigate(item.path)}
-              className="w-full flex items-center gap-3 px-2.5 py-[7px] rounded-md text-left hover:bg-muted/50 transition-colors"
-            >
-              <item.icon className="h-[18px] w-[18px] text-[#007AFF]" strokeWidth={1.8} />
-              <span className="text-[13px] text-foreground">{item.label}</span>
-            </button>
-          ))}
-        </nav>
-      </div>
     </aside>
   );
 }
