@@ -83,75 +83,76 @@ export function MetadataStrip({
     {
       label: "AGE",
       value: ageRating,
-      bottom: <span className="text-[10px] text-muted-foreground leading-none">Years Old</span>,
+      bottom: <span style={{ fontSize: 13, color: '#6e6e73' }} className="leading-none">Years Old</span>,
     },
     {
       label: "CATEGORY",
       value: null,
-      center: <CategoryIcon category={category} className="h-[22px] w-[22px] text-muted-foreground" />,
-      bottom: <span className="text-[10px] text-muted-foreground leading-none">{category || "Other"}</span>,
+      center: <CategoryIcon category={category} className="h-[18px] w-[18px] text-[#8e8e93]" />,
+      bottom: <span style={{ fontSize: 13, color: '#6e6e73' }} className="leading-none">{category || "Other"}</span>,
     },
     {
       label: "DEVELOPER",
       value: null,
-      center: <User className="h-[22px] w-[22px] text-muted-foreground" strokeWidth={1.5} />,
-      bottom: <span className="text-[10px] text-muted-foreground leading-none truncate max-w-[80px]">{devFirstName}</span>,
+      center: <User className="h-[18px] w-[18px] text-[#8e8e93]" strokeWidth={1.5} />,
+      bottom: <span style={{ fontSize: 13, color: '#6e6e73' }} className="leading-none truncate max-w-[80px]">{devFirstName}</span>,
     },
     {
       label: "LANGUAGE",
       value: "EN",
-      bottom: <span className="text-[10px] text-muted-foreground leading-none">+ More</span>,
+      bottom: <span style={{ fontSize: 13, color: '#6e6e73' }} className="leading-none">+ More</span>,
     },
     {
       label: "SIZE",
       value: sizeValue,
-      bottom: <span className="text-[10px] text-muted-foreground leading-none">{sizeUnit}</span>,
+      bottom: <span style={{ fontSize: 13, color: '#6e6e73' }} className="leading-none">{sizeUnit}</span>,
     },
   ];
 
   return (
-    <div
-      className="border-t border-b border-border/30 bg-background"
-      style={{
-        overflowX: 'auto',
-        overflowY: 'hidden',
-        scrollSnapType: 'x mandatory',
-        scrollBehavior: 'smooth',
-        WebkitOverflowScrolling: 'touch',
-        scrollbarWidth: 'none',
-      }}
-    >
-      <style>{`.metadata-grid::-webkit-scrollbar { display: none; }`}</style>
+    <div className="border-t border-b border-border/30 bg-background">
+      <style>{`.metadata-row::-webkit-scrollbar { display: none; }`}</style>
       <div
-        className="metadata-grid"
+        className="metadata-row"
         style={{
-          display: 'grid',
-          gridAutoFlow: 'column',
-          gridTemplateRows: 'repeat(2, auto)',
+          display: 'flex',
+          flexDirection: 'row',
           gap: 0,
+          overflowX: 'auto',
+          overflowY: 'hidden',
+          paddingLeft: 16,
+          paddingRight: 16,
+          paddingTop: 18,
+          paddingBottom: 18,
+          scrollSnapType: 'x mandatory',
+          scrollBehavior: 'smooth',
+          WebkitOverflowScrolling: 'touch',
+          scrollbarWidth: 'none',
         }}
       >
         {items.map((item, index) => (
           <div
             key={index}
-            className="flex flex-col items-center justify-between py-3 lg:py-4 px-2 lg:px-4"
+            className="flex flex-col items-center justify-between"
             style={{
-              minWidth: 110,
+              minWidth: 120,
+              flexShrink: 0,
               textAlign: 'center',
               scrollSnapAlign: 'start',
-              borderRight: index % 3 !== 2 ? '1px solid hsl(var(--border) / 0.2)' : 'none',
-              borderBottom: index < 3 ? '1px solid hsl(var(--border) / 0.15)' : 'none',
+              paddingLeft: 14,
+              paddingRight: 14,
+              borderRight: index < items.length - 1 ? '1px solid hsl(var(--border) / 0.2)' : 'none',
             }}
           >
             {/* Top label */}
-            <span className="text-[10px] lg:text-[11px] font-medium text-muted-foreground uppercase tracking-wider leading-none">
+            <span style={{ fontSize: 11, fontWeight: 600, letterSpacing: '0.06em', color: '#8e8e93' }} className="uppercase leading-none">
               {item.label}
             </span>
 
             {/* Center: value or icon */}
             <div className="my-1.5 flex items-center justify-center min-h-[26px]">
               {item.value && (
-                <span className="text-[22px] lg:text-[26px] font-bold text-foreground leading-none tracking-tight">
+                <span className="text-foreground leading-none tracking-tight" style={{ fontSize: 20, fontWeight: 700 }}>
                   {item.value}
                 </span>
               )}
