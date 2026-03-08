@@ -247,7 +247,7 @@ export default function AppPage() {
 
           {/* Layer 2: Hero Section (mobile only) — App Store style */}
           <div
-            className="lg:hidden bg-gradient-to-b from-[#b0b0b4] to-[#8e8e93] dark:from-[#2c2c2e] dark:to-[#1c1c1e]"
+            className="lg:hidden bg-gradient-to-b from-[#b0b0b4] to-[#8e8e93] dark:from-[#2c2c2e] dark:to-[#1c1c1e] transition-all duration-500 ease-out"
             style={{
               paddingTop: 32,
               paddingBottom: 28,
