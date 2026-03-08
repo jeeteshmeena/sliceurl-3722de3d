@@ -21,7 +21,7 @@ import { SliceAppsHeader } from "@/components/sliceapps";
 const CATEGORIES = [
   "Games", "Social", "Productivity", "Entertainment", "Tools",
   "Education", "Finance", "Health & Fitness", "Music", "Photography",
-  "Shopping", "Travel", "Weather", "News", "Other",
+  "Shopping", "Travel", "Weather", "News", "Lifestyle", "Other",
 ];
 
 const AGE_RATINGS = ["4+", "9+", "12+", "17+", "18+"];
@@ -65,12 +65,18 @@ export default function CreateAppListing() {
 
   const [formData, setFormData] = useState({
     appName: fileData?.fileName.replace(/\.apk$/i, "") || "",
+    shortDescription: "",
     developerName: "",
+    developerUrl: "",
     category: "Other",
     ageRating: "4+",
     versionName: "1.0",
     versionCode: "1",
     fullDescription: "",
+    whatsNew: "",
+    website: "",
+    privacyPolicy: "",
+    supportEmail: "",
   });
 
   if (!fileData) {
@@ -239,20 +245,28 @@ export default function CreateAppListing() {
           file_id: fileRecord.id,
           owner_id: user.id,
           app_name: formData.appName.trim(),
+          short_description: formData.shortDescription.trim() || null,
           developer_name: formData.developerName.trim() || null,
           category: formData.category,
           version_name: formData.versionName || "1.0",
           version_code: formData.versionCode || "1",
           full_description: formData.fullDescription.trim() || null,
+          whats_new: formData.whatsNew.trim() || null,
           icon_url: iconPreview,
           screenshots: screenshots,
           promo_banner_url: null,
           short_code: shortCode,
-        })
+        } as any)
         .select("id, short_code")
         .single();
 
       if (listingError) throw listingError;
+
+      // Update the new columns separately (age_rating, developer_url)
+      await supabase.from("app_listings").update({
+        age_rating: formData.ageRating,
+        developer_url: formData.developerUrl.trim() || null,
+      } as any).eq("id", listing.id);
 
       if (fileRecord.service_type === "ls") {
         await supabase.from("slicebox_files").update({ expires_at: null }).eq("id", fileRecord.id);
@@ -295,7 +309,7 @@ export default function CreateAppListing() {
         
         <div className="flex items-center justify-center p-4 pt-20">
           <div className="w-full max-w-md p-8 text-center">
-            <div className="w-16 h-16 rounded-full mx-auto mb-5 flex items-center justify-center bg-green-500">
+            <div className="w-16 h-16 rounded-full mx-auto mb-5 flex items-center justify-center" style={{ background: '#0A84FF' }}>
               <Check className="h-8 w-8 text-white" />
             </div>
             
@@ -307,16 +321,18 @@ export default function CreateAppListing() {
               <button
                 onClick={() => setSelectedLinkType("short")}
                 className={`flex-1 h-10 rounded-lg text-sm font-medium transition-colors ${
-                  selectedLinkType === "short" ? "bg-green-500 text-white" : "bg-muted text-muted-foreground"
+                  selectedLinkType === "short" ? "text-white" : "bg-muted text-muted-foreground"
                 }`}
+                style={selectedLinkType === "short" ? { background: '#0A84FF' } : {}}
               >
                 Short Link
               </button>
               <button
                 onClick={() => setSelectedLinkType("named")}
                 className={`flex-1 h-10 rounded-lg text-sm font-medium transition-colors ${
-                  selectedLinkType === "named" ? "bg-green-500 text-white" : "bg-muted text-muted-foreground"
+                  selectedLinkType === "named" ? "text-white" : "bg-muted text-muted-foreground"
                 }`}
+                style={selectedLinkType === "named" ? { background: '#0A84FF' } : {}}
               >
                 Named Link
               </button>
@@ -343,13 +359,14 @@ export default function CreateAppListing() {
                       onClick={handleSaveSlug}
                       disabled={slugAvailable !== true || isCheckingSlug}
                       size="sm"
-                      className="bg-green-500 hover:bg-green-600 text-white px-4"
+                      className="text-white px-4"
+                      style={{ background: '#0A84FF' }}
                     >
                       Save
                     </Button>
                   </div>
                   {isCheckingSlug && <p className="text-xs text-muted-foreground">Checking availability...</p>}
-                  {slugAvailable === true && <p className="text-xs text-green-500">Available</p>}
+                  {slugAvailable === true && <p className="text-xs" style={{ color: '#0A84FF' }}>Available</p>}
                   {slugAvailable === false && <p className="text-xs text-destructive">Not available</p>}
                   <div className="p-3 rounded-lg font-mono text-xs break-all bg-muted/50 text-muted-foreground">
                     {`${getBaseUrl()}/app/${generateSlug(customSlug) || "..."}`}
@@ -362,7 +379,8 @@ export default function CreateAppListing() {
             <div className="flex gap-3">
               <Button
                 onClick={handleCopyLink}
-                className="flex-1 h-12 rounded-xl font-medium bg-green-500 hover:bg-green-600 text-white"
+                className="flex-1 h-12 rounded-xl font-medium text-white"
+                style={{ background: '#0A84FF' }}
               >
                 {copiedLink ? (
                   <><Check className="h-4 w-4 mr-2" />Copied</>
@@ -388,144 +406,180 @@ export default function CreateAppListing() {
     <div className="min-h-dvh bg-background">
       <SliceAppsHeader />
 
-      <main className="max-w-3xl mx-auto px-4 py-8">
+      <main className="max-w-2xl mx-auto px-4 py-8">
         {/* File info pill */}
-        <div className="inline-flex items-center gap-2 px-3 py-2 rounded-full mb-8 bg-muted">
+        <div className="inline-flex items-center gap-2 px-3 py-2 rounded-full mb-6 bg-muted">
           <span className="text-sm text-muted-foreground">
-            {fileData.fileName} - {formatFileSize(fileData.fileSize)}
+            {fileData.fileName} — {formatFileSize(fileData.fileSize)}
           </span>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-10">
+        <h1 className="text-2xl font-bold text-foreground mb-8">Create App Page</h1>
+
+        <form onSubmit={handleSubmit} className="space-y-8">
           {/* App Icon */}
-          <section className="space-y-4">
-            <Label className="text-base font-medium text-foreground">App Icon</Label>
+          <section className="space-y-3">
+            <Label className="text-[15px] font-medium text-foreground">App Icon</Label>
             <div className="flex items-center gap-5">
               <div
                 onClick={() => iconInputRef.current?.click()}
-                className="w-28 h-28 rounded-2xl border flex items-center justify-center cursor-pointer transition-colors overflow-hidden bg-muted border-border hover:border-border/80"
+                className="w-24 h-24 rounded-[20px] border flex items-center justify-center cursor-pointer transition-colors overflow-hidden bg-muted border-border hover:border-border/80"
               >
                 {iconPreview ? (
                   <img src={iconPreview} alt="Icon" className="w-full h-full object-cover" />
                 ) : (
-                  <ImageIcon className="h-10 w-10 text-muted-foreground/50" />
+                  <ImageIcon className="h-8 w-8 text-muted-foreground/40" />
                 )}
               </div>
               <div>
-                <p className="text-sm text-muted-foreground">512x512 PNG or JPG</p>
-                <p className="text-xs mt-1 text-muted-foreground/70">Max 2MB</p>
+                <p className="text-sm text-muted-foreground">512×512 PNG or JPG</p>
+                <p className="text-xs mt-1 text-muted-foreground/60">Max 2MB</p>
               </div>
             </div>
             <input ref={iconInputRef} type="file" accept="image/png,image/jpeg" className="hidden" onChange={handleIconChange} />
           </section>
 
           {/* App Name */}
-          <section className="space-y-3">
-            <Label className="text-base font-medium text-foreground">App Name *</Label>
+          <section className="space-y-2">
+            <Label className="text-[15px] font-medium text-foreground">App Name <span className="text-destructive">*</span></Label>
             <Input
               value={formData.appName}
               onChange={(e) => setFormData(prev => ({ ...prev, appName: e.target.value }))}
               placeholder="My Awesome App"
               required
-              className="h-14 text-base border rounded-xl px-4 bg-muted border-border text-foreground"
+              className="h-12 text-[15px] border rounded-xl px-4 bg-muted border-border text-foreground"
             />
           </section>
 
-          {/* Developer Name */}
-          <section className="space-y-3">
-            <Label className="text-base font-medium text-foreground">Developer Name</Label>
+          {/* Short Description */}
+          <section className="space-y-2">
+            <Label className="text-[15px] font-medium text-foreground">Short Description</Label>
+            <p className="text-xs text-muted-foreground/60">Used as subtitle on the app page hero</p>
             <Input
-              value={formData.developerName}
-              onChange={(e) => setFormData(prev => ({ ...prev, developerName: e.target.value }))}
-              placeholder="Your name or company"
-              className="h-14 text-base border rounded-xl px-4 bg-muted border-border text-foreground"
+              value={formData.shortDescription}
+              onChange={(e) => setFormData(prev => ({ ...prev, shortDescription: e.target.value }))}
+              placeholder="A brief one-liner about your app"
+              maxLength={100}
+              className="h-12 text-[15px] border rounded-xl px-4 bg-muted border-border text-foreground"
             />
           </section>
 
-          {/* Category */}
-          <section className="space-y-3">
-            <Label className="text-base font-medium text-foreground">Category</Label>
-            <Select value={formData.category} onValueChange={(value) => setFormData(prev => ({ ...prev, category: value }))}>
-              <SelectTrigger className="h-14 text-base border rounded-xl px-4 bg-muted border-border text-foreground">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent className="bg-popover border-border">
-                {CATEGORIES.map(cat => (
-                  <SelectItem key={cat} value={cat} className="text-foreground">{cat}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+          {/* Developer Name & Profile Link */}
+          <section className="space-y-4">
+            <div className="space-y-2">
+              <Label className="text-[15px] font-medium text-foreground">Developer Name</Label>
+              <Input
+                value={formData.developerName}
+                onChange={(e) => setFormData(prev => ({ ...prev, developerName: e.target.value }))}
+                placeholder="Your name or company"
+                className="h-12 text-[15px] border rounded-xl px-4 bg-muted border-border text-foreground"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label className="text-[15px] font-medium text-foreground">Developer Profile Link</Label>
+              <Input
+                value={formData.developerUrl}
+                onChange={(e) => setFormData(prev => ({ ...prev, developerUrl: e.target.value }))}
+                placeholder="https://yourwebsite.com"
+                type="url"
+                className="h-12 text-[15px] border rounded-xl px-4 bg-muted border-border text-foreground"
+              />
+            </div>
           </section>
 
-          {/* Age Rating (NEW) */}
-          <section className="space-y-3">
-            <Label className="text-base font-medium text-foreground">Age Rating</Label>
-            <Select value={formData.ageRating} onValueChange={(value) => setFormData(prev => ({ ...prev, ageRating: value }))}>
-              <SelectTrigger className="h-14 text-base border rounded-xl px-4 bg-muted border-border text-foreground">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent className="bg-popover border-border">
-                {AGE_RATINGS.map(age => (
-                  <SelectItem key={age} value={age} className="text-foreground">{age}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+          {/* Category & Age Rating side by side */}
+          <section className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label className="text-[15px] font-medium text-foreground">Category</Label>
+              <Select value={formData.category} onValueChange={(value) => setFormData(prev => ({ ...prev, category: value }))}>
+                <SelectTrigger className="h-12 text-[15px] border rounded-xl px-4 bg-muted border-border text-foreground">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent className="bg-popover border-border">
+                  {CATEGORIES.map(cat => (
+                    <SelectItem key={cat} value={cat} className="text-foreground">{cat}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label className="text-[15px] font-medium text-foreground">Age Rating</Label>
+              <Select value={formData.ageRating} onValueChange={(value) => setFormData(prev => ({ ...prev, ageRating: value }))}>
+                <SelectTrigger className="h-12 text-[15px] border rounded-xl px-4 bg-muted border-border text-foreground">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent className="bg-popover border-border">
+                  {AGE_RATINGS.map(age => (
+                    <SelectItem key={age} value={age} className="text-foreground">{age}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           </section>
 
           {/* Version */}
-          <section className="space-y-3">
-            <Label className="text-base font-medium text-foreground">Version</Label>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label className="text-sm text-muted-foreground">Version Name</Label>
-                <Input
-                  value={formData.versionName}
-                  onChange={(e) => setFormData(prev => ({ ...prev, versionName: e.target.value }))}
-                  placeholder="1.0"
-                  className="h-14 text-base border rounded-xl px-4 bg-muted border-border text-foreground"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label className="text-sm text-muted-foreground">Version Code</Label>
-                <Input
-                  value={formData.versionCode}
-                  onChange={(e) => setFormData(prev => ({ ...prev, versionCode: e.target.value }))}
-                  placeholder="1"
-                  className="h-14 text-base border rounded-xl px-4 bg-muted border-border text-foreground"
-                />
-              </div>
+          <section className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label className="text-[15px] font-medium text-foreground">Version Name</Label>
+              <Input
+                value={formData.versionName}
+                onChange={(e) => setFormData(prev => ({ ...prev, versionName: e.target.value }))}
+                placeholder="1.0"
+                className="h-12 text-[15px] border rounded-xl px-4 bg-muted border-border text-foreground"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label className="text-[15px] font-medium text-foreground">Version Code</Label>
+              <Input
+                value={formData.versionCode}
+                onChange={(e) => setFormData(prev => ({ ...prev, versionCode: e.target.value }))}
+                placeholder="1"
+                className="h-12 text-[15px] border rounded-xl px-4 bg-muted border-border text-foreground"
+              />
             </div>
           </section>
 
           {/* Description */}
-          <section className="space-y-3">
-            <Label className="text-base font-medium text-foreground">Description</Label>
+          <section className="space-y-2">
+            <Label className="text-[15px] font-medium text-foreground">Description</Label>
             <Textarea
               value={formData.fullDescription}
               onChange={(e) => setFormData(prev => ({ ...prev, fullDescription: e.target.value }))}
-              placeholder="Describe your app..."
+              placeholder="Describe your app in detail..."
               rows={5}
-              className="text-base border rounded-xl px-4 py-4 resize-none bg-muted border-border text-foreground"
+              className="text-[15px] border rounded-xl px-4 py-3 resize-none bg-muted border-border text-foreground"
+            />
+          </section>
+
+          {/* What's New / Release Notes */}
+          <section className="space-y-2">
+            <Label className="text-[15px] font-medium text-foreground">Release Notes</Label>
+            <Textarea
+              value={formData.whatsNew}
+              onChange={(e) => setFormData(prev => ({ ...prev, whatsNew: e.target.value }))}
+              placeholder="What's new in this version..."
+              rows={3}
+              className="text-[15px] border rounded-xl px-4 py-3 resize-none bg-muted border-border text-foreground"
             />
           </section>
 
           {/* Screenshots */}
-          <section className="space-y-4">
+          <section className="space-y-3">
             <div className="flex items-center justify-between">
-              <Label className="text-base font-medium text-foreground">Screenshots</Label>
-              <span className="text-sm text-muted-foreground">{screenshots.length}/8</span>
+              <Label className="text-[15px] font-medium text-foreground">Screenshots</Label>
+              <span className="text-xs text-muted-foreground">{screenshots.length}/8</span>
             </div>
             <div
               onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
               onDragLeave={() => setIsDragging(false)}
               onDrop={handleScreenshotDrop}
               className={`rounded-xl border p-4 transition-colors ${
-                isDragging ? "border-green-500 bg-green-50 dark:bg-green-900/20" : "border-border bg-muted"
+                isDragging ? "border-[#0A84FF] bg-[#0A84FF]/5" : "border-border bg-muted"
               }`}
             >
               {screenshots.length === 0 ? (
-                <div onClick={() => screenshotInputRef.current?.click()} className="flex flex-col items-center justify-center py-12 cursor-pointer">
-                  <Upload className="h-10 w-10 mb-3 text-muted-foreground/50" />
+                <div onClick={() => screenshotInputRef.current?.click()} className="flex flex-col items-center justify-center py-10 cursor-pointer">
+                  <Upload className="h-8 w-8 mb-3 text-muted-foreground/40" />
                   <p className="text-sm mb-1 text-foreground">Drop screenshots here or tap to upload</p>
                   <p className="text-xs text-muted-foreground">Up to 8 screenshots, max 5MB each</p>
                 </div>
@@ -536,22 +590,22 @@ export default function CreateAppListing() {
                       draggable onDragStart={() => handleScreenshotDragStart(index)}
                       onDragOver={(e) => handleScreenshotDragOver(e, index)} onDragEnd={handleScreenshotDragEnd}
                     >
-                      <img src={url} alt={`Screenshot ${index + 1}`} className="w-32 h-56 object-cover rounded-xl border border-border" loading="lazy" />
+                      <img src={url} alt={`Screenshot ${index + 1}`} className="w-28 h-52 object-cover rounded-xl border border-border" loading="lazy" />
                       <div className="absolute top-2 left-2 opacity-0 group-hover:opacity-100 transition-opacity cursor-grab text-white">
                         <GripVertical className="h-4 w-4" />
                       </div>
                       <button type="button" onClick={() => removeScreenshot(index)}
-                        className="absolute -top-2 -right-2 w-7 h-7 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-foreground text-background"
+                        className="absolute -top-2 -right-2 w-6 h-6 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-foreground text-background"
                       >
-                        <X className="h-4 w-4" />
+                        <X className="h-3.5 w-3.5" />
                       </button>
                     </div>
                   ))}
                   {screenshots.length < 8 && (
                     <div onClick={() => screenshotInputRef.current?.click()}
-                      className="w-32 h-56 rounded-xl border flex flex-col items-center justify-center cursor-pointer flex-shrink-0 transition-colors border-border bg-background hover:border-border/80"
+                      className="w-28 h-52 rounded-xl border flex flex-col items-center justify-center cursor-pointer flex-shrink-0 transition-colors border-border bg-background hover:border-border/80"
                     >
-                      <Upload className="h-6 w-6 mb-2 text-muted-foreground/50" />
+                      <Upload className="h-5 w-5 mb-2 text-muted-foreground/40" />
                       <span className="text-xs text-muted-foreground">Add more</span>
                     </div>
                   )}
@@ -561,9 +615,50 @@ export default function CreateAppListing() {
             <input ref={screenshotInputRef} type="file" accept="image/png,image/jpeg" multiple className="hidden" onChange={handleScreenshotAdd} />
           </section>
 
+          {/* Additional Details (collapsible) */}
+          <details className="group">
+            <summary className="text-[15px] font-medium text-foreground cursor-pointer list-none flex items-center gap-2">
+              <span>Additional Details</span>
+              <span className="text-xs text-muted-foreground">(optional)</span>
+            </summary>
+            <div className="mt-4 space-y-4">
+              <div className="space-y-2">
+                <Label className="text-[15px] font-medium text-foreground">Website</Label>
+                <Input
+                  value={formData.website}
+                  onChange={(e) => setFormData(prev => ({ ...prev, website: e.target.value }))}
+                  placeholder="https://myapp.com"
+                  type="url"
+                  className="h-12 text-[15px] border rounded-xl px-4 bg-muted border-border text-foreground"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label className="text-[15px] font-medium text-foreground">Privacy Policy</Label>
+                <Input
+                  value={formData.privacyPolicy}
+                  onChange={(e) => setFormData(prev => ({ ...prev, privacyPolicy: e.target.value }))}
+                  placeholder="https://myapp.com/privacy"
+                  type="url"
+                  className="h-12 text-[15px] border rounded-xl px-4 bg-muted border-border text-foreground"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label className="text-[15px] font-medium text-foreground">Support Email</Label>
+                <Input
+                  value={formData.supportEmail}
+                  onChange={(e) => setFormData(prev => ({ ...prev, supportEmail: e.target.value }))}
+                  placeholder="support@myapp.com"
+                  type="email"
+                  className="h-12 text-[15px] border rounded-xl px-4 bg-muted border-border text-foreground"
+                />
+              </div>
+            </div>
+          </details>
+
           {/* Submit */}
           <Button type="submit" disabled={isSubmitting}
-            className="w-full h-14 text-base font-semibold rounded-2xl bg-green-500 hover:bg-green-600 text-white"
+            className="w-full h-14 text-base font-semibold rounded-2xl text-white"
+            style={{ background: '#0A84FF' }}
           >
             {isSubmitting ? "Publishing..." : "Publish App Page"}
           </Button>
