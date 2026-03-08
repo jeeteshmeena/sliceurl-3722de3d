@@ -688,7 +688,7 @@ export default function Settings() {
                 <PopoverContent 
                   align="end" 
                   sideOffset={4}
-                  className="w-44 p-1 bg-white dark:bg-neutral-900 border-neutral-200 dark:border-neutral-700"
+                  className="w-44 p-1 bg-popover border-border"
                 >
                   <ScrollArea className="h-48">
                     {LANGUAGES.map((lang) => (
