@@ -123,7 +123,7 @@ export function MetadataStrip({
         {items.map((item, index) => (
           <div
             key={index}
-            className="flex flex-col items-center justify-between"
+            className="flex flex-col items-center justify-between transition-transform duration-200 ease-out hover:scale-105 active:scale-95 cursor-default select-none"
             style={{
               minWidth: 110,
               flexShrink: 0,
