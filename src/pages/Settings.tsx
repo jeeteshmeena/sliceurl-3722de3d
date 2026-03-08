@@ -817,7 +817,7 @@ export default function Settings() {
       {/* PASSWORD DIALOG */}
       {/* ═══════════════════════════════════════════════════════════════════════ */}
       <Dialog open={passwordDialogOpen} onOpenChange={setPasswordDialogOpen}>
-        <DialogContent className="bg-white dark:bg-neutral-900 border-neutral-200 dark:border-neutral-800 sm:max-w-md">
+        <DialogContent className="bg-popover border-border sm:max-w-md">
           <DialogHeader className="space-y-3">
             <DialogTitle>
               {hasPassword ? "Change Password" : "Set Password"}
