@@ -24,7 +24,7 @@ const initialState: ThemeProviderState = {
 
 const ThemeProviderContext = createContext<ThemeProviderState>(initialState);
 
-const CUSTOM_THEMES = ["maggie", "racing", "meridian"] as const;
+const CUSTOM_THEMES = ["maggie", "racing", "meridian", "designgud"] as const;
 
 export function ThemeProvider({
   children,
