@@ -1,7 +1,6 @@
 import {
   Star,
-  ArrowDownCircle,
-  HardDrive,
+  Download,
   User,
   Gamepad2,
   Briefcase,
@@ -12,8 +11,6 @@ import {
   LayoutGrid,
   Music,
   Clapperboard,
-  Camera,
-  ShoppingBag,
 } from "lucide-react";
 
 interface MetadataStripProps {
@@ -26,41 +23,41 @@ interface MetadataStripProps {
   developer: string;
 }
 
-function CategoryIcon({ category, className }: { category: string; className?: string }) {
+function CategoryIcon({ category }: { category: string }) {
+  const cls = "h-6 w-6 text-foreground fill-foreground";
   const cat = category.toLowerCase();
-  if (cat.includes("music")) return <Music className={className} fill="currentColor" strokeWidth={0} />;
-  if (cat.includes("entertainment")) return <Clapperboard className={className} fill="currentColor" strokeWidth={0} />;
-  if (cat.includes("game") || cat.includes("action")) return <Gamepad2 className={className} fill="currentColor" strokeWidth={0} />;
-  if (cat.includes("productiv") || cat.includes("finance")) return <Briefcase className={className} fill="currentColor" strokeWidth={0} />;
-  if (cat.includes("tool") || cat.includes("utilit")) return <Wrench className={className} fill="currentColor" strokeWidth={0} />;
-  if (cat.includes("social")) return <Users className={className} fill="currentColor" strokeWidth={0} />;
-  if (cat.includes("education")) return <BookOpen className={className} fill="currentColor" strokeWidth={0} />;
-  if (cat.includes("photo")) return <Camera className={className} fill="currentColor" strokeWidth={0} />;
-  if (cat.includes("shop")) return <ShoppingBag className={className} fill="currentColor" strokeWidth={0} />;
-  if (cat.includes("utilit")) return <Settings className={className} fill="currentColor" strokeWidth={0} />;
-  return <LayoutGrid className={className} fill="currentColor" strokeWidth={0} />;
+  if (cat.includes("music")) return <Music className={cls} strokeWidth={0} />;
+  if (cat.includes("entertainment")) return <Clapperboard className={cls} strokeWidth={0} />;
+  if (cat.includes("game") || cat.includes("action")) return <Gamepad2 className={cls} strokeWidth={0} />;
+  if (cat.includes("productiv")) return <Briefcase className={cls} strokeWidth={0} />;
+  if (cat.includes("tool")) return <Wrench className={cls} strokeWidth={0} />;
+  if (cat.includes("social")) return <Users className={cls} strokeWidth={0} />;
+  if (cat.includes("education")) return <BookOpen className={cls} strokeWidth={0} />;
+  if (cat.includes("utilit")) return <Settings className={cls} strokeWidth={0} />;
+  return <LayoutGrid className={cls} strokeWidth={0} />;
 }
 
-interface MetadataItemProps {
-  label: string;
-  value: string;
-  subElement?: React.ReactNode;
-}
-
-function MetadataItem({ label, value, subElement }: MetadataItemProps) {
+function StarRow({ rating }: { rating: number }) {
+  const rounded = Math.round(rating);
   return (
-    <div className="flex flex-col items-center justify-start w-[calc(100%/3)] flex-shrink-0 snap-start py-3">
-      <span className="text-[10px] font-medium tracking-wider text-muted-foreground uppercase mb-1.5">
-        {label}
-      </span>
-      <span className="text-lg font-bold text-foreground leading-none mb-1.5">
-        {value}
-      </span>
-      {subElement && (
-        <div className="min-h-[18px] flex items-center">{subElement}</div>
-      )}
+    <div className="flex gap-px">
+      {[1, 2, 3, 4, 5].map((s) => (
+        <Star
+          key={s}
+          className={`h-3 w-3 ${s <= rounded ? "fill-current text-foreground" : "text-muted-foreground/30 fill-muted-foreground/10"}`}
+          strokeWidth={0}
+        />
+      ))}
     </div>
   );
+}
+
+function formatRatingCount(count: number | null): string {
+  if (!count || count === 0) return "";
+  if (count >= 1000000) return `${(count / 1000000).toFixed(1)}M Ratings`;
+  if (count >= 1000) return `${(count / 1000).toFixed(1)}K Ratings`;
+  if (count >= 100) return `${count}+ Ratings`;
+  return `${count} Ratings`;
 }
 
 export function MetadataStrip({
@@ -72,76 +69,64 @@ export function MetadataStrip({
   category,
   developer,
 }: MetadataStripProps) {
-  const starIcons = (count: number) => (
-    <div className="flex gap-0.5">
-      {[1, 2, 3, 4, 5].map(s => (
-        <Star
-          key={s}
-          className={`h-3 w-3 ${s <= Math.round(count) ? "fill-current text-foreground" : "text-muted-foreground/30"}`}
-          strokeWidth={0}
-        />
-      ))}
-    </div>
-  );
-
-  const formatRatingCount = (count: number | null): string => {
-    if (!count || count === 0) return "";
-    if (count >= 1000000) return `${(count / 1000000).toFixed(1)}M Ratings`;
-    if (count >= 1000) return `${(count / 1000).toFixed(1)}K Ratings`;
-    return `${count} Ratings`;
-  };
-
-  const items = [
-    {
-      label: "RATINGS",
-      value: ratingAvg?.toFixed(1) || "0.0",
-      subElement: (
-        <div className="flex flex-col items-center gap-0.5">
-          {starIcons(ratingAvg || 0)}
-          {ratingCount && ratingCount > 0 && (
-            <span className="text-[9px] text-muted-foreground">{formatRatingCount(ratingCount)}</span>
-          )}
-        </div>
-      ),
-    },
-    {
-      label: "AGES",
-      value: ageRating,
-      subElement: <span className="text-[10px] text-muted-foreground/60">Years Old</span>,
-    },
-    {
-      label: "CATEGORY",
-      value: category || "Other",
-      subElement: <CategoryIcon category={category} className="h-5 w-5 text-muted-foreground" />,
-    },
-    {
-      label: "DEVELOPER",
-      value: developer?.length > 12 ? developer.substring(0, 12) + "…" : (developer || "Unknown"),
-      subElement: <User className="h-5 w-5 text-muted-foreground" fill="currentColor" strokeWidth={0} />,
-    },
-    {
-      label: "SIZE",
-      value: fileSize,
-      subElement: <HardDrive className="h-5 w-5 text-muted-foreground" fill="currentColor" strokeWidth={0} />,
-    },
-    {
-      label: "DOWNLOADS",
-      value: downloads,
-      subElement: <ArrowDownCircle className="h-5 w-5 text-muted-foreground" fill="currentColor" strokeWidth={0} />,
-    },
-  ];
+  const devFirstWord = developer ? developer.split(" ")[0] : "Unknown";
 
   return (
-    <div className="overflow-x-auto overflow-y-hidden scrollbar-hide -mx-4 px-4 scroll-smooth">
-      <div className="flex w-[200%] snap-x snap-mandatory">
-        {items.map((item) => (
-          <MetadataItem
-            key={item.label}
-            label={item.label}
-            value={item.value}
-            subElement={item.subElement}
-          />
-        ))}
+    <div className="mt-5 overflow-x-auto overflow-y-hidden scrollbar-hide -mx-4 px-4 scroll-smooth">
+      <div className="flex snap-x snap-mandatory">
+        {/* RATINGS */}
+        <div className="flex flex-col items-center justify-between min-w-[110px] w-[110px] flex-shrink-0 snap-start py-3 px-2">
+          <span className="text-[11px] font-medium tracking-wider text-muted-foreground uppercase">Ratings</span>
+          <span className="text-[22px] font-semibold text-foreground mt-1 whitespace-nowrap leading-tight">
+            {ratingAvg?.toFixed(1) || "0.0"}
+          </span>
+          <div className="mt-1 flex flex-col items-center gap-0.5">
+            <StarRow rating={ratingAvg || 0} />
+            {ratingCount && ratingCount > 0 && (
+              <span className="text-[11px] text-muted-foreground text-center leading-tight">{formatRatingCount(ratingCount)}</span>
+            )}
+          </div>
+        </div>
+
+        {/* AGES */}
+        <div className="flex flex-col items-center justify-between min-w-[110px] w-[110px] flex-shrink-0 snap-start py-3 px-2">
+          <span className="text-[11px] font-medium tracking-wider text-muted-foreground uppercase">Ages</span>
+          <span className="text-[22px] font-semibold text-foreground mt-1 whitespace-nowrap leading-tight">{ageRating}</span>
+          <span className="mt-1 text-[11px] text-muted-foreground text-center leading-tight">Years Old</span>
+        </div>
+
+        {/* CATEGORY */}
+        <div className="flex flex-col items-center justify-between min-w-[110px] w-[110px] flex-shrink-0 snap-start py-3 px-2">
+          <span className="text-[11px] font-medium tracking-wider text-muted-foreground uppercase">Category</span>
+          <div className="mt-1">
+            <CategoryIcon category={category} />
+          </div>
+          <span className="mt-1 text-[11px] text-muted-foreground text-center leading-tight">{category || "Other"}</span>
+        </div>
+
+        {/* DEVELOPER */}
+        <div className="flex flex-col items-center justify-between min-w-[110px] w-[110px] flex-shrink-0 snap-start py-3 px-2">
+          <span className="text-[11px] font-medium tracking-wider text-muted-foreground uppercase">Developer</span>
+          <div className="mt-1">
+            <User className="h-6 w-6 text-foreground fill-foreground" strokeWidth={0} />
+          </div>
+          <span className="mt-1 text-[11px] text-muted-foreground text-center leading-tight">{devFirstWord}</span>
+        </div>
+
+        {/* SIZE */}
+        <div className="flex flex-col items-center justify-between min-w-[110px] w-[110px] flex-shrink-0 snap-start py-3 px-2">
+          <span className="text-[11px] font-medium tracking-wider text-muted-foreground uppercase">Size</span>
+          <span className="text-[22px] font-semibold text-foreground mt-1 whitespace-nowrap leading-tight">{fileSize || "--"}</span>
+        </div>
+
+        {/* DOWNLOADS */}
+        <div className="flex flex-col items-center justify-between min-w-[110px] w-[110px] flex-shrink-0 snap-start py-3 px-2">
+          <span className="text-[11px] font-medium tracking-wider text-muted-foreground uppercase">Downloads</span>
+          <div className="flex items-center gap-1 mt-1">
+            <Download className="h-4 w-4 text-foreground fill-foreground" strokeWidth={0} />
+            <span className="text-[22px] font-semibold text-foreground whitespace-nowrap leading-tight">{downloads}</span>
+          </div>
+        </div>
       </div>
     </div>
   );
