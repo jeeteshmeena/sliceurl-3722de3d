@@ -836,7 +836,7 @@ export default function Settings() {
                   type="password"
                   value={currentPassword}
                   onChange={(e) => setCurrentPassword(e.target.value)}
-                  className="bg-white dark:bg-neutral-800"
+                  className="bg-card"
                 />
               </div>
             )}
