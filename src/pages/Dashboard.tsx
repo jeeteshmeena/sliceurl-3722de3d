@@ -97,7 +97,7 @@ const Dashboard = () => {
     }
 
     if (filters.pinned) {
-      result = result.filter(l => (l as any).is_pinned);
+      result = result.filter(l => l.is_pinned);
     }
 
     // Sort: pinned first, then by created_at
