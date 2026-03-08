@@ -8,7 +8,7 @@ import { useLanguage } from "@/lib/i18n";
 
 const STORAGE_KEY = "sliceurl_pwa_prompt_dismissed";
 const POPUP_ID = "pwa-install";
-const SHOW_DELAY_MS = 4000;
+const SHOW_DELAY_MS = 120000;
 const AUTO_HIDE_MS = 5000;
 
 interface BeforeInstallPromptEvent extends Event {
