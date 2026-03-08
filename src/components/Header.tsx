@@ -225,10 +225,10 @@ export function Header() {
               {isAdmin && (
                 <button
                   onClick={() => navigate("/admin/inbox")}
-                  className="h-9 w-9 flex items-center justify-center text-foreground/80 hover:text-foreground transition-colors relative"
+                  className="h-[42px] w-[42px] flex items-center justify-center rounded-full text-foreground/70 hover:text-foreground hover:bg-foreground/[0.06] active:scale-[0.96] transition-all duration-150 relative"
                   aria-label="Admin Inbox"
                 >
-                  <Bell className="h-[18px] w-[18px]" />
+                  <Bell className="h-5 w-5" strokeWidth={1.7} />
                   {unreadCount > 0 && (
                     <span className="absolute -top-0.5 -right-0.5 h-4 min-w-[16px] px-1 flex items-center justify-center bg-destructive text-destructive-foreground text-[10px] font-bold rounded-full">
                       {unreadCount > 99 ? "99+" : unreadCount}
