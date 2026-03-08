@@ -216,11 +216,9 @@ export function Header() {
             <>
               {/* Admin Notification Bell - Clean icon, no pill background */}
               {isAdmin && (
-                <Button
-                  variant="ghost"
-                  size="icon"
+                <button
                   onClick={() => navigate("/admin/inbox")}
-                  className="h-9 w-9 rounded-full relative hover:bg-muted/50"
+                  className="h-9 w-9 flex items-center justify-center text-foreground/80 hover:text-foreground transition-colors relative"
                   aria-label="Admin Inbox"
                 >
                   <Bell className="h-[18px] w-[18px]" />
@@ -229,7 +227,7 @@ export function Header() {
                       {unreadCount > 99 ? "99+" : unreadCount}
                     </span>
                   )}
-                </Button>
+                </button>
               )}
               
               {/* Separator - only visible on desktop */}
