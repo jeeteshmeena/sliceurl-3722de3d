@@ -97,6 +97,10 @@ export function Header() {
     setTheme(resolvedTheme === "dark" ? "light" : "dark");
   };
 
+  const handleStyleToggle = () => {
+    setStyleTheme(styleTheme === "classic" ? "ctrl" : "classic");
+  };
+
   const handleLogout = async () => {
     await signOut();
     navigate("/login");
