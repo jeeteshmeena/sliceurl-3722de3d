@@ -231,7 +231,7 @@ export default function AppPage() {
     );
   }
 
-  const actualDownloads = fileInfo?.download_count || 0;
+  const actualDownloads = app?.total_downloads || fileInfo?.download_count || 0;
 
   return (
     <div className="min-h-dvh bg-background flex">
