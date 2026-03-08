@@ -82,6 +82,7 @@ Deno.serve(async (req) => {
         user_id: userId,
         ip_address: ipAddress,
         browser_fingerprint: browserFingerprint || null,
+        display_name: displayName?.trim() || null,
       })
       .select()
       .single();
