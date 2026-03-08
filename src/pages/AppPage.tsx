@@ -346,6 +346,7 @@ export default function AppPage() {
                 transition={{ duration: 0.2 }}
               >
                 <button
+                  data-theme-transition
                   onClick={handleDownload}
                   disabled={isDownloading || !fileInfo || !!fileUnavailable}
                   className="disabled:opacity-40 active:opacity-80 transition-all duration-500 ease-out"
