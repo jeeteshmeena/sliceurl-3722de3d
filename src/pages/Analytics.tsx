@@ -168,32 +168,32 @@ const Analytics = () => {
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2 sm:gap-3">
               {[
                 { 
-                  label: "Total Clicks", 
+                  label: t("analytics_total_clicks"), 
                   value: summary.totalClicks, 
                   icon: MousePointer,
                   trend: { current: trendStats.currentTotal, previous: trendStats.previousTotal }
                 },
                 { 
-                  label: "Unique Visitors", 
+                  label: t("unique_visitors"), 
                   value: summary.uniqueClicks, 
                   icon: Users,
                   trend: { current: trendStats.currentUnique, previous: trendStats.previousUnique }
                 },
                 { 
-                  label: "Conversion", 
+                  label: t("conversion"), 
                   value: ctr, 
                   icon: Activity, 
                   isPercent: true,
                   trend: null
                 },
                 { 
-                  label: "Countries", 
+                  label: t("analytics_countries"), 
                   value: summary.countryStats.length, 
                   icon: Globe,
                   trend: null
                 },
                 { 
-                  label: "Cities", 
+                  label: t("cities"), 
                   value: cityStats.length, 
                   icon: MapPin,
                   trend: null
