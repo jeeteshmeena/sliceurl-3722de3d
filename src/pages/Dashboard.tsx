@@ -498,7 +498,7 @@ const Dashboard = () => {
                           className="gap-1 sm:gap-1.5 text-muted-foreground hover:text-foreground h-8 px-2 sm:px-2.5"
                         >
                           <BarChart3 className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-                          <span className="text-[10px] sm:text-xs">Analysis</span>
+                          <span className="text-[10px] sm:text-xs">{t("analysis")}</span>
                         </Button>
                       </div>
                     )}
