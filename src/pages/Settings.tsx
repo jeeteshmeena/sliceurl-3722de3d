@@ -53,7 +53,7 @@ export default function Settings() {
     updateLinkPreview, 
     updateSecurityMode: updateBehaviorSecurityMode 
   } = useLinkBehavior();
-  const { language, setLanguage } = useLanguage();
+  const { language, setLanguage, t } = useLanguage();
   const { theme, setTheme } = useTheme();
   const resolvedTheme = theme === "system" ? "light" : theme;
 
