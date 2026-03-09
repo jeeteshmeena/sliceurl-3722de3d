@@ -648,8 +648,8 @@ const Analytics = () => {
           >
             <div className="flex items-center gap-2 mb-4">
               <List className="h-4 w-4 text-muted-foreground" />
-              <h3 className="font-semibold">Click Log</h3>
-              <span className="text-xs text-muted-foreground ml-auto">{filteredClicks.length} total</span>
+               <h3 className="font-semibold">{t("click_log")}</h3>
+               <span className="text-xs text-muted-foreground ml-auto">{filteredClicks.length} {t("total")}</span>
             </div>
             <ClickLogTable clicks={filteredClicks} itemsPerPage={10} />
           </motion.section>
