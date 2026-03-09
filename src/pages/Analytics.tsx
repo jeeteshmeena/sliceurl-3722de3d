@@ -1,7 +1,6 @@
 import { useParams, Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { useState, useMemo } from "react";
-import { useLanguage } from "@/lib/i18n";
 import { 
   ArrowLeft, Link2, MousePointer, Users, Globe, Monitor, 
   Smartphone, Tablet, Download, Activity, MapPin, 
@@ -24,7 +23,6 @@ import { ClickLogTable } from "@/components/analytics/ClickLogTable";
 import { ShareAnalyticsDialog } from "@/components/analytics/ShareAnalyticsDialog";
 
 const Analytics = () => {
-   const { t } = useLanguage();
   const { id } = useParams<{ id: string }>();
   const [dateRange, setDateRange] = useState<DateRange>("30d");
   const dateRangeStart = getDateFromRange(dateRange);
@@ -90,7 +88,7 @@ const Analytics = () => {
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="flex flex-col items-center gap-3">
           <div className="h-8 w-8 rounded-full border-2 border-foreground border-t-transparent animate-spin" />
-          <p className="text-sm text-muted-foreground">{t("loading_analytics")}</p>
+          <p className="text-sm text-muted-foreground">Loading analytics...</p>
         </div>
       </div>
     );
@@ -161,39 +159,39 @@ const Analytics = () => {
             <div className="flex items-center justify-between mb-3 sm:mb-4">
               <div className="flex items-center gap-2">
                 <TrendingUp className="h-4 w-4 sm:h-5 sm:w-5 text-foreground" />
-                <h2 className="text-base sm:text-lg font-semibold">{t("overview")}</h2>
+                <h2 className="text-base sm:text-lg font-semibold">Overview</h2>
               </div>
               <TrendIndicator clicks={clicks} periodDays={7} />
             </div>
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2 sm:gap-3">
               {[
-                 { 
-                   label: t("analytics_total_clicks"), 
+                { 
+                  label: "Total Clicks", 
                   value: summary.totalClicks, 
                   icon: MousePointer,
                   trend: { current: trendStats.currentTotal, previous: trendStats.previousTotal }
                 },
-                 { 
-                   label: t("unique_visitors"), 
+                { 
+                  label: "Unique Visitors", 
                   value: summary.uniqueClicks, 
                   icon: Users,
                   trend: { current: trendStats.currentUnique, previous: trendStats.previousUnique }
                 },
-                 { 
-                   label: t("conversion"), 
+                { 
+                  label: "Conversion", 
                   value: ctr, 
                   icon: Activity, 
                   isPercent: true,
                   trend: null
                 },
-                 { 
-                   label: t("analytics_countries"), 
+                { 
+                  label: "Countries", 
                   value: summary.countryStats.length, 
                   icon: Globe,
                   trend: null
                 },
-                 { 
-                   label: t("cities"), 
+                { 
+                  label: "Cities", 
                   value: cityStats.length, 
                   icon: MapPin,
                   trend: null
@@ -235,7 +233,7 @@ const Analytics = () => {
             className="p-3 sm:p-5 rounded-xl sm:rounded-2xl border border-border bg-card hover:shadow-sm transition-shadow"
           >
             <div className="flex items-center justify-between mb-3 sm:mb-4 flex-wrap gap-2">
-              <h3 className="font-semibold text-sm sm:text-base">{t("clicks_over_time")}</h3>
+              <h3 className="font-semibold text-sm sm:text-base">Clicks Over Time</h3>
               <span className="text-[10px] sm:text-xs text-muted-foreground px-2 py-1 bg-muted rounded-full">
                 {dateRange === "all" ? "All time" : `Last ${dateRange.replace("d", " days")}`}
               </span>
@@ -294,8 +292,8 @@ const Analytics = () => {
           >
             <div className="flex items-center gap-2 mb-3 sm:mb-4 flex-wrap">
               <Grid3X3 className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-muted-foreground" />
-              <h3 className="font-semibold text-sm sm:text-base">{t("click_heatmap")}</h3>
-              <span className="text-[10px] sm:text-xs text-muted-foreground ml-auto">{t("hour_day_week")}</span>
+              <h3 className="font-semibold text-sm sm:text-base">Click Heatmap</h3>
+              <span className="text-[10px] sm:text-xs text-muted-foreground ml-auto">Hour × Day of Week</span>
             </div>
             <div className="min-w-[320px]">
               <ClickHeatmap clicks={filteredClicks} />
@@ -313,7 +311,7 @@ const Analytics = () => {
             >
               <div className="flex items-center gap-2 mb-3 sm:mb-4">
                 <Zap className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-muted-foreground" />
-                <h3 className="font-semibold text-sm sm:text-base">{t("recent_activity")}</h3>
+                <h3 className="font-semibold text-sm sm:text-base">Live Activity</h3>
                 {clicks.length > 0 && (
                   <span className="ml-auto flex items-center gap-1">
                     <span className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-foreground animate-pulse" />
@@ -333,7 +331,7 @@ const Analytics = () => {
             >
               <div className="flex items-center gap-2 mb-3 sm:mb-4">
                 <Globe className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-muted-foreground" />
-                <h3 className="font-semibold text-sm sm:text-base">{t("top_countries")}</h3>
+                <h3 className="font-semibold text-sm sm:text-base">Top Countries</h3>
               </div>
               {summary.countryStats.length === 0 ? (
                 <div className="py-6 sm:py-8 text-center">
@@ -372,7 +370,7 @@ const Analytics = () => {
             >
               <div className="flex items-center gap-2 mb-3 sm:mb-4">
                 <MapPin className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-muted-foreground" />
-                <h3 className="font-semibold text-sm sm:text-base">{t("top_cities")}</h3>
+                <h3 className="font-semibold text-sm sm:text-base">Top Cities</h3>
               </div>
               {cityStats.length === 0 ? (
                 <div className="py-6 sm:py-8 text-center">
@@ -417,7 +415,7 @@ const Analytics = () => {
             >
               <div className="flex items-center gap-2 mb-3 sm:mb-4">
                 <Monitor className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-muted-foreground" />
-                <h3 className="font-semibold text-sm sm:text-base">{t("device")}</h3>
+                <h3 className="font-semibold text-sm sm:text-base">Devices</h3>
               </div>
               {summary.deviceStats.length === 0 ? (
                 <div className="py-8 text-center">
@@ -478,7 +476,7 @@ const Analytics = () => {
               transition={{ delay: 0.4 }}
               className="p-5 rounded-2xl border border-border bg-card"
             >
-              <h3 className="font-semibold mb-4">{t("browser")}</h3>
+              <h3 className="font-semibold mb-4">Browsers</h3>
               {summary.browserStats.length === 0 ? (
                 <div className="py-8 text-center">
                   <Globe className="h-8 w-8 mx-auto mb-2 text-muted-foreground/30" />
@@ -533,7 +531,7 @@ const Analytics = () => {
               transition={{ delay: 0.45 }}
               className="p-5 rounded-2xl border border-border bg-card"
             >
-              <h3 className="font-semibold mb-4">{t("os")}</h3>
+              <h3 className="font-semibold mb-4">Operating Systems</h3>
               {summary.osStats.length === 0 ? (
                 <div className="py-8 text-center">
                   <Monitor className="h-8 w-8 mx-auto mb-2 text-muted-foreground/30" />
@@ -589,7 +587,7 @@ const Analytics = () => {
             transition={{ delay: 0.5 }}
             className="p-5 rounded-2xl border border-border bg-card"
           >
-            <h3 className="font-semibold mb-4">{t("referrer_sources")}</h3>
+            <h3 className="font-semibold mb-4">Traffic Sources</h3>
             {summary.referrerStats.length === 0 ? (
               <div className="py-8 text-center">
                 <Link2 className="h-8 w-8 mx-auto mb-2 text-muted-foreground/30" />
@@ -647,8 +645,8 @@ const Analytics = () => {
           >
             <div className="flex items-center gap-2 mb-4">
               <List className="h-4 w-4 text-muted-foreground" />
-               <h3 className="font-semibold">{t("click_log")}</h3>
-               <span className="text-xs text-muted-foreground ml-auto">{filteredClicks.length} {t("total")}</span>
+              <h3 className="font-semibold">Click Log</h3>
+              <span className="text-xs text-muted-foreground ml-auto">{filteredClicks.length} total</span>
             </div>
             <ClickLogTable clicks={filteredClicks} itemsPerPage={10} />
           </motion.section>

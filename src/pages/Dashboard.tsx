@@ -161,14 +161,14 @@ const Dashboard = () => {
 
   const copyLink = (code: string) => {
     navigator.clipboard.writeText(`${window.location.origin}/s/${code}`);
-    toast.success(t("copied"), { description: t("link_copied_clipboard") });
+    toast.success(t("copied"), { description: "Link copied to clipboard" });
   };
 
   const handleTogglePin = async (linkId: string) => {
     const link = links.find(l => l.id === linkId);
     const isPinned = (link as any)?.is_pinned;
     await togglePin(linkId);
-    toast.success(isPinned ? t("unpinned") : t("pinned_successfully"));
+    toast.success(isPinned ? "Unpinned" : "Pinned successfully");
   };
 
   const handleDeleteLink = async (linkId: string) => {
@@ -195,7 +195,7 @@ const Dashboard = () => {
           className="mb-6"
         >
           <h2 className="text-xl sm:text-2xl font-bold text-foreground">
-            {displayName ? t("welcome_back_name").replace("{{name}}", displayName) : t("welcome_back_default")}
+            {displayName ? `Welcome, ${displayName} 👋` : "Welcome 👋"}
           </h2>
         </motion.div>
 
@@ -223,21 +223,21 @@ const Dashboard = () => {
               transition={{ delay: 0.2 }}
               className="text-center max-w-sm mx-auto"
             >
-               <h3 className="text-xl font-semibold text-foreground mb-2">
-                 {t("no_links_title")}
-               </h3>
-               <p className="text-muted-foreground text-sm mb-8">
-                 {t("no_links_desc")}
-               </p>
-               
-               <Button 
-                 size="lg" 
-                 onClick={() => setShowCreate(true)}
-                 className="gap-2 bg-foreground text-background hover:bg-foreground/90"
-               >
-                 <Plus className="h-4 w-4" />
-                 {t("create_link")}
-               </Button>
+              <h3 className="text-xl font-semibold text-foreground mb-2">
+                No Links Yet
+              </h3>
+              <p className="text-muted-foreground text-sm mb-8">
+                Create your first link to get started
+              </p>
+              
+              <Button 
+                size="lg" 
+                onClick={() => setShowCreate(true)}
+                className="gap-2 bg-foreground text-background hover:bg-foreground/90"
+              >
+                <Plus className="h-4 w-4" />
+                Create Link
+              </Button>
             </motion.div>
           </motion.div>
         ) : (
@@ -262,8 +262,8 @@ const Dashboard = () => {
                     }}
                     className="gap-1.5 h-9 text-xs sm:text-sm px-2.5 sm:px-3"
                   >
-                     <CheckSquare className="h-3.5 w-3.5 shrink-0" />
-                     <span className="hidden xs:inline">{selectionMode ? t("cancel") : t("select")}</span>
+                    <CheckSquare className="h-3.5 w-3.5 shrink-0" />
+                    <span className="hidden xs:inline">{selectionMode ? "Cancel" : "Select"}</span>
                   </Button>
                 )}
                 <Button 
@@ -274,8 +274,8 @@ const Dashboard = () => {
                   }} 
                   className="gap-1.5 h-9 text-xs sm:text-sm px-2.5 sm:px-3 border-dashed border-2 hover:border-solid hover:bg-secondary/50 active:scale-95 transition-all duration-150"
                 >
-                   <Scissors className="h-3.5 w-3.5 shrink-0" />
-                   <span>{t("bulk")}</span>
+                  <Scissors className="h-3.5 w-3.5 shrink-0" />
+                  <span>Bulk</span>
                 </Button>
                 <Button onClick={() => setShowCreate(true)} className="gap-1.5 h-9 text-xs sm:text-sm flex-1 sm:flex-initial px-3">
                   <Plus className="h-3.5 w-3.5 shrink-0" /> 
@@ -410,21 +410,21 @@ const Dashboard = () => {
                         {/* QR Code */}
                         <Dialog>
                           <DialogTrigger asChild>
-                            <Button variant="ghost" size="icon-sm" title={t("view_qr")} className="h-8 w-8">
+                            <Button variant="ghost" size="icon-sm" title="View QR" className="h-8 w-8">
                               <QrCode className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                             </Button>
                           </DialogTrigger>
                           <DialogContent>
                             <DialogHeader>
-                              <DialogTitle>{t("qr_code")}</DialogTitle>
+                              <DialogTitle>QR Code</DialogTitle>
                             </DialogHeader>
                             <SliceQR url={`${window.location.origin}/s/${link.short_code}`} filename={`sliceurl-${link.short_code}`} />
                             <Button 
                               onClick={() => navigate(`/qr/${link.id}/customize`)} 
                               className="w-full mt-4 gap-2"
                             >
-                               <Palette className="h-4 w-4" />
-                               {t("customize_qr_design")}
+                              <Palette className="h-4 w-4" />
+                              Customize QR Design
                             </Button>
                           </DialogContent>
                         </Dialog>
@@ -434,8 +434,8 @@ const Dashboard = () => {
                           variant="ghost" 
                           size="icon-sm" 
                           onClick={() => handleTogglePin(link.id)}
-                           title={isPinned ? t("unpin") : t("pin_to_top")}
-                           className="h-8 w-8"
+                          title={isPinned ? 'Unpin' : 'Pin to top'}
+                          className="h-8 w-8"
                         >
                           <Pin className={`h-3.5 w-3.5 sm:h-4 sm:w-4 ${isPinned ? 'fill-primary text-primary' : ''}`} />
                         </Button>
@@ -445,7 +445,7 @@ const Dashboard = () => {
                           variant="ghost" 
                           size="icon-sm" 
                           onClick={() => setEditingLink(link)}
-                          title={t("edit")}
+                          title="Edit"
                           className="h-8 w-8"
                         >
                           <Edit className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
@@ -467,24 +467,24 @@ const Dashboard = () => {
                                 </AlertDialogTrigger>
                               </TooltipTrigger>
                               <TooltipContent>
-                                <p>{t("delete_link")}</p>
+                                <p>Delete link</p>
                               </TooltipContent>
                             </Tooltip>
                           </TooltipProvider>
                           <AlertDialogContent>
                             <AlertDialogHeader>
-                               <AlertDialogTitle>{t("delete_this_link")}</AlertDialogTitle>
-                               <AlertDialogDescription>
-                                 {t("cannot_be_undone")}
+                              <AlertDialogTitle>Delete this link?</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                This action cannot be undone.
                               </AlertDialogDescription>
                             </AlertDialogHeader>
                             <AlertDialogFooter>
-                              <AlertDialogCancel>{t("cancel")}</AlertDialogCancel>
+                              <AlertDialogCancel>Cancel</AlertDialogCancel>
                               <AlertDialogAction 
                                 onClick={() => handleDeleteLink(link.id)}
                                 className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                               >
-                                 {t("delete")}
+                                Delete
                               </AlertDialogAction>
                             </AlertDialogFooter>
                           </AlertDialogContent>
@@ -498,7 +498,7 @@ const Dashboard = () => {
                           className="gap-1 sm:gap-1.5 text-muted-foreground hover:text-foreground h-8 px-2 sm:px-2.5"
                         >
                           <BarChart3 className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-                          <span className="text-[10px] sm:text-xs">{t("analysis")}</span>
+                          <span className="text-[10px] sm:text-xs">Analysis</span>
                         </Button>
                       </div>
                     )}
