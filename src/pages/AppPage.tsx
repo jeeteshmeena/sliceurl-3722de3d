@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useParams, Link } from "react-router-dom";
-import { Lock, AlertTriangle, Share2, ChevronRight } from "lucide-react";
+import { Lock, AlertTriangle, Share2, ChevronRight, Smartphone } from "lucide-react";
 import { formatFileSize, formatDownloads } from "@/lib/fileUtils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -16,6 +16,19 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { SliceAppsHeader, RatingsReviewsSection } from "@/components/sliceapps";
 import { MetadataStrip } from "@/components/sliceapps/MetadataStrip";
+
+// Detect if device is mobile
+const isMobileDevice = (): boolean => {
+  const userAgent = navigator.userAgent || navigator.vendor || (window as any).opera;
+  // Check for mobile user agents
+  const mobileRegex = /android|webos|iphone|ipad|ipod|blackberry|iemobile|opera mini|mobile|tablet/i;
+  if (mobileRegex.test(userAgent.toLowerCase())) return true;
+  // Also check screen width as fallback
+  if (window.innerWidth <= 768) return true;
+  // Check for touch capability on small screens
+  if ('ontouchstart' in window && window.innerWidth <= 1024) return true;
+  return false;
+};
 
 interface AppListing {
   id: string;
