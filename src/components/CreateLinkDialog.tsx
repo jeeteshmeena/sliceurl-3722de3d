@@ -190,14 +190,14 @@ export function CreateLinkDialog({ open, onOpenChange, onCreateLink }: CreateLin
           >
             {/* Header */}
             <div className="flex items-center justify-between px-5 py-4 border-b border-border shrink-0">
-              <h2 className="text-base font-semibold">Create New Link</h2>
+              <h2 className="text-base font-semibold">{t("create_new_link")}</h2>
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={handleClose}
                 className="text-muted-foreground hover:text-foreground h-8 px-3"
               >
-                Close
+                {t("close")}
               </Button>
             </div>
 
