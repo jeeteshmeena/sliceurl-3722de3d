@@ -251,11 +251,11 @@ export function CreateLinkDialog({ open, onOpenChange, onCreateLink }: CreateLin
 
               {/* 3. Title (optional) */}
               <div className="space-y-2">
-                <Label htmlFor="title" className="text-[13px] font-medium">Title (optional)</Label>
-                <Input
-                  id="title"
-                  placeholder="My awesome link"
-                  value={title}
+                 <Label htmlFor="title" className="text-[13px] font-medium">{t("title_optional")}</Label>
+                 <Input
+                   id="title"
+                   placeholder={t("title_placeholder")}
+                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
                   className="text-[14px] h-11"
                 />
