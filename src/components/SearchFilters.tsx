@@ -186,8 +186,8 @@ export function SearchFilters({ filters, onFiltersChange, availableCountries }: 
       {/* Active Filter Badges - Responsive */}
       <div className="flex items-center gap-1 sm:gap-1.5 flex-wrap">
         {filters.clicks && (
-          <Badge variant="secondary" className="gap-0.5 sm:gap-1 text-[10px] sm:text-xs px-1.5 sm:px-2 h-6 sm:h-7">
-            <span className="truncate max-w-[60px] sm:max-w-none">{clickOptions.find(o => o.value === filters.clicks)?.label}</span>
+           <Badge variant="secondary" className="gap-0.5 sm:gap-1 text-[10px] sm:text-xs px-1.5 sm:px-2 h-6 sm:h-7">
+             <span className="truncate max-w-[60px] sm:max-w-none">{t(clickOptionKeys.find(o => o.value === filters.clicks)?.key || '')}</span>
             <X className="h-3 w-3 cursor-pointer shrink-0" onClick={() => updateFilter('clicks', null)} />
           </Badge>
         )}
