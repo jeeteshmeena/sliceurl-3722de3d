@@ -156,6 +156,25 @@ export default function AppPage() {
     }
   };
 
+  const simulateProgress = useCallback(() => {
+    return new Promise<void>((resolve) => {
+      let progress = 0;
+      const start = performance.now();
+      const duration = 1800;
+      const tick = () => {
+        const elapsed = performance.now() - start;
+        const t = Math.min(elapsed / duration, 1);
+        if (t < 0.5) { progress = t * 2 * 60; }
+        else if (t < 0.8) { progress = 60 + ((t - 0.5) / 0.3) * 30; }
+        else { progress = 90 + ((t - 0.8) / 0.2) * 10; }
+        setDownloadProgress(Math.min(Math.round(progress), 100));
+        if (t < 1) { requestAnimationFrame(tick); }
+        else { setDownloadProgress(100); resolve(); }
+      };
+      requestAnimationFrame(tick);
+    });
+  }, []);
+
   // Desktop block screen
   if (isMobile === false) {
     return (
@@ -199,25 +218,6 @@ export default function AppPage() {
     if (fileInfo.password_hash) { setShowPasswordDialog(true); return; }
     await initiateDownload();
   };
-
-  const simulateProgress = useCallback(() => {
-    return new Promise<void>((resolve) => {
-      let progress = 0;
-      const start = performance.now();
-      const duration = 1800;
-      const tick = () => {
-        const elapsed = performance.now() - start;
-        const t = Math.min(elapsed / duration, 1);
-        if (t < 0.5) { progress = t * 2 * 60; }
-        else if (t < 0.8) { progress = 60 + ((t - 0.5) / 0.3) * 30; }
-        else { progress = 90 + ((t - 0.8) / 0.2) * 10; }
-        setDownloadProgress(Math.min(Math.round(progress), 100));
-        if (t < 1) { requestAnimationFrame(tick); }
-        else { setDownloadProgress(100); resolve(); }
-      };
-      requestAnimationFrame(tick);
-    });
-  }, []);
 
   const initiateDownload = async (passwordForDownload?: string) => {
     if (!fileInfo) return;
