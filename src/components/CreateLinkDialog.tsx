@@ -365,7 +365,7 @@ export function CreateLinkDialog({ open, onOpenChange, onCreateLink }: CreateLin
                   >
                     <span className="flex items-center gap-3">
                       <Settings2 className="h-4 w-4 text-muted-foreground" />
-                      <span className="text-[13px] font-medium">Advanced Options</span>
+                      <span className="text-[13px] font-medium">{t("advanced_options")}</span>
                     </span>
                     <ChevronDown className={`h-4 w-4 text-muted-foreground transition-transform duration-200 ${showAdvanced ? 'rotate-180' : ''}`} />
                   </Button>
