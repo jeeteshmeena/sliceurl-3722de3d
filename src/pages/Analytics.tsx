@@ -24,6 +24,7 @@ import { ClickLogTable } from "@/components/analytics/ClickLogTable";
 import { ShareAnalyticsDialog } from "@/components/analytics/ShareAnalyticsDialog";
 
 const Analytics = () => {
+  const { t } = useLanguage();
   const { id } = useParams<{ id: string }>();
   const [dateRange, setDateRange] = useState<DateRange>("30d");
   const dateRangeStart = getDateFromRange(dateRange);
