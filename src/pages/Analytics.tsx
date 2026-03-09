@@ -174,8 +174,8 @@ const Analytics = () => {
                   icon: MousePointer,
                   trend: { current: trendStats.currentTotal, previous: trendStats.previousTotal }
                 },
-                { 
-                  label: "Unique Visitors", 
+                 { 
+                   label: t("unique_visitors"), 
                   value: summary.uniqueClicks, 
                   icon: Users,
                   trend: { current: trendStats.currentUnique, previous: trendStats.previousUnique }
