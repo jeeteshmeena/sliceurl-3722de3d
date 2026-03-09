@@ -58,14 +58,14 @@ export function SearchFilters({ filters, onFiltersChange, availableCountries }: 
     });
   };
 
-  return (
-    <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
-      <Popover open={isOpen} onOpenChange={setIsOpen}>
-        <PopoverTrigger asChild>
-          <Button variant="outline" size="sm" className="gap-1.5 sm:gap-2 h-8 sm:h-9 px-2.5 sm:px-3 shrink-0">
-            <Filter className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-            <span className="text-xs sm:text-sm">Filters</span>
-            {activeFilterCount > 0 && (
+   return (
+     <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
+       <Popover open={isOpen} onOpenChange={setIsOpen}>
+         <PopoverTrigger asChild>
+           <Button variant="outline" size="sm" className="gap-1.5 sm:gap-2 h-8 sm:h-9 px-2.5 sm:px-3 shrink-0">
+             <Filter className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+             <span className="text-xs sm:text-sm">{t("filters")}</span>
+             {activeFilterCount > 0 && (
               <Badge variant="secondary" className="h-4 w-4 sm:h-5 sm:w-5 p-0 flex items-center justify-center text-[10px] sm:text-xs">
                 {activeFilterCount}
               </Badge>
