@@ -410,7 +410,7 @@ const Dashboard = () => {
                         {/* QR Code */}
                         <Dialog>
                           <DialogTrigger asChild>
-                            <Button variant="ghost" size="icon-sm" title="View QR" className="h-8 w-8">
+                            <Button variant="ghost" size="icon-sm" title={t("view_qr")} className="h-8 w-8">
                               <QrCode className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                             </Button>
                           </DialogTrigger>
