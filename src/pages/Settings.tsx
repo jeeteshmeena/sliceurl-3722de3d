@@ -831,7 +831,7 @@ export default function Settings() {
           <div className="space-y-4 pt-2">
             {hasPassword && (
               <div className="space-y-2">
-                <Label>Current Password</Label>
+                <Label>{t("current_password")}</Label>
                 <Input
                   type="password"
                   value={currentPassword}
