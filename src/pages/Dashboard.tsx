@@ -434,8 +434,8 @@ const Dashboard = () => {
                           variant="ghost" 
                           size="icon-sm" 
                           onClick={() => handleTogglePin(link.id)}
-                          title={isPinned ? 'Unpin' : 'Pin to top'}
-                          className="h-8 w-8"
+                           title={isPinned ? t("unpin") : t("pin_to_top")}
+                           className="h-8 w-8"
                         >
                           <Pin className={`h-3.5 w-3.5 sm:h-4 sm:w-4 ${isPinned ? 'fill-primary text-primary' : ''}`} />
                         </Button>
