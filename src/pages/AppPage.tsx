@@ -206,7 +206,17 @@ export default function AppPage() {
               className="text-foreground"
             />
           </div>
-          <div>
+          <div className="flex items-center justify-center gap-3">
+            <Button
+              variant="outline"
+              className="rounded-full px-6"
+              onClick={() => {
+                navigator.clipboard.writeText(currentUrl);
+                toast.success("Link copied!");
+              }}
+            >
+              Copy Link
+            </Button>
             <Link to="/">
               <Button variant="outline" className="rounded-full px-6">
                 Go to SliceURL
