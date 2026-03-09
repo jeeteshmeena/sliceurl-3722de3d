@@ -313,7 +313,7 @@ const Analytics = () => {
             >
               <div className="flex items-center gap-2 mb-3 sm:mb-4">
                 <Zap className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-muted-foreground" />
-                <h3 className="font-semibold text-sm sm:text-base">Live Activity</h3>
+                <h3 className="font-semibold text-sm sm:text-base">{t("live_activity")}</h3>
                 {clicks.length > 0 && (
                   <span className="ml-auto flex items-center gap-1">
                     <span className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-foreground animate-pulse" />
