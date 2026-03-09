@@ -716,7 +716,7 @@ export default function Settings() {
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <Palette className="h-4 w-4 text-muted-foreground" />
-                <span className="text-sm text-secondary-foreground">Theme</span>
+                <span className="text-sm text-secondary-foreground">{t("theme")}</span>
               </div>
               <ThemeToggle />
             </div>
