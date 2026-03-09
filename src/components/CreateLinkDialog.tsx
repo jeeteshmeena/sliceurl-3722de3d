@@ -324,9 +324,7 @@ export function CreateLinkDialog({ open, onOpenChange, onCreateLink }: CreateLin
                         className="h-10"
                       />
                     </div>
-                    <p className="text-[11px] text-muted-foreground">
-                      Visitors will need to enter this password to access the link.
-                    </p>
+                     <p className="text-[11px] text-muted-foreground">{t("password_visitors_need")}</p>
                   </div>
                 )}
               </div>
