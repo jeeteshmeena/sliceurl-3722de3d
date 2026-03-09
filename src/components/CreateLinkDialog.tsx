@@ -217,7 +217,7 @@ export function CreateLinkDialog({ open, onOpenChange, onCreateLink }: CreateLin
 
               {/* 2. Custom Slug - paa.ge style */}
               <div className="space-y-2">
-                <Label htmlFor="slug" className="text-[13px] font-medium">Custom Slug (optional)</Label>
+                <Label htmlFor="slug" className="text-[13px] font-medium">{t("custom_slug_optional")}</Label>
                 <div className="flex items-center rounded-[12px] border border-border bg-muted/30 overflow-hidden focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-0">
                   <span className="px-3 text-[13px] text-muted-foreground whitespace-nowrap bg-muted/50 h-11 flex items-center border-r border-border">
                     {getDisplayDomain()}/s/
