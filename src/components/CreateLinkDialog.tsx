@@ -197,7 +197,7 @@ export function CreateLinkDialog({ open, onOpenChange, onCreateLink }: CreateLin
                 onClick={handleClose}
                 className="text-muted-foreground hover:text-foreground h-8 px-3"
               >
-                Close
+                 {t("close")}
               </Button>
             </div>
 
