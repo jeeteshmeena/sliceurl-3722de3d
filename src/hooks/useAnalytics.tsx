@@ -110,6 +110,7 @@ export function useAnalytics(linkId: string, dateRangeStart?: Date | null) {
     const uniqueClicks = dataToProcess.filter((c) => c.is_unique).length;
 
     // Device stats with monochrome colors
+    const DEVICE_COLORS = getDeviceColors();
     const deviceCounts: Record<string, number> = {};
     dataToProcess.forEach((c) => {
       const device = c.device_type || "Unknown";
@@ -118,7 +119,7 @@ export function useAnalytics(linkId: string, dateRangeStart?: Date | null) {
     const deviceStats = Object.entries(deviceCounts).map(([name, value]) => ({
       name: name.charAt(0).toUpperCase() + name.slice(1),
       value,
-      fill: DEVICE_COLORS[name.toLowerCase()] || "#cccccc",
+      fill: DEVICE_COLORS[name.toLowerCase()] || DEVICE_COLORS.unknown,
     }));
 
     // Browser stats with monochrome colors
