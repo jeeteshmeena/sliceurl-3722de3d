@@ -217,14 +217,14 @@ export function CreateLinkDialog({ open, onOpenChange, onCreateLink }: CreateLin
 
               {/* 2. Custom Slug - paa.ge style */}
               <div className="space-y-2">
-                <Label htmlFor="slug" className="text-[13px] font-medium">Custom Slug (optional)</Label>
+                <Label htmlFor="slug" className="text-[13px] font-medium">{t("custom_slug_optional")}</Label>
                 <div className="flex items-center rounded-[12px] border border-border bg-muted/30 overflow-hidden focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-0">
                   <span className="px-3 text-[13px] text-muted-foreground whitespace-nowrap bg-muted/50 h-11 flex items-center border-r border-border">
                     {getDisplayDomain()}/s/
                   </span>
                   <Input
                     id="slug"
-                    placeholder="my-link"
+                    placeholder={t("custom_slug_placeholder")}
                     value={customSlug}
                     onChange={(e) => handleSlugChange(e.target.value)}
                     className="text-[14px] h-11 border-0 focus-visible:ring-0 rounded-none"
@@ -239,13 +239,13 @@ export function CreateLinkDialog({ open, onOpenChange, onCreateLink }: CreateLin
                   )}
                 </div>
                 {slugStatus === 'available' && customSlug && (
-                  <p className="text-xs text-green-500">Slug available</p>
+                  <p className="text-xs text-green-500">{t("slug_available")}</p>
                 )}
                 {slugStatus === 'taken' && customSlug && (
-                  <p className="text-xs text-destructive">Slug already in use</p>
+                  <p className="text-xs text-destructive">{t("slug_already_used")}</p>
                 )}
                 {slugStatus === 'invalid' && customSlug && (
-                  <p className="text-xs text-destructive">Invalid (min 2 chars, letters, numbers, dashes only)</p>
+                  <p className="text-xs text-destructive">{t("slug_invalid")}</p>
                 )}
               </div>
 
