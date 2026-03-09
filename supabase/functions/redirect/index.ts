@@ -99,7 +99,7 @@ serve(async (req) => {
 
     const { data: link, error } = await supabase
       .from('links')
-      .select('*')
+      .select('*, link_preview_enabled')
       .eq('short_code', shortCode)
       .maybeSingle();
 
