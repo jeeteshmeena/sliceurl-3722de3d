@@ -445,7 +445,7 @@ const Dashboard = () => {
                           variant="ghost" 
                           size="icon-sm" 
                           onClick={() => setEditingLink(link)}
-                          title="Edit"
+                          title={t("edit")}
                           className="h-8 w-8"
                         >
                           <Edit className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
