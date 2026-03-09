@@ -262,8 +262,8 @@ const Dashboard = () => {
                     }}
                     className="gap-1.5 h-9 text-xs sm:text-sm px-2.5 sm:px-3"
                   >
-                    <CheckSquare className="h-3.5 w-3.5 shrink-0" />
-                    <span className="hidden xs:inline">{selectionMode ? "Cancel" : "Select"}</span>
+                     <CheckSquare className="h-3.5 w-3.5 shrink-0" />
+                     <span className="hidden xs:inline">{selectionMode ? t("cancel") : t("select")}</span>
                   </Button>
                 )}
                 <Button 
