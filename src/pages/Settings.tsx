@@ -507,7 +507,7 @@ export default function Settings() {
                         setEditingEmail(false);
                       }}
                     >
-                      Cancel
+                       {t("cancel")}
                     </button>
                   </>
                 ) : (
