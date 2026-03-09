@@ -97,15 +97,15 @@ export function CreateLinkDialog({ open, onOpenChange, onCreateLink }: CreateLin
 
     if (isPasswordProtected) {
       if (!password) {
-        toast.error("Password required", { description: "Please enter a password" });
+        toast.error(t("create_password_required"), { description: t("enter_password_msg") });
         return;
       }
       if (password.length < 4) {
-        toast.error("Password too short", { description: "Password must be at least 4 characters" });
+        toast.error(t("password_too_short"), { description: t("password_min_4") });
         return;
       }
       if (password !== confirmPassword) {
-        toast.error("Passwords don't match");
+        toast.error(t("passwords_dont_match"));
         return;
       }
     }
