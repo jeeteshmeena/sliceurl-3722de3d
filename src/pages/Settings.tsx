@@ -870,7 +870,7 @@ export default function Settings() {
                 setConfirmPassword("");
               }}
             >
-              Cancel
+               {t("cancel")}
             </Button>
             <Button
               onClick={handleChangePassword}
