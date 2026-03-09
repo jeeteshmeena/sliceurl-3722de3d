@@ -805,7 +805,7 @@ export default function Settings() {
               className="bg-red-600 hover:bg-red-700 text-white"
             >
               <AlertTriangle className="h-4 w-4 mr-2" />
-              Delete My Account
+               {t("delete_my_account")}
             </Button>
           </motion.section>
         </div>
