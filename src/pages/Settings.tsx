@@ -620,7 +620,7 @@ export default function Settings() {
             {googleIdentity && (
               <div className="pt-3 border-t border-border">
                 <h3 className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-3">
-                  Connected Accounts
+                   {t("connected_accounts")}
                 </h3>
 
                 <div className="flex items-center justify-between p-3 bg-card rounded-lg border border-border">
