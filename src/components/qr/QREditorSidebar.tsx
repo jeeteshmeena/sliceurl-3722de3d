@@ -131,7 +131,7 @@ export const QREditorSidebar = memo(function QREditorSidebar({
       link.click();
 
       URL.revokeObjectURL(downloadUrl);
-      toast.success("SVG downloaded!");
+      toast.success(t("svg_downloaded"));
     } catch (error) {
       console.error("Export error:", error);
       toast.error("Failed to export SVG");
