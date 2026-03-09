@@ -128,8 +128,8 @@ export function SearchFilters({ filters, onFiltersChange, availableCountries }: 
             {/* Device Filter */}
             <div className="space-y-2">
               <label className="text-xs font-medium text-muted-foreground flex items-center gap-1">
-                <Smartphone className="h-3 w-3" />
-                Device
+                 <Smartphone className="h-3 w-3" />
+                 {t("device")}
               </label>
               <div className="flex gap-1">
                 {deviceOptions.map(opt => (
