@@ -612,7 +612,7 @@ export default function Settings() {
                 disabled={isSigningOutAll}
                 className="w-full h-8 text-xs border-border text-secondary-foreground hover:bg-muted"
               >
-                {isSigningOutAll ? "Signing out..." : "Sign out from all devices"}
+                {isSigningOutAll ? t("signing_out") : t("sign_out_all_devices")}
               </Button>
             </div>
 
