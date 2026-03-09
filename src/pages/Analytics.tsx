@@ -479,7 +479,7 @@ const Analytics = () => {
               transition={{ delay: 0.4 }}
               className="p-5 rounded-2xl border border-border bg-card"
             >
-              <h3 className="font-semibold mb-4">Browsers</h3>
+              <h3 className="font-semibold mb-4">{t("browser")}</h3>
               {summary.browserStats.length === 0 ? (
                 <div className="py-8 text-center">
                   <Globe className="h-8 w-8 mx-auto mb-2 text-muted-foreground/30" />
