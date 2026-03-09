@@ -88,7 +88,7 @@ export function SearchFilters({ filters, onFiltersChange, availableCountries }: 
             <div className="space-y-2">
               <label className="text-xs font-medium text-muted-foreground flex items-center gap-1">
                 <MousePointerClick className="h-3 w-3" />
-                Clicks
+                 {t("filters_clicks")}
               </label>
               <div className="grid grid-cols-2 gap-1">
                 {clickOptions.map(opt => (
