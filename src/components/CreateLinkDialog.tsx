@@ -242,7 +242,7 @@ export function CreateLinkDialog({ open, onOpenChange, onCreateLink }: CreateLin
                   <p className="text-xs text-green-500">{t("slug_available")}</p>
                 )}
                 {slugStatus === 'taken' && customSlug && (
-                  <p className="text-xs text-destructive">Slug already in use</p>
+                  <p className="text-xs text-destructive">{t("slug_already_used")}</p>
                 )}
                 {slugStatus === 'invalid' && customSlug && (
                   <p className="text-xs text-destructive">Invalid (min 2 chars, letters, numbers, dashes only)</p>
