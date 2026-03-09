@@ -276,10 +276,13 @@ export default function Preview() {
         securityMode = 'strict';
       }
 
-      // Check if link preview should be shown based on server response or local preference
-      const serverPreviewEnabled = result.auto_redirect_enabled !== true && result.security_mode !== 'disable';
+      // CRITICAL: Check server's link_preview_enabled flag FIRST
+      // If the link owner has disabled preview for this link, always redirect instantly
+      const serverLinkPreviewEnabled = result.link_preview_enabled === true;
+      
+      // Only check local preference if server allows preview
       const localPreviewEnabled = getLocalLinkPreviewEnabled();
-      const previewEnabled = serverPreviewEnabled && localPreviewEnabled;
+      const previewEnabled = serverLinkPreviewEnabled && localPreviewEnabled;
 
       const linkData: LinkInfo = {
         id: result.link_id || result.id,
