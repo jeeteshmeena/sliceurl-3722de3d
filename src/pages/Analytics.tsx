@@ -534,7 +534,7 @@ const Analytics = () => {
               transition={{ delay: 0.45 }}
               className="p-5 rounded-2xl border border-border bg-card"
             >
-              <h3 className="font-semibold mb-4">Operating Systems</h3>
+              <h3 className="font-semibold mb-4">{t("os")}</h3>
               {summary.osStats.length === 0 ? (
                 <div className="py-8 text-center">
                   <Monitor className="h-8 w-8 mx-auto mb-2 text-muted-foreground/30" />
