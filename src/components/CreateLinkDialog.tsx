@@ -239,7 +239,7 @@ export function CreateLinkDialog({ open, onOpenChange, onCreateLink }: CreateLin
                   )}
                 </div>
                 {slugStatus === 'available' && customSlug && (
-                  <p className="text-xs text-green-500">Slug available</p>
+                  <p className="text-xs text-green-500">{t("slug_available")}</p>
                 )}
                 {slugStatus === 'taken' && customSlug && (
                   <p className="text-xs text-destructive">Slug already in use</p>
