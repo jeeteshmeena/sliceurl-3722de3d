@@ -643,12 +643,12 @@ const Analytics = () => {
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.55 }}
-            className="p-5 rounded-2xl border border-border bg-card"
+            className="p-3 sm:p-5 rounded-xl sm:rounded-2xl border border-border bg-card"
           >
-            <div className="flex items-center gap-2 mb-4">
+            <div className="flex items-center gap-2 mb-3 sm:mb-4">
               <List className="h-4 w-4 text-muted-foreground" />
-              <h3 className="font-semibold">Click Log</h3>
-              <span className="text-xs text-muted-foreground ml-auto">{filteredClicks.length} total</span>
+              <h3 className="font-semibold text-sm sm:text-base">{t("click_log")}</h3>
+              <span className="text-xs text-muted-foreground ml-auto">{filteredClicks.length} {t("total")}</span>
             </div>
             <ClickLogTable clicks={filteredClicks} itemsPerPage={10} />
           </motion.section>
