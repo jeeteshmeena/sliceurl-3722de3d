@@ -792,7 +792,7 @@ export default function Settings() {
             className="bg-card rounded-xl border-2 border-destructive/30 p-5 space-y-4"
           >
             <h2 className="text-sm font-medium text-destructive uppercase tracking-wide">
-              Danger Zone
+              {t("danger_zone")}
             </h2>
             <p className="text-xs text-muted-foreground">
               Permanently delete your account and all associated data.
