@@ -584,7 +584,7 @@ export default function Settings() {
             {/* Sessions Subsection */}
             <div className="pt-3 border-t border-border">
               <h3 className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-3">
-                Sessions
+                 {t("sessions")}
               </h3>
 
               {/* Current Device Card */}
