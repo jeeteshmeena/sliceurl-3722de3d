@@ -402,7 +402,7 @@ export function CreateLinkDialog({ open, onOpenChange, onCreateLink }: CreateLin
                 className="w-full h-12 text-[14px] font-medium rounded-[12px]" 
                 disabled={loading}
               >
-                {loading ? "Creating..." : "Create Link"}
+                {loading ? t("creating") : t("create_link")}
               </Button>
             </form>
           </motion.div>
