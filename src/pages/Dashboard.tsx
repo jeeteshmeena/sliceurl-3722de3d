@@ -484,7 +484,7 @@ const Dashboard = () => {
                                 onClick={() => handleDeleteLink(link.id)}
                                 className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                               >
-                                Delete
+                                 {t("delete")}
                               </AlertDialogAction>
                             </AlertDialogFooter>
                           </AlertDialogContent>
