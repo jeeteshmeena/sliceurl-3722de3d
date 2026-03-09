@@ -90,18 +90,18 @@ export function SearchFilters({ filters, onFiltersChange, availableCountries }: 
                 <MousePointerClick className="h-3 w-3" />
                  {t("filters_clicks")}
               </label>
-              <div className="grid grid-cols-2 gap-1">
-                {clickOptions.map(opt => (
-                  <Button
-                    key={opt.value}
-                    variant={filters.clicks === opt.value ? "secondary" : "ghost"}
-                    size="sm"
-                    className="h-7 text-xs justify-start"
-                    onClick={() => updateFilter('clicks', filters.clicks === opt.value ? null : opt.value)}
-                  >
-                    {opt.label}
-                  </Button>
-                ))}
+               <div className="grid grid-cols-2 gap-1">
+                 {clickOptionKeys.map(opt => (
+                   <Button
+                     key={opt.value}
+                     variant={filters.clicks === opt.value ? "secondary" : "ghost"}
+                     size="sm"
+                     className="h-7 text-xs justify-start"
+                     onClick={() => updateFilter('clicks', filters.clicks === opt.value ? null : opt.value)}
+                   >
+                     {t(opt.key)}
+                   </Button>
+                 ))}
               </div>
             </div>
 
