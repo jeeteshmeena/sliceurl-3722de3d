@@ -423,7 +423,7 @@ export default function Settings() {
             className="bg-secondary rounded-xl border border-border p-5 space-y-5"
           >
             <h2 className="text-sm font-medium text-foreground uppercase tracking-wide">
-              Profile Information
+              {t("profile_information")}
             </h2>
 
             {/* Name Field */}
