@@ -166,8 +166,8 @@ export const QREditorSidebar = memo(function QREditorSidebar({
     <div className="h-full flex flex-col bg-card border-r border-border/50">
       {/* Header */}
       <div className="p-5 border-b border-border/50">
-        <h2 className="text-lg font-semibold text-foreground">QR Editor</h2>
-        <p className="text-xs text-muted-foreground mt-1">Customize your QR code</p>
+        <h2 className="text-lg font-semibold text-foreground">{t("qr_editor")}</h2>
+        <p className="text-xs text-muted-foreground mt-1">{t("customize_your_qr")}</p>
       </div>
 
       {/* Scrollable Sections */}
