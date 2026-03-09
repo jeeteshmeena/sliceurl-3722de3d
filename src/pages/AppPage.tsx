@@ -1,6 +1,7 @@
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { useParams, Link } from "react-router-dom";
 import { Lock, AlertTriangle, Share2, ChevronRight, Smartphone } from "lucide-react";
+import { QRCodeSVG } from "qrcode.react";
 import { formatFileSize, formatDownloads } from "@/lib/fileUtils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
