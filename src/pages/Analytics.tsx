@@ -168,8 +168,8 @@ const Analytics = () => {
             </div>
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2 sm:gap-3">
               {[
-                { 
-                  label: "Total Clicks", 
+                 { 
+                   label: t("analytics_total_clicks"), 
                   value: summary.totalClicks, 
                   icon: MousePointer,
                   trend: { current: trendStats.currentTotal, previous: trendStats.previousTotal }
