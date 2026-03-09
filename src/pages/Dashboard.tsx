@@ -467,7 +467,7 @@ const Dashboard = () => {
                                 </AlertDialogTrigger>
                               </TooltipTrigger>
                               <TooltipContent>
-                                <p>Delete link</p>
+                                <p>{t("delete_link")}</p>
                               </TooltipContent>
                             </Tooltip>
                           </TooltipProvider>
