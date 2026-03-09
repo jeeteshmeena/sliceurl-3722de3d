@@ -18,23 +18,24 @@ interface SearchFiltersProps {
   availableCountries: string[];
 }
 
-const clickOptions = [
-  { value: '0', label: '0 clicks' },
-  { value: '<10', label: 'Less than 10' },
-  { value: '10+', label: '10+ clicks' },
-  { value: '100+', label: '100+ clicks' },
+// These will be translated via t() in the render
+const clickOptionKeys = [
+  { value: '0', key: '0_clicks' },
+  { value: '<10', key: 'less_than_10' },
+  { value: '10+', key: '10_plus_clicks' },
+  { value: '100+', key: '100_plus_clicks' },
 ];
 
-const deviceOptions = [
-  { value: 'mobile', label: 'Mobile' },
-  { value: 'desktop', label: 'Desktop' },
-  { value: 'tablet', label: 'Tablet' },
+const deviceOptionKeys = [
+  { value: 'mobile', key: 'mobile_analytics' },
+  { value: 'desktop', key: 'desktop_device' },
+  { value: 'tablet', key: 'tablet' },
 ];
 
-const expirationOptions = [
-  { value: 'active', label: 'Active' },
-  { value: 'expired', label: 'Expired' },
-  { value: 'expiring-soon', label: 'Expiring Soon' },
+const expirationOptionKeys = [
+  { value: 'active', key: 'filters_active' },
+  { value: 'expired', key: 'filters_expired' },
+  { value: 'expiring-soon', key: 'expiring_soon' },
 ];
 
 export function SearchFilters({ filters, onFiltersChange, availableCountries }: SearchFiltersProps) {
@@ -57,14 +58,14 @@ export function SearchFilters({ filters, onFiltersChange, availableCountries }: 
     });
   };
 
-  return (
-    <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
-      <Popover open={isOpen} onOpenChange={setIsOpen}>
-        <PopoverTrigger asChild>
-          <Button variant="outline" size="sm" className="gap-1.5 sm:gap-2 h-8 sm:h-9 px-2.5 sm:px-3 shrink-0">
-            <Filter className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-            <span className="text-xs sm:text-sm">Filters</span>
-            {activeFilterCount > 0 && (
+   return (
+     <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
+       <Popover open={isOpen} onOpenChange={setIsOpen}>
+         <PopoverTrigger asChild>
+           <Button variant="outline" size="sm" className="gap-1.5 sm:gap-2 h-8 sm:h-9 px-2.5 sm:px-3 shrink-0">
+             <Filter className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+             <span className="text-xs sm:text-sm">{t("filters")}</span>
+             {activeFilterCount > 0 && (
               <Badge variant="secondary" className="h-4 w-4 sm:h-5 sm:w-5 p-0 flex items-center justify-center text-[10px] sm:text-xs">
                 {activeFilterCount}
               </Badge>
@@ -73,13 +74,13 @@ export function SearchFilters({ filters, onFiltersChange, availableCountries }: 
           </Button>
         </PopoverTrigger>
         <PopoverContent className="w-72 p-4 bg-popover z-50" align="start">
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <h4 className="font-medium text-sm">Filter Links</h4>
-              {activeFilterCount > 0 && (
-                <Button variant="ghost" size="sm" onClick={clearFilters} className="h-7 text-xs">
-                  Clear all
-                </Button>
+           <div className="space-y-4">
+             <div className="flex items-center justify-between">
+               <h4 className="font-medium text-sm">{t("filter_links")}</h4>
+               {activeFilterCount > 0 && (
+                 <Button variant="ghost" size="sm" onClick={clearFilters} className="h-7 text-xs">
+                   {t("clear_all")}
+                 </Button>
               )}
             </div>
 
@@ -87,20 +88,20 @@ export function SearchFilters({ filters, onFiltersChange, availableCountries }: 
             <div className="space-y-2">
               <label className="text-xs font-medium text-muted-foreground flex items-center gap-1">
                 <MousePointerClick className="h-3 w-3" />
-                Clicks
+                 {t("filters_clicks")}
               </label>
-              <div className="grid grid-cols-2 gap-1">
-                {clickOptions.map(opt => (
-                  <Button
-                    key={opt.value}
-                    variant={filters.clicks === opt.value ? "secondary" : "ghost"}
-                    size="sm"
-                    className="h-7 text-xs justify-start"
-                    onClick={() => updateFilter('clicks', filters.clicks === opt.value ? null : opt.value)}
-                  >
-                    {opt.label}
-                  </Button>
-                ))}
+               <div className="grid grid-cols-2 gap-1">
+                 {clickOptionKeys.map(opt => (
+                   <Button
+                     key={opt.value}
+                     variant={filters.clicks === opt.value ? "secondary" : "ghost"}
+                     size="sm"
+                     className="h-7 text-xs justify-start"
+                     onClick={() => updateFilter('clicks', filters.clicks === opt.value ? null : opt.value)}
+                   >
+                     {t(opt.key)}
+                   </Button>
+                 ))}
               </div>
             </div>
 
@@ -108,15 +109,15 @@ export function SearchFilters({ filters, onFiltersChange, availableCountries }: 
             {availableCountries.length > 0 && (
               <div className="space-y-2">
                 <label className="text-xs font-medium text-muted-foreground flex items-center gap-1">
-                  <Globe className="h-3 w-3" />
-                  Country
+                 <Globe className="h-3 w-3" />
+                 {t("analytics_country")}
                 </label>
                 <select
                   value={filters.country || ''}
                   onChange={(e) => updateFilter('country', e.target.value || null)}
                   className="w-full h-8 text-xs rounded-md border border-input bg-background px-2"
                 >
-                  <option value="">All countries</option>
+                  <option value="">{t("all_countries")}</option>
                   {availableCountries.map(country => (
                     <option key={country} value={country}>{country}</option>
                   ))}
@@ -127,20 +128,20 @@ export function SearchFilters({ filters, onFiltersChange, availableCountries }: 
             {/* Device Filter */}
             <div className="space-y-2">
               <label className="text-xs font-medium text-muted-foreground flex items-center gap-1">
-                <Smartphone className="h-3 w-3" />
-                Device
+                 <Smartphone className="h-3 w-3" />
+                 {t("device")}
               </label>
-              <div className="flex gap-1">
-                {deviceOptions.map(opt => (
-                  <Button
-                    key={opt.value}
-                    variant={filters.device === opt.value ? "secondary" : "ghost"}
-                    size="sm"
-                    className="h-7 text-xs flex-1"
-                    onClick={() => updateFilter('device', filters.device === opt.value ? null : opt.value)}
-                  >
-                    {opt.label}
-                  </Button>
+               <div className="flex gap-1">
+                 {deviceOptionKeys.map(opt => (
+                   <Button
+                     key={opt.value}
+                     variant={filters.device === opt.value ? "secondary" : "ghost"}
+                     size="sm"
+                     className="h-7 text-xs flex-1"
+                     onClick={() => updateFilter('device', filters.device === opt.value ? null : opt.value)}
+                   >
+                     {t(opt.key)}
+                   </Button>
                 ))}
               </div>
             </div>
@@ -148,20 +149,20 @@ export function SearchFilters({ filters, onFiltersChange, availableCountries }: 
             {/* Expiration Filter */}
             <div className="space-y-2">
               <label className="text-xs font-medium text-muted-foreground flex items-center gap-1">
-                <Clock className="h-3 w-3" />
-                Expiration
+                 <Clock className="h-3 w-3" />
+                 {t("filters_expiration")}
               </label>
-              <div className="flex gap-1 flex-wrap">
-                {expirationOptions.map(opt => (
-                  <Button
-                    key={opt.value}
-                    variant={filters.expiration === opt.value ? "secondary" : "ghost"}
-                    size="sm"
-                    className="h-7 text-xs"
-                    onClick={() => updateFilter('expiration', filters.expiration === opt.value ? null : opt.value)}
-                  >
-                    {opt.label}
-                  </Button>
+               <div className="flex gap-1 flex-wrap">
+                 {expirationOptionKeys.map(opt => (
+                   <Button
+                     key={opt.value}
+                     variant={filters.expiration === opt.value ? "secondary" : "ghost"}
+                     size="sm"
+                     className="h-7 text-xs"
+                     onClick={() => updateFilter('expiration', filters.expiration === opt.value ? null : opt.value)}
+                   >
+                     {t(opt.key)}
+                   </Button>
                 ))}
               </div>
             </div>
@@ -174,8 +175,8 @@ export function SearchFilters({ filters, onFiltersChange, availableCountries }: 
                 onCheckedChange={(checked) => updateFilter('pinned', checked ? true : null)}
               />
               <label htmlFor="pinned-filter" className="text-xs font-medium flex items-center gap-1 cursor-pointer">
-                <Pin className="h-3 w-3" />
-                Pinned only
+               <Pin className="h-3 w-3" />
+                 {t("pinned_only")}
               </label>
             </div>
           </div>
@@ -185,8 +186,8 @@ export function SearchFilters({ filters, onFiltersChange, availableCountries }: 
       {/* Active Filter Badges - Responsive */}
       <div className="flex items-center gap-1 sm:gap-1.5 flex-wrap">
         {filters.clicks && (
-          <Badge variant="secondary" className="gap-0.5 sm:gap-1 text-[10px] sm:text-xs px-1.5 sm:px-2 h-6 sm:h-7">
-            <span className="truncate max-w-[60px] sm:max-w-none">{clickOptions.find(o => o.value === filters.clicks)?.label}</span>
+           <Badge variant="secondary" className="gap-0.5 sm:gap-1 text-[10px] sm:text-xs px-1.5 sm:px-2 h-6 sm:h-7">
+             <span className="truncate max-w-[60px] sm:max-w-none">{t(clickOptionKeys.find(o => o.value === filters.clicks)?.key || '')}</span>
             <X className="h-3 w-3 cursor-pointer shrink-0" onClick={() => updateFilter('clicks', null)} />
           </Badge>
         )}
@@ -204,7 +205,7 @@ export function SearchFilters({ filters, onFiltersChange, availableCountries }: 
         )}
         {filters.expiration && (
           <Badge variant="secondary" className="gap-0.5 sm:gap-1 text-[10px] sm:text-xs px-1.5 sm:px-2 h-6 sm:h-7">
-            <span className="truncate max-w-[60px] sm:max-w-none">{expirationOptions.find(o => o.value === filters.expiration)?.label}</span>
+            <span className="truncate max-w-[60px] sm:max-w-none">{t(expirationOptionKeys.find(o => o.value === filters.expiration)?.key || '')}</span>
             <X className="h-3 w-3 cursor-pointer shrink-0" onClick={() => updateFilter('expiration', null)} />
           </Badge>
         )}

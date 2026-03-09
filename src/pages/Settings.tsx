@@ -53,7 +53,7 @@ export default function Settings() {
     updateLinkPreview, 
     updateSecurityMode: updateBehaviorSecurityMode 
   } = useLinkBehavior();
-  const { language, setLanguage } = useLanguage();
+  const { language, setLanguage, t } = useLanguage();
   const { theme, setTheme } = useTheme();
   const resolvedTheme = theme === "system" ? "light" : theme;
 
@@ -371,17 +371,17 @@ export default function Settings() {
             className="gap-2 text-muted-foreground hover:text-foreground -ml-2"
           >
             <ArrowLeft className="h-4 w-4" />
-            Back
+             {t("back")}
           </Button>
 
           {/* Page Header */}
           <div>
-            <h1 className="text-2xl font-semibold text-foreground">
-              Settings
-            </h1>
-            <p className="text-sm text-muted-foreground mt-1">
-              Manage your account and preferences
-            </p>
+             <h1 className="text-2xl font-semibold text-foreground">
+               {t("settings")}
+             </h1>
+             <p className="text-sm text-muted-foreground mt-1">
+               {t("manage_account_preferences")}
+             </p>
           </div>
 
           {/* Deletion Warning Banner */}
@@ -395,7 +395,7 @@ export default function Settings() {
                 <AlertTriangle className="h-5 w-5 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
                 <div className="flex-1">
                   <p className="text-sm font-medium text-amber-800 dark:text-amber-200">
-                    Account scheduled for deletion
+                     Account scheduled for deletion
                   </p>
                   <p className="text-xs text-amber-700 dark:text-amber-300 mt-1">
                     Your account will be permanently deleted on {scheduledDeletionAt.toLocaleDateString()}. Log in within 30 days to cancel.
@@ -406,7 +406,7 @@ export default function Settings() {
                     onClick={handleCancelDeletion}
                     className="mt-3 h-8 text-xs border-amber-300 dark:border-amber-700 text-amber-700 dark:text-amber-300 hover:bg-amber-100 dark:hover:bg-amber-900/40"
                   >
-                    Cancel Deletion
+                    {t("cancel_deletion")}
                   </Button>
                 </div>
               </div>
@@ -422,21 +422,21 @@ export default function Settings() {
             transition={{ delay: 0.05 }}
             className="bg-secondary rounded-xl border border-border p-5 space-y-5"
           >
-            <h2 className="text-sm font-medium text-foreground uppercase tracking-wide">
-              Profile Information
-            </h2>
+             <h2 className="text-sm font-medium text-foreground uppercase tracking-wide">
+               {t("profile_information")}
+             </h2>
 
             {/* Name Field */}
             <div className="space-y-1.5">
               <Label className="text-xs text-muted-foreground flex items-center gap-1.5">
                 <User className="h-3.5 w-3.5" />
-                Name
+                 {t("name")}
               </Label>
               <div className="flex items-center gap-2">
                 <Input
                   value={displayName}
                   onChange={(e) => setDisplayName(e.target.value)}
-                  placeholder="Your name"
+                  placeholder={t("your_name")}
                   disabled={!editingName}
                   className="bg-card border-input text-foreground h-9 text-sm flex-1"
                 />
@@ -448,7 +448,7 @@ export default function Settings() {
                       onClick={handleSaveName}
                       disabled={isSaving}
                     >
-                      {isSaving ? "..." : "Save"}
+                      {isSaving ? "..." : t("save")}
                     </Button>
                     <button
                       type="button"
@@ -458,7 +458,7 @@ export default function Settings() {
                         setEditingName(false);
                       }}
                     >
-                      Cancel
+                       {t("cancel")}
                     </button>
                   </>
                 ) : (
@@ -478,14 +478,14 @@ export default function Settings() {
             <div className="space-y-1.5">
               <Label className="text-xs text-muted-foreground flex items-center gap-1.5">
                 <Mail className="h-3.5 w-3.5" />
-                Email
-              </Label>
+                 {t("email_address")}
+               </Label>
               <div className="flex items-center gap-2">
                 <Input
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="your@email.com"
+                  placeholder={t("your_email")}
                   disabled={!editingEmail}
                   className="bg-card border-input text-foreground h-9 text-sm flex-1"
                 />
@@ -497,7 +497,7 @@ export default function Settings() {
                       onClick={handleSaveEmail}
                       disabled={isSaving}
                     >
-                      {isSaving ? "..." : "Send"}
+                      {isSaving ? "..." : t("send")}
                     </Button>
                     <button
                       type="button"
@@ -507,7 +507,7 @@ export default function Settings() {
                         setEditingEmail(false);
                       }}
                     >
-                      Cancel
+                       {t("cancel")}
                     </button>
                   </>
                 ) : (
@@ -538,19 +538,19 @@ export default function Settings() {
             transition={{ delay: 0.1 }}
             className="bg-secondary rounded-xl border border-border p-5 space-y-5"
           >
-            <h2 className="text-sm font-medium text-foreground uppercase tracking-wide">
-              Security
-            </h2>
+             <h2 className="text-sm font-medium text-foreground uppercase tracking-wide">
+               {t("security")}
+             </h2>
 
             {/* Password Row */}
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <Lock className="h-4 w-4 text-muted-foreground" />
                 <div>
-                  <span className="text-sm text-secondary-foreground">Password</span>
+                  <span className="text-sm text-secondary-foreground">{t("settings_password")}</span>
                   {!hasPassword && googleIdentity && (
                     <p className="text-xs text-amber-600 dark:text-amber-400">
-                      No password set - using Google login
+                      {t("no_password_google")}
                     </p>
                   )}
                 </div>
@@ -561,7 +561,7 @@ export default function Settings() {
                 onClick={() => setPasswordDialogOpen(true)}
                 className="h-8 px-3 text-xs border-border text-secondary-foreground hover:bg-muted"
               >
-                {hasPassword ? "Change Password" : "Set Password"}
+                 {hasPassword ? t("change_password") : t("set_password")}
               </Button>
             </div>
 
@@ -569,7 +569,7 @@ export default function Settings() {
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <KeyRound className="h-4 w-4 text-muted-foreground" />
-                <span className="text-sm text-secondary-foreground">Forgot Password</span>
+                <span className="text-sm text-secondary-foreground">{t("settings_forgot_password")}</span>
               </div>
               <Button
                 variant="outline"
@@ -577,14 +577,14 @@ export default function Settings() {
                 onClick={() => setForgotPasswordDialogOpen(true)}
                 className="h-8 px-3 text-xs border-border text-secondary-foreground hover:bg-muted"
               >
-                Send Reset Email
+                 {t("send_reset_email")}
               </Button>
             </div>
 
             {/* Sessions Subsection */}
             <div className="pt-3 border-t border-border">
               <h3 className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-3">
-                Sessions
+                 {t("sessions")}
               </h3>
 
               {/* Current Device Card */}
@@ -599,9 +599,9 @@ export default function Settings() {
                   </div>
                   <div>
                     <p className="text-sm font-medium text-foreground">
-                      {/Mobile|Android|iPhone|iPad|iPod/i.test(navigator.userAgent) ? "Mobile" : "Desktop"} • Active now
+                      {/Mobile|Android|iPhone|iPad|iPod/i.test(navigator.userAgent) ? t("mobile_device") : t("desktop_device")} • {t("active_now")}
                     </p>
-                    <p className="text-xs text-green-600 dark:text-green-400">Current session</p>
+                    <p className="text-xs text-green-600 dark:text-green-400">{t("current_session")}</p>
                   </div>
                 </div>
               </div>
@@ -612,7 +612,7 @@ export default function Settings() {
                 disabled={isSigningOutAll}
                 className="w-full h-8 text-xs border-border text-secondary-foreground hover:bg-muted"
               >
-                {isSigningOutAll ? "Signing out..." : "Sign out from all devices"}
+                {isSigningOutAll ? t("signing_out") : t("sign_out_all_devices")}
               </Button>
             </div>
 
@@ -620,7 +620,7 @@ export default function Settings() {
             {googleIdentity && (
               <div className="pt-3 border-t border-border">
                 <h3 className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-3">
-                  Connected Accounts
+                   {t("connected_accounts")}
                 </h3>
 
                 <div className="flex items-center justify-between p-3 bg-card rounded-lg border border-border">
@@ -634,9 +634,9 @@ export default function Settings() {
                       </svg>
                     </div>
                     <div>
-                      <p className="text-sm font-medium text-foreground">Google</p>
+                      <p className="text-sm font-medium text-foreground">{t("google")}</p>
                       <p className="text-xs text-muted-foreground">
-                        {googleIdentity.identity_data?.email || 'Connected'}
+                        {googleIdentity.identity_data?.email || t("connected")}
                       </p>
                     </div>
                   </div>
@@ -647,7 +647,7 @@ export default function Settings() {
                     disabled={isUnlinkingGoogle}
                     className="h-8 px-3 text-xs border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20"
                   >
-                    {isUnlinkingGoogle ? "..." : "Unlink"}
+                    {isUnlinkingGoogle ? t("unlinking") : t("unlink")}
                   </Button>
                 </div>
               </div>
@@ -665,15 +665,15 @@ export default function Settings() {
             transition={{ delay: 0.15 }}
             className="bg-secondary rounded-xl border border-border p-5 space-y-5"
           >
-            <h2 className="text-sm font-medium text-foreground uppercase tracking-wide">
-              Preferences
-            </h2>
+             <h2 className="text-sm font-medium text-foreground uppercase tracking-wide">
+               {t("preferences")}
+             </h2>
 
             {/* Language Row */}
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <Globe className="h-4 w-4 text-muted-foreground" />
-                <span className="text-sm text-secondary-foreground">Language</span>
+                <span className="text-sm text-secondary-foreground">{t("language")}</span>
               </div>
               <Popover open={langOpen} onOpenChange={setLangOpen}>
                 <PopoverTrigger asChild>
@@ -716,7 +716,7 @@ export default function Settings() {
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <Palette className="h-4 w-4 text-muted-foreground" />
-                <span className="text-sm text-secondary-foreground">Theme</span>
+                <span className="text-sm text-secondary-foreground">{t("theme")}</span>
               </div>
               <ThemeToggle />
             </div>
@@ -726,10 +726,10 @@ export default function Settings() {
               <div className="flex items-center gap-3">
                 <Eye className="h-4 w-4 text-muted-foreground" />
                 <div>
-                  <span className="text-sm text-secondary-foreground">Link Preview</span>
-                  <p className="text-xs text-muted-foreground">
-                    Show preview before redirecting
-                  </p>
+                   <span className="text-sm text-secondary-foreground">{t("settings_link_preview")}</span>
+                   <p className="text-xs text-muted-foreground">
+                     {t("show_preview_before_redirect")}
+                   </p>
                 </div>
               </div>
               <SlidingToggle
@@ -743,10 +743,10 @@ export default function Settings() {
               <div className="flex items-center gap-3">
                 <Shield className="h-4 w-4 text-muted-foreground" />
                 <div>
-                  <span className="text-sm text-secondary-foreground">Security Mode</span>
-                  <p className="text-xs text-muted-foreground">
-                    URL safety checking level
-                  </p>
+                   <span className="text-sm text-secondary-foreground">{t("security_mode")}</span>
+                   <p className="text-xs text-muted-foreground">
+                     {t("url_safety_checking")}
+                   </p>
                 </div>
               </div>
               <Select 
@@ -757,9 +757,9 @@ export default function Settings() {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent className="bg-popover border-border">
-                  <SelectItem value="disable">Off</SelectItem>
-                  <SelectItem value="warn">Warn</SelectItem>
-                  <SelectItem value="strict">Strict</SelectItem>
+                   <SelectItem value="disable">{t("off")}</SelectItem>
+                   <SelectItem value="warn">{t("warn")}</SelectItem>
+                   <SelectItem value="strict">{t("strict")}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -769,10 +769,10 @@ export default function Settings() {
               <div className="flex items-center gap-3">
                 <RefreshCw className="h-4 w-4 text-muted-foreground" />
                 <div>
-                  <span className="text-sm text-secondary-foreground">Auto Dashboard Refresh</span>
-                  <p className="text-xs text-muted-foreground">
-                    Automatically refresh dashboard data
-                  </p>
+                   <span className="text-sm text-secondary-foreground">{t("auto_dashboard_refresh")}</span>
+                   <p className="text-xs text-muted-foreground">
+                     {t("auto_refresh_dashboard")}
+                   </p>
                 </div>
               </div>
               <SlidingToggle
@@ -792,10 +792,10 @@ export default function Settings() {
             className="bg-card rounded-xl border-2 border-destructive/30 p-5 space-y-4"
           >
             <h2 className="text-sm font-medium text-destructive uppercase tracking-wide">
-              Danger Zone
+              {t("danger_zone")}
             </h2>
             <p className="text-xs text-muted-foreground">
-              Permanently delete your account and all associated data.
+              {t("delete_account_permanently")}
             </p>
             <Button
               variant="destructive"
@@ -805,7 +805,7 @@ export default function Settings() {
               className="bg-red-600 hover:bg-red-700 text-white"
             >
               <AlertTriangle className="h-4 w-4 mr-2" />
-              Delete My Account
+               {t("delete_my_account")}
             </Button>
           </motion.section>
         </div>
@@ -819,19 +819,19 @@ export default function Settings() {
       <Dialog open={passwordDialogOpen} onOpenChange={setPasswordDialogOpen}>
         <DialogContent className="bg-popover border-border sm:max-w-md">
           <DialogHeader className="space-y-3">
-            <DialogTitle>
-              {hasPassword ? "Change Password" : "Set Password"}
-            </DialogTitle>
-            <DialogDescription className="mb-2">
-              {hasPassword
-                ? "Enter your current password and choose a new one."
-                : "Create a password to enable email/password login alongside Google."}
+             <DialogTitle>
+               {hasPassword ? t("change_password") : t("set_password")}
+             </DialogTitle>
+             <DialogDescription className="mb-2">
+               {hasPassword
+                 ? t("enter_current_password")
+                 : t("create_password_google")}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 pt-2">
             {hasPassword && (
               <div className="space-y-2">
-                <Label>Current Password</Label>
+                <Label>{t("current_password")}</Label>
                 <Input
                   type="password"
                   value={currentPassword}
@@ -841,17 +841,17 @@ export default function Settings() {
               </div>
             )}
             <div className="space-y-2">
-              <Label>{hasPassword ? "New Password" : "Password"}</Label>
+              <Label>{hasPassword ? t("new_password") : t("settings_password")}</Label>
               <Input
                 type="password"
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
-                placeholder={hasPassword ? "Enter new password" : "Create a password"}
+                placeholder={hasPassword ? t("enter_new_password") : t("create_password")}
                   className="bg-card"
               />
             </div>
             <div className="space-y-2">
-              <Label>Confirm Password</Label>
+              <Label>{t("settings_confirm_password")}</Label>
               <Input
                 type="password"
                 value={confirmPassword}
@@ -870,7 +870,7 @@ export default function Settings() {
                 setConfirmPassword("");
               }}
             >
-              Cancel
+               {t("cancel")}
             </Button>
             <Button
               onClick={handleChangePassword}
@@ -878,7 +878,7 @@ export default function Settings() {
               className="bg-primary text-primary-foreground"
             >
               {isChangingPassword && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-              {hasPassword ? "Change Password" : "Set Password"}
+              {hasPassword ? t("change_password") : t("set_password")}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -890,10 +890,10 @@ export default function Settings() {
       <Dialog open={forgotPasswordDialogOpen} onOpenChange={setForgotPasswordDialogOpen}>
         <DialogContent className="bg-popover border-border">
           <DialogHeader>
-            <DialogTitle>Reset Password</DialogTitle>
-            <DialogDescription>
-              We'll send a password reset link to your email address.
-            </DialogDescription>
+             <DialogTitle>{t("settings_reset_password")}</DialogTitle>
+             <DialogDescription>
+               {t("send_reset_link")}
+             </DialogDescription>
           </DialogHeader>
           <div className="py-4">
             <div className="bg-secondary rounded-lg p-3 flex items-center gap-3">
@@ -902,11 +902,11 @@ export default function Settings() {
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setForgotPasswordDialogOpen(false)}>
-              Cancel
-            </Button>
-            <Button onClick={handleSendResetEmail} disabled={isSendingReset}>
-              {isSendingReset ? "Sending..." : "Send Reset Email"}
+             <Button variant="outline" onClick={() => setForgotPasswordDialogOpen(false)}>
+               {t("cancel")}
+             </Button>
+             <Button onClick={handleSendResetEmail} disabled={isSendingReset}>
+               {isSendingReset ? t("sending") : t("send_reset_email")}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -918,34 +918,30 @@ export default function Settings() {
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent className="bg-popover border-border">
           <AlertDialogHeader>
-            <AlertDialogTitle>
-              Are you sure you want to delete your account?
-            </AlertDialogTitle>
-            <AlertDialogDescription asChild>
-              <div className="space-y-3 text-sm text-muted-foreground">
-                <p>
-                  This action will start a 30-day recovery period. You can reactivate your account anytime within 30 days by logging back in.
-                </p>
-                <p>
-                  After 30 days, your account and all associated data will be permanently deleted, including:
-                </p>
-                <ul className="list-disc list-inside space-y-1 ml-2">
-                  <li>Your user account</li>
-                  <li>All shortened links</li>
-                  <li>All analytics data</li>
-                  <li>All settings and records</li>
-                </ul>
-              </div>
-            </AlertDialogDescription>
+             <AlertDialogTitle>
+               {t("are_you_sure_delete")}
+             </AlertDialogTitle>
+             <AlertDialogDescription asChild>
+               <div className="space-y-3 text-sm text-muted-foreground">
+                 <p>{t("account_deletion_30_days")}</p>
+                 <p>{t("after_30_days_permanent")}</p>
+                 <ul className="list-disc list-inside space-y-1 ml-2">
+                   <li>{t("user_account")}</li>
+                   <li>{t("all_shortened_links")}</li>
+                   <li>{t("all_analytics_data")}</li>
+                   <li>{t("all_settings_records")}</li>
+                 </ul>
+               </div>
+             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={handleDeleteAccount}
-              className="bg-red-600 hover:bg-red-700 text-white"
-            >
-              Delete My Account
-            </AlertDialogAction>
+             <AlertDialogCancel>{t("cancel")}</AlertDialogCancel>
+             <AlertDialogAction
+               onClick={handleDeleteAccount}
+               className="bg-red-600 hover:bg-red-700 text-white"
+             >
+               {t("delete_my_account")}
+             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
