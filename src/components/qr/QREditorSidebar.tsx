@@ -8,6 +8,7 @@ import { LogoSection } from "./LogoSection";
 import { FrameSection } from "./FrameSection";
 import { TextSection } from "./TextSection";
 import { TemplatesSection } from "./TemplatesSection";
+import { useLanguage } from "@/lib/i18n";
 import { toast } from "sonner";
 import { toPng, toSvg } from "html-to-image";
 
