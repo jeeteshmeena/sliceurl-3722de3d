@@ -161,7 +161,7 @@ const Analytics = () => {
             <div className="flex items-center justify-between mb-3 sm:mb-4">
               <div className="flex items-center gap-2">
                 <TrendingUp className="h-4 w-4 sm:h-5 sm:w-5 text-foreground" />
-                <h2 className="text-base sm:text-lg font-semibold">Overview</h2>
+                <h2 className="text-base sm:text-lg font-semibold">{t("overview")}</h2>
               </div>
               <TrendIndicator clicks={clicks} periodDays={7} />
             </div>
