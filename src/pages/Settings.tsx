@@ -743,10 +743,10 @@ export default function Settings() {
               <div className="flex items-center gap-3">
                 <Shield className="h-4 w-4 text-muted-foreground" />
                 <div>
-                  <span className="text-sm text-secondary-foreground">Security Mode</span>
-                  <p className="text-xs text-muted-foreground">
-                    URL safety checking level
-                  </p>
+                   <span className="text-sm text-secondary-foreground">{t("security_mode")}</span>
+                   <p className="text-xs text-muted-foreground">
+                     {t("url_safety_checking")}
+                   </p>
                 </div>
               </div>
               <Select 
