@@ -307,7 +307,7 @@ export function CreateLinkDialog({ open, onOpenChange, onCreateLink }: CreateLin
                       <Input
                         id="password"
                         type="password"
-                        placeholder="Enter password"
+                        placeholder={t("create_enter_password")}
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
                         className="h-10"
