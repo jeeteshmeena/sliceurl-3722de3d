@@ -95,7 +95,7 @@ export const QREditorSidebar = memo(function QREditorSidebar({
       toast.success(t("png_downloaded"));
     } catch (error) {
       console.error("Export error:", error);
-      toast.error("Failed to export PNG");
+      toast.error(t("failed_export_png"));
     } finally {
       setExporting(null);
     }
