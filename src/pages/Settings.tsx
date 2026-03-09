@@ -561,7 +561,7 @@ export default function Settings() {
                 onClick={() => setPasswordDialogOpen(true)}
                 className="h-8 px-3 text-xs border-border text-secondary-foreground hover:bg-muted"
               >
-                {hasPassword ? "Change Password" : "Set Password"}
+                 {hasPassword ? t("change_password") : t("set_password")}
               </Button>
             </div>
 
