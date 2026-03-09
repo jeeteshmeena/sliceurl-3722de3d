@@ -46,6 +46,8 @@ export const QREditorSidebar = memo(function QREditorSidebar({
   saving,
   destinationUrl,
 }: QREditorSidebarProps) {
+  const { t } = useLanguage();
+  const sections = getSections(t);
   const [expandedSections, setExpandedSections] = useState<Set<SectionId>>(
     new Set(["templates", "colors"])
   );
