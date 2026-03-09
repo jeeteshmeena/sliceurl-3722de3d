@@ -538,9 +538,9 @@ export default function Settings() {
             transition={{ delay: 0.1 }}
             className="bg-secondary rounded-xl border border-border p-5 space-y-5"
           >
-            <h2 className="text-sm font-medium text-foreground uppercase tracking-wide">
-              Security
-            </h2>
+             <h2 className="text-sm font-medium text-foreground uppercase tracking-wide">
+               {t("security")}
+             </h2>
 
             {/* Password Row */}
             <div className="flex items-center justify-between">
