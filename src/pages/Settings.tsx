@@ -497,7 +497,7 @@ export default function Settings() {
                       onClick={handleSaveEmail}
                       disabled={isSaving}
                     >
-                      {isSaving ? "..." : "Send"}
+                      {isSaving ? "..." : t("send")}
                     </Button>
                     <button
                       type="button"
