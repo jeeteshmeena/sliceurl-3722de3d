@@ -418,7 +418,7 @@ const Analytics = () => {
             >
               <div className="flex items-center gap-2 mb-3 sm:mb-4">
                 <Monitor className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-muted-foreground" />
-                <h3 className="font-semibold text-sm sm:text-base">Devices</h3>
+                <h3 className="font-semibold text-sm sm:text-base">{t("device")}</h3>
               </div>
               {summary.deviceStats.length === 0 ? (
                 <div className="py-8 text-center">
