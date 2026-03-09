@@ -448,7 +448,7 @@ export default function Settings() {
                       onClick={handleSaveName}
                       disabled={isSaving}
                     >
-                      {isSaving ? "..." : "Save"}
+                      {isSaving ? "..." : t("save")}
                     </Button>
                     <button
                       type="button"
