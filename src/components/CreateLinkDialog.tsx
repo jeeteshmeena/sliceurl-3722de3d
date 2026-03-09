@@ -16,6 +16,7 @@ import { useLinkBehavior } from "@/hooks/useLinkBehavior";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useSlugValidation } from "@/hooks/useSlugValidation";
 import { InfoTooltip } from "./InfoTooltip";
+import { useLanguage } from "@/lib/i18n";
 
 interface CreateLinkDialogProps {
   open: boolean;
