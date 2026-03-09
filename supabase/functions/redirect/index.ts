@@ -99,7 +99,7 @@ serve(async (req) => {
 
     const { data: link, error } = await supabase
       .from('links')
-      .select('*')
+      .select('*, link_preview_enabled')
       .eq('short_code', shortCode)
       .maybeSingle();
 
@@ -128,6 +128,65 @@ serve(async (req) => {
       );
     }
 
+    // CRITICAL: Check per-link preview flag FIRST
+    // If link_preview_enabled is false (default), always redirect instantly
+    const redirectUrl = await getRedirectUrl(supabase, link);
+    
+    if (!link.link_preview_enabled && !isPreview) {
+      // Preview is disabled for this link → instant redirect
+      const ip = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 
+                 req.headers.get('cf-connecting-ip') || 
+                 'unknown';
+      const userAgent = req.headers.get('user-agent') || '';
+      const { device_type, browser, os } = parseUserAgent(userAgent);
+
+      let geo = { country: 'Unknown', city: 'Unknown' };
+      if (ip !== 'unknown' && ip !== '127.0.0.1' && !ip.startsWith('192.168.') && !ip.startsWith('10.')) {
+        geo = await getGeoLocation(ip);
+      }
+
+      const { data: existingClick } = await supabase
+        .from('clicks')
+        .select('id')
+        .eq('link_id', link.id)
+        .eq('ip_address', ip)
+        .maybeSingle();
+
+      await supabase.from('clicks').insert({
+        link_id: link.id,
+        ip_address: ip,
+        user_agent: userAgent,
+        referrer: referrer || null,
+        country: geo.country,
+        city: geo.city,
+        device_type,
+        browser,
+        os,
+        is_unique: !existingClick
+      });
+
+      await supabase
+        .from('links')
+        .update({
+          click_count: (link.click_count || 0) + 1,
+          last_clicked_at: new Date().toISOString()
+        })
+        .eq('id', link.id);
+
+      console.log(`Instant redirect (preview disabled): ${shortCode} -> ${redirectUrl}`);
+
+      return new Response(null, {
+        status: 302,
+        headers: {
+          ...corsHeaders,
+          'Location': redirectUrl,
+          'Cache-Control': 'no-store, no-cache, must-revalidate, max-age=0',
+          'Pragma': 'no-cache',
+        },
+      });
+    }
+
+    // If password protected, show password prompt (even if preview enabled)
     if (link.is_password_protected) {
       return new Response(
         JSON.stringify({
@@ -143,8 +202,7 @@ serve(async (req) => {
       );
     }
 
-    const redirectUrl = await getRedirectUrl(supabase, link);
-
+    // Legacy security mode check (only relevant if preview is enabled)
     let securityMode = 'warn';
     if (link.user_id) {
       const { data: profile } = await supabase
@@ -218,6 +276,7 @@ serve(async (req) => {
           facebook_pixel: link.facebook_pixel,
           google_pixel: link.google_pixel,
           requires_password: false,
+          link_preview_enabled: link.link_preview_enabled || false,
           auto_redirect: securityMode === 'disable',
           security_mode: securityMode,
           utm_enabled: link.utm_enabled

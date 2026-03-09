@@ -441,6 +441,7 @@ export type Database = {
           last_clicked_at: string | null
           last_health_check: string | null
           last_scanned_at: string | null
+          link_preview_enabled: boolean
           max_clicks: number | null
           notify_on_broken: boolean | null
           order_index: number | null
@@ -490,6 +491,7 @@ export type Database = {
           last_clicked_at?: string | null
           last_health_check?: string | null
           last_scanned_at?: string | null
+          link_preview_enabled?: boolean
           max_clicks?: number | null
           notify_on_broken?: boolean | null
           order_index?: number | null
@@ -539,6 +541,7 @@ export type Database = {
           last_clicked_at?: string | null
           last_health_check?: string | null
           last_scanned_at?: string | null
+          link_preview_enabled?: boolean
           max_clicks?: number | null
           notify_on_broken?: boolean | null
           order_index?: number | null

@@ -45,7 +45,7 @@ const categoryBadges: Record<string, { label: string; icon: React.ElementType; c
   'Trackers': { label: 'Trackers', icon: Radio, color: 'bg-blue-500/10 text-blue-500 border-blue-500/20', isMalware: false },
 };
 
-// Get local link preview preference - checks both localStorage AND Supabase
+// Get local link preview preference - DISABLED by default
 function getLocalLinkPreviewEnabled(): boolean {
   try {
     const stored = localStorage.getItem('sliceurl-link-preview');
@@ -60,7 +60,7 @@ function getLocalLinkPreviewEnabled(): boolean {
   } catch {
     // localStorage not available
   }
-  return true; // Default: preview enabled
+  return false; // CRITICAL: Default is FALSE (preview OFF, instant redirect)
 }
 
 // Get local security mode preference
@@ -276,10 +276,13 @@ export default function Preview() {
         securityMode = 'strict';
       }
 
-      // Check if link preview should be shown based on server response or local preference
-      const serverPreviewEnabled = result.auto_redirect_enabled !== true && result.security_mode !== 'disable';
+      // CRITICAL: Check server's link_preview_enabled flag FIRST
+      // If the link owner has disabled preview for this link, always redirect instantly
+      const serverLinkPreviewEnabled = result.link_preview_enabled === true;
+      
+      // Only check local preference if server allows preview
       const localPreviewEnabled = getLocalLinkPreviewEnabled();
-      const previewEnabled = serverPreviewEnabled && localPreviewEnabled;
+      const previewEnabled = serverLinkPreviewEnabled && localPreviewEnabled;
 
       const linkData: LinkInfo = {
         id: result.link_id || result.id,
