@@ -14,7 +14,7 @@ import {
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import { SliceAppsHeader, SliceAppsSidebar, RatingsReviewsSection } from "@/components/sliceapps";
+import { SliceAppsHeader, RatingsReviewsSection } from "@/components/sliceapps";
 import { MetadataStrip } from "@/components/sliceapps/MetadataStrip";
 
 interface AppListing {
