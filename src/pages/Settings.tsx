@@ -376,12 +376,12 @@ export default function Settings() {
 
           {/* Page Header */}
           <div>
-            <h1 className="text-2xl font-semibold text-foreground">
-              Settings
-            </h1>
-            <p className="text-sm text-muted-foreground mt-1">
-              Manage your account and preferences
-            </p>
+             <h1 className="text-2xl font-semibold text-foreground">
+               {t("settings")}
+             </h1>
+             <p className="text-sm text-muted-foreground mt-1">
+               {t("manage_account_preferences")}
+             </p>
           </div>
 
           {/* Deletion Warning Banner */}
