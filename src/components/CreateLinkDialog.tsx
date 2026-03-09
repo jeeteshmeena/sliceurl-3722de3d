@@ -288,7 +288,7 @@ export function CreateLinkDialog({ open, onOpenChange, onCreateLink }: CreateLin
                     <Lock className="h-4 w-4 text-muted-foreground" />
                     <div className="flex items-center gap-1.5">
                       <Label htmlFor="password-toggle" className="cursor-pointer text-[13px] font-medium">
-                        Password Protection
+                         {t("password_protection")}
                       </Label>
                       <InfoTooltip content="Require visitors to enter a password before accessing the link." />
                     </div>
