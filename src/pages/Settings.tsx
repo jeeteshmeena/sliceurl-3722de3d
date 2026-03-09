@@ -647,7 +647,7 @@ export default function Settings() {
                     disabled={isUnlinkingGoogle}
                     className="h-8 px-3 text-xs border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20"
                   >
-                    {isUnlinkingGoogle ? "..." : "Unlink"}
+                    {isUnlinkingGoogle ? t("unlinking") : t("unlink")}
                   </Button>
                 </div>
               </div>
