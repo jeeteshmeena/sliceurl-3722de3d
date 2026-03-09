@@ -430,7 +430,7 @@ export default function Settings() {
             <div className="space-y-1.5">
               <Label className="text-xs text-muted-foreground flex items-center gap-1.5">
                 <User className="h-3.5 w-3.5" />
-                Name
+                 {t("name")}
               </Label>
               <div className="flex items-center gap-2">
                 <Input
