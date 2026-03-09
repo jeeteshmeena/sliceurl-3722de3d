@@ -74,13 +74,13 @@ export function SearchFilters({ filters, onFiltersChange, availableCountries }: 
           </Button>
         </PopoverTrigger>
         <PopoverContent className="w-72 p-4 bg-popover z-50" align="start">
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <h4 className="font-medium text-sm">Filter Links</h4>
-              {activeFilterCount > 0 && (
-                <Button variant="ghost" size="sm" onClick={clearFilters} className="h-7 text-xs">
-                  Clear all
-                </Button>
+           <div className="space-y-4">
+             <div className="flex items-center justify-between">
+               <h4 className="font-medium text-sm">{t("filter_links")}</h4>
+               {activeFilterCount > 0 && (
+                 <Button variant="ghost" size="sm" onClick={clearFilters} className="h-7 text-xs">
+                   {t("clear_all")}
+                 </Button>
               )}
             </div>
 
