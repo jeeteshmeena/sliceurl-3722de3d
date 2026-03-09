@@ -30,12 +30,12 @@ interface SectionConfig {
   iconExtra?: typeof Scissors;
 }
 
-const sections: SectionConfig[] = [
-  { id: "templates", title: "Templates", icon: LayoutTemplate },
-  { id: "colors", title: "QR Colors", icon: Palette },
-  { id: "logo", title: "Logo", icon: Image },
-  { id: "frames", title: "Frames & Shapes", icon: Frame },
-  { id: "text", title: "Extra Text", icon: Type },
+const getSections = (t: (key: string) => string): SectionConfig[] => [
+  { id: "templates", title: t("qr_templates"), icon: LayoutTemplate },
+  { id: "colors", title: t("qr_colors"), icon: Palette },
+  { id: "logo", title: t("qr_logo"), icon: Image },
+  { id: "frames", title: t("qr_frames_shapes"), icon: Frame },
+  { id: "text", title: t("qr_extra_text"), icon: Type },
 ];
 
 export const QREditorSidebar = memo(function QREditorSidebar({
