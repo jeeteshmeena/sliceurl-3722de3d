@@ -276,6 +276,7 @@ serve(async (req) => {
           facebook_pixel: link.facebook_pixel,
           google_pixel: link.google_pixel,
           requires_password: false,
+          link_preview_enabled: link.link_preview_enabled || false,
           auto_redirect: securityMode === 'disable',
           security_mode: securityMode,
           utm_enabled: link.utm_enabled
