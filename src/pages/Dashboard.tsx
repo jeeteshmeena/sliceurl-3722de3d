@@ -416,7 +416,7 @@ const Dashboard = () => {
                           </DialogTrigger>
                           <DialogContent>
                             <DialogHeader>
-                              <DialogTitle>QR Code</DialogTitle>
+                              <DialogTitle>{t("qr_code")}</DialogTitle>
                             </DialogHeader>
                             <SliceQR url={`${window.location.origin}/s/${link.short_code}`} filename={`sliceurl-${link.short_code}`} />
                             <Button 
