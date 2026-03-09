@@ -2,7 +2,6 @@ import { useParams, Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { useState, useMemo } from "react";
 import { useLanguage } from "@/lib/i18n";
-import { useState, useMemo } from "react";
 import { 
   ArrowLeft, Link2, MousePointer, Users, Globe, Monitor, 
   Smartphone, Tablet, Download, Activity, MapPin, 
