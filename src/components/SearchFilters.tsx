@@ -18,11 +18,12 @@ interface SearchFiltersProps {
   availableCountries: string[];
 }
 
-const clickOptions = [
-  { value: '0', label: '0 clicks' },
-  { value: '<10', label: 'Less than 10' },
-  { value: '10+', label: '10+ clicks' },
-  { value: '100+', label: '100+ clicks' },
+// These will be translated via t() in the render
+const clickOptionKeys = [
+  { value: '0', key: '0_clicks' },
+  { value: '<10', key: 'less_than_10' },
+  { value: '10+', key: '10_plus_clicks' },
+  { value: '100+', key: '100_plus_clicks' },
 ];
 
 const deviceOptions = [
