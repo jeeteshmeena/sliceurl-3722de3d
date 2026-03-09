@@ -175,8 +175,8 @@ export function SearchFilters({ filters, onFiltersChange, availableCountries }: 
                 onCheckedChange={(checked) => updateFilter('pinned', checked ? true : null)}
               />
               <label htmlFor="pinned-filter" className="text-xs font-medium flex items-center gap-1 cursor-pointer">
-                <Pin className="h-3 w-3" />
-                Pinned only
+               <Pin className="h-3 w-3" />
+                 {t("pinned_only")}
               </label>
             </div>
           </div>
