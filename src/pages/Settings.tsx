@@ -726,10 +726,10 @@ export default function Settings() {
               <div className="flex items-center gap-3">
                 <Eye className="h-4 w-4 text-muted-foreground" />
                 <div>
-                  <span className="text-sm text-secondary-foreground">Link Preview</span>
-                  <p className="text-xs text-muted-foreground">
-                    Show preview before redirecting
-                  </p>
+                   <span className="text-sm text-secondary-foreground">{t("settings_link_preview")}</span>
+                   <p className="text-xs text-muted-foreground">
+                     {t("show_preview_before_redirect")}
+                   </p>
                 </div>
               </div>
               <SlidingToggle
