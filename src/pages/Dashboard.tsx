@@ -423,8 +423,8 @@ const Dashboard = () => {
                               onClick={() => navigate(`/qr/${link.id}/customize`)} 
                               className="w-full mt-4 gap-2"
                             >
-                              <Palette className="h-4 w-4" />
-                              Customize QR Design
+                               <Palette className="h-4 w-4" />
+                               {t("customize_qr_design")}
                             </Button>
                           </DialogContent>
                         </Dialog>
