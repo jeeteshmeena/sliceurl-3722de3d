@@ -550,7 +550,7 @@ export default function Settings() {
                   <span className="text-sm text-secondary-foreground">{t("settings_password")}</span>
                   {!hasPassword && googleIdentity && (
                     <p className="text-xs text-amber-600 dark:text-amber-400">
-                      No password set - using Google login
+                      {t("no_password_google")}
                     </p>
                   )}
                 </div>
