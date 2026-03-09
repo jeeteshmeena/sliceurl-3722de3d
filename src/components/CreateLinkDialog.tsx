@@ -336,7 +336,7 @@ export function CreateLinkDialog({ open, onOpenChange, onCreateLink }: CreateLin
                     <BarChart3 className="h-4 w-4 text-muted-foreground" />
                     <div className="flex items-center gap-1.5">
                       <Label htmlFor="utm-toggle" className="cursor-pointer text-[13px] font-medium">
-                        UTM Tracking
+                         {t("utm_tracking")}
                       </Label>
                       <InfoTooltip content="Add UTM parameters for analytics tracking." />
                     </div>
