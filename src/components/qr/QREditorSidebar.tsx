@@ -142,8 +142,8 @@ export const QREditorSidebar = memo(function QREditorSidebar({
 
   const handleReset = useCallback(() => {
     onReset();
-    toast.success("Design reset to defaults");
-  }, [onReset]);
+    toast.success(t("design_reset"));
+  }, [onReset, t]);
 
   const renderSectionContent = (id: SectionId) => {
     switch (id) {
