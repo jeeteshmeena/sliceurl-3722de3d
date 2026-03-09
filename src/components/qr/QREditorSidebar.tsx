@@ -239,7 +239,7 @@ export const QREditorSidebar = memo(function QREditorSidebar({
             ) : (
               <Save className="w-4 h-4" />
             )}
-            {saving ? "Saving..." : "Save Design"}
+            {saving ? t("saving_design") : t("save_design")}
           </Button>
           <Button
             variant="outline"
