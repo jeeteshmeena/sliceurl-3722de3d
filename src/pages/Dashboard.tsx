@@ -473,9 +473,9 @@ const Dashboard = () => {
                           </TooltipProvider>
                           <AlertDialogContent>
                             <AlertDialogHeader>
-                              <AlertDialogTitle>Delete this link?</AlertDialogTitle>
-                              <AlertDialogDescription>
-                                This action cannot be undone.
+                               <AlertDialogTitle>{t("delete_this_link")}</AlertDialogTitle>
+                               <AlertDialogDescription>
+                                 {t("cannot_be_undone")}
                               </AlertDialogDescription>
                             </AlertDialogHeader>
                             <AlertDialogFooter>
