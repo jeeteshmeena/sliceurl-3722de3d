@@ -83,7 +83,7 @@ const Analytics = () => {
   };
 
   // Monochrome colors for sources
-  const sourceColors = ["#1a1a1a", "#404040", "#666666", "#888888", "#aaaaaa", "#cccccc", "#e5e5e5", "#f5f5f5"];
+  const chartFgColor = "hsl(var(--foreground))";
 
   if (loading) {
     return (
