@@ -178,6 +178,7 @@ export default function AppPage() {
 
   // Desktop block screen
   if (isMobile === false) {
+    const currentUrl = window.location.href;
     return (
       <div className="min-h-dvh bg-background flex items-center justify-center p-5">
         <div 
@@ -193,13 +194,25 @@ export default function AppPage() {
           <p className="text-muted-foreground text-base leading-relaxed mb-6">
             SliceAPPs app pages are designed to work only on mobile devices.
             <br />
-            Please open this page on your phone to continue.
+            Scan the QR code below to open this page on your phone.
           </p>
-          <Link to="/">
-            <Button variant="outline" className="rounded-full px-6">
-              Go to SliceURL
-            </Button>
-          </Link>
+          <div className="mx-auto mb-6 inline-flex p-4 bg-background rounded-2xl border border-border/30">
+            <QRCodeSVG
+              value={currentUrl}
+              size={180}
+              level="M"
+              bgColor="transparent"
+              fgColor="currentColor"
+              className="text-foreground"
+            />
+          </div>
+          <div>
+            <Link to="/">
+              <Button variant="outline" className="rounded-full px-6">
+                Go to SliceURL
+              </Button>
+            </Link>
+          </div>
         </div>
       </div>
     );
