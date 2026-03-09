@@ -180,8 +180,8 @@ const Analytics = () => {
                   icon: Users,
                   trend: { current: trendStats.currentUnique, previous: trendStats.previousUnique }
                 },
-                { 
-                  label: "Conversion", 
+                 { 
+                   label: t("conversion"), 
                   value: ctr, 
                   icon: Activity, 
                   isPercent: true,
