@@ -918,25 +918,21 @@ export default function Settings() {
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent className="bg-popover border-border">
           <AlertDialogHeader>
-            <AlertDialogTitle>
-              Are you sure you want to delete your account?
-            </AlertDialogTitle>
-            <AlertDialogDescription asChild>
-              <div className="space-y-3 text-sm text-muted-foreground">
-                <p>
-                  This action will start a 30-day recovery period. You can reactivate your account anytime within 30 days by logging back in.
-                </p>
-                <p>
-                  After 30 days, your account and all associated data will be permanently deleted, including:
-                </p>
-                <ul className="list-disc list-inside space-y-1 ml-2">
-                  <li>Your user account</li>
-                  <li>All shortened links</li>
-                  <li>All analytics data</li>
-                  <li>All settings and records</li>
-                </ul>
-              </div>
-            </AlertDialogDescription>
+             <AlertDialogTitle>
+               {t("are_you_sure_delete")}
+             </AlertDialogTitle>
+             <AlertDialogDescription asChild>
+               <div className="space-y-3 text-sm text-muted-foreground">
+                 <p>{t("account_deletion_30_days")}</p>
+                 <p>{t("after_30_days_permanent")}</p>
+                 <ul className="list-disc list-inside space-y-1 ml-2">
+                   <li>{t("user_account")}</li>
+                   <li>{t("all_shortened_links")}</li>
+                   <li>{t("all_analytics_data")}</li>
+                   <li>{t("all_settings_records")}</li>
+                 </ul>
+               </div>
+             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
