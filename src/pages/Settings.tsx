@@ -371,7 +371,7 @@ export default function Settings() {
             className="gap-2 text-muted-foreground hover:text-foreground -ml-2"
           >
             <ArrowLeft className="h-4 w-4" />
-            Back
+             {t("back")}
           </Button>
 
           {/* Page Header */}
