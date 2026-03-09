@@ -422,9 +422,9 @@ export default function Settings() {
             transition={{ delay: 0.05 }}
             className="bg-secondary rounded-xl border border-border p-5 space-y-5"
           >
-            <h2 className="text-sm font-medium text-foreground uppercase tracking-wide">
-              Profile Information
-            </h2>
+             <h2 className="text-sm font-medium text-foreground uppercase tracking-wide">
+               {t("profile_information")}
+             </h2>
 
             {/* Name Field */}
             <div className="space-y-1.5">
