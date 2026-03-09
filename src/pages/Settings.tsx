@@ -478,8 +478,8 @@ export default function Settings() {
             <div className="space-y-1.5">
               <Label className="text-xs text-muted-foreground flex items-center gap-1.5">
                 <Mail className="h-3.5 w-3.5" />
-                Email
-              </Label>
+                 {t("email_address")}
+               </Label>
               <div className="flex items-center gap-2">
                 <Input
                   type="email"
