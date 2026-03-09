@@ -878,7 +878,7 @@ export default function Settings() {
               className="bg-primary text-primary-foreground"
             >
               {isChangingPassword && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-              {hasPassword ? "Change Password" : "Set Password"}
+              {hasPassword ? t("change_password") : t("set_password")}
             </Button>
           </DialogFooter>
         </DialogContent>
