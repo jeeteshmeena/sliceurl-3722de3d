@@ -223,21 +223,21 @@ const Dashboard = () => {
               transition={{ delay: 0.2 }}
               className="text-center max-w-sm mx-auto"
             >
-              <h3 className="text-xl font-semibold text-foreground mb-2">
-                No Links Yet
-              </h3>
-              <p className="text-muted-foreground text-sm mb-8">
-                Create your first link to get started
-              </p>
-              
-              <Button 
-                size="lg" 
-                onClick={() => setShowCreate(true)}
-                className="gap-2 bg-foreground text-background hover:bg-foreground/90"
-              >
-                <Plus className="h-4 w-4" />
-                Create Link
-              </Button>
+               <h3 className="text-xl font-semibold text-foreground mb-2">
+                 {t("no_links_title")}
+               </h3>
+               <p className="text-muted-foreground text-sm mb-8">
+                 {t("no_links_desc")}
+               </p>
+               
+               <Button 
+                 size="lg" 
+                 onClick={() => setShowCreate(true)}
+                 className="gap-2 bg-foreground text-background hover:bg-foreground/90"
+               >
+                 <Plus className="h-4 w-4" />
+                 {t("create_link")}
+               </Button>
             </motion.div>
           </motion.div>
         ) : (
