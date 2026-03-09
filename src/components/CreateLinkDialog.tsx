@@ -224,7 +224,7 @@ export function CreateLinkDialog({ open, onOpenChange, onCreateLink }: CreateLin
                   </span>
                   <Input
                     id="slug"
-                    placeholder="my-link"
+                    placeholder={t("custom_slug_placeholder")}
                     value={customSlug}
                     onChange={(e) => handleSlugChange(e.target.value)}
                     className="text-[14px] h-11 border-0 focus-visible:ring-0 rounded-none"
