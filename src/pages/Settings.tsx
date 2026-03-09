@@ -757,9 +757,9 @@ export default function Settings() {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent className="bg-popover border-border">
-                  <SelectItem value="disable">Off</SelectItem>
-                  <SelectItem value="warn">Warn</SelectItem>
-                  <SelectItem value="strict">Strict</SelectItem>
+                   <SelectItem value="disable">{t("off")}</SelectItem>
+                   <SelectItem value="warn">{t("warn")}</SelectItem>
+                   <SelectItem value="strict">{t("strict")}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
