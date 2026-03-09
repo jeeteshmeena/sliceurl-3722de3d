@@ -902,11 +902,11 @@ export default function Settings() {
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setForgotPasswordDialogOpen(false)}>
-              Cancel
-            </Button>
-            <Button onClick={handleSendResetEmail} disabled={isSendingReset}>
-              {isSendingReset ? "Sending..." : "Send Reset Email"}
+             <Button variant="outline" onClick={() => setForgotPasswordDialogOpen(false)}>
+               {t("cancel")}
+             </Button>
+             <Button onClick={handleSendResetEmail} disabled={isSendingReset}>
+               {isSendingReset ? t("sending") : t("send_reset_email")}
             </Button>
           </DialogFooter>
         </DialogContent>
