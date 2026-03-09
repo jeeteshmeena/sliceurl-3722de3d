@@ -395,7 +395,7 @@ export default function Settings() {
                 <AlertTriangle className="h-5 w-5 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
                 <div className="flex-1">
                   <p className="text-sm font-medium text-amber-800 dark:text-amber-200">
-                    Account scheduled for deletion
+                     Account scheduled for deletion
                   </p>
                   <p className="text-xs text-amber-700 dark:text-amber-300 mt-1">
                     Your account will be permanently deleted on {scheduledDeletionAt.toLocaleDateString()}. Log in within 30 days to cancel.
