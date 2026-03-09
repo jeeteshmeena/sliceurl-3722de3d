@@ -424,7 +424,7 @@ const Dashboard = () => {
                               className="w-full mt-4 gap-2"
                             >
                               <Palette className="h-4 w-4" />
-                              Customize QR Design
+                              {t("customize_qr")}
                             </Button>
                           </DialogContent>
                         </Dialog>
