@@ -276,7 +276,7 @@ const Analytics = () => {
                   <Area 
                     type="monotone" 
                     dataKey="clicks" 
-                    stroke="#1a1a1a" 
+                    stroke="hsl(var(--foreground))" 
                     fill="url(#colorClicksMono)" 
                     strokeWidth={2}
                   />
