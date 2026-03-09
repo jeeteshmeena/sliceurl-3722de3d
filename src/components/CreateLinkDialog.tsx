@@ -205,10 +205,10 @@ export function CreateLinkDialog({ open, onOpenChange, onCreateLink }: CreateLin
             <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto px-5 py-4 space-y-4">
               {/* 1. Destination URL */}
               <div className="space-y-2">
-                <Label htmlFor="url" className="text-[13px] font-medium">Destination URL</Label>
-                <Input
-                  id="url"
-                  placeholder="https://example.com/very-long-url"
+                 <Label htmlFor="url" className="text-[13px] font-medium">{t("destination_url")}</Label>
+                 <Input
+                   id="url"
+                   placeholder={t("destination_url_placeholder")}
                   value={url}
                   onChange={(e) => setUrl(e.target.value)}
                   className="text-[14px] h-11"
