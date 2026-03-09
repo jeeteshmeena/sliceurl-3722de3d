@@ -935,13 +935,13 @@ export default function Settings() {
              </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={handleDeleteAccount}
-              className="bg-red-600 hover:bg-red-700 text-white"
-            >
-              Delete My Account
-            </AlertDialogAction>
+             <AlertDialogCancel>{t("cancel")}</AlertDialogCancel>
+             <AlertDialogAction
+               onClick={handleDeleteAccount}
+               className="bg-red-600 hover:bg-red-700 text-white"
+             >
+               {t("delete_my_account")}
+             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
