@@ -149,8 +149,8 @@ export function SearchFilters({ filters, onFiltersChange, availableCountries }: 
             {/* Expiration Filter */}
             <div className="space-y-2">
               <label className="text-xs font-medium text-muted-foreground flex items-center gap-1">
-                <Clock className="h-3 w-3" />
-                Expiration
+                 <Clock className="h-3 w-3" />
+                 {t("filters_expiration")}
               </label>
               <div className="flex gap-1 flex-wrap">
                 {expirationOptions.map(opt => (
