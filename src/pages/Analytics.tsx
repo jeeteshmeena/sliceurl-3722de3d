@@ -377,7 +377,7 @@ const Analytics = () => {
               {cityStats.length === 0 ? (
                 <div className="py-6 sm:py-8 text-center">
                   <MapPin className="h-6 w-6 sm:h-8 sm:w-8 mx-auto mb-2 text-muted-foreground/30" />
-                  <p className="text-xs sm:text-sm text-muted-foreground">No data yet</p>
+                  <p className="text-xs sm:text-sm text-muted-foreground">{t("no_data_yet")}</p>
                 </div>
               ) : (
                 <div className="space-y-2 sm:space-y-2.5">
