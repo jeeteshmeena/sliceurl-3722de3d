@@ -45,7 +45,7 @@ const categoryBadges: Record<string, { label: string; icon: React.ElementType; c
   'Trackers': { label: 'Trackers', icon: Radio, color: 'bg-blue-500/10 text-blue-500 border-blue-500/20', isMalware: false },
 };
 
-// Get local link preview preference - checks both localStorage AND Supabase
+// Get local link preview preference - DISABLED by default
 function getLocalLinkPreviewEnabled(): boolean {
   try {
     const stored = localStorage.getItem('sliceurl-link-preview');
@@ -60,7 +60,7 @@ function getLocalLinkPreviewEnabled(): boolean {
   } catch {
     // localStorage not available
   }
-  return true; // Default: preview enabled
+  return false; // CRITICAL: Default is FALSE (preview OFF, instant redirect)
 }
 
 // Get local security mode preference
