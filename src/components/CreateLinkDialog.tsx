@@ -386,7 +386,7 @@ export function CreateLinkDialog({ open, onOpenChange, onCreateLink }: CreateLin
                     <Input
                       id="max-clicks"
                       type="number"
-                      placeholder="Unlimited"
+                      placeholder={t("unlimited")}
                       min="1"
                       value={maxClicks}
                       onChange={(e) => setMaxClicks(e.target.value)}
