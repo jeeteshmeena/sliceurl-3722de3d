@@ -436,7 +436,7 @@ export default function Settings() {
                 <Input
                   value={displayName}
                   onChange={(e) => setDisplayName(e.target.value)}
-                  placeholder="Your name"
+                  placeholder={t("your_name")}
                   disabled={!editingName}
                   className="bg-card border-input text-foreground h-9 text-sm flex-1"
                 />
