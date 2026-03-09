@@ -117,7 +117,7 @@ export function SearchFilters({ filters, onFiltersChange, availableCountries }: 
                   onChange={(e) => updateFilter('country', e.target.value || null)}
                   className="w-full h-8 text-xs rounded-md border border-input bg-background px-2"
                 >
-                  <option value="">All countries</option>
+                  <option value="">{t("all_countries")}</option>
                   {availableCountries.map(country => (
                     <option key={country} value={country}>{country}</option>
                   ))}
