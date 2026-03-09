@@ -268,7 +268,7 @@ export function CreateLinkDialog({ open, onOpenChange, onCreateLink }: CreateLin
                     <Eye className="h-4 w-4 text-muted-foreground" />
                     <div className="flex items-center gap-1.5">
                       <Label htmlFor="preview-toggle" className="cursor-pointer text-[13px] font-medium">
-                        Link Preview
+                         Link Preview
                       </Label>
                       <InfoTooltip content="Show a preview page before redirecting visitors." />
                     </div>
