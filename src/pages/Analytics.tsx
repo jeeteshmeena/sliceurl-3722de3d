@@ -587,13 +587,13 @@ const Analytics = () => {
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.5 }}
-            className="p-5 rounded-2xl border border-border bg-card"
+            className="p-3 sm:p-5 rounded-xl sm:rounded-2xl border border-border bg-card"
           >
-            <h3 className="font-semibold mb-4">Traffic Sources</h3>
+            <h3 className="font-semibold text-sm sm:text-base mb-3 sm:mb-4">{t("traffic_sources")}</h3>
             {summary.referrerStats.length === 0 ? (
               <div className="py-8 text-center">
                 <Link2 className="h-8 w-8 mx-auto mb-2 text-muted-foreground/30" />
-                <p className="text-sm text-muted-foreground">No data yet</p>
+                <p className="text-sm text-muted-foreground">{t("no_data_yet")}</p>
               </div>
             ) : (
               <div className="grid lg:grid-cols-2 gap-6">
@@ -616,7 +616,7 @@ const Analytics = () => {
                           borderRadius: "8px"
                         }}
                       />
-                      <Bar dataKey="value" fill="#1a1a1a" radius={[0, 6, 6, 0]} />
+                      <Bar dataKey="value" fill="hsl(var(--foreground))" radius={[0, 6, 6, 0]} />
                     </BarChart>
                   </ResponsiveContainer>
                 </div>
@@ -626,11 +626,11 @@ const Analytics = () => {
                       <div className="flex items-center gap-2.5">
                         <div 
                           className="w-2.5 h-2.5 rounded-full shrink-0" 
-                          style={{ backgroundColor: sourceColors[idx % sourceColors.length] }} 
+                          style={{ backgroundColor: `hsl(var(--foreground) / ${1 - idx * 0.12})` }} 
                         />
                         <span className="text-sm">{source.name}</span>
                       </div>
-                      <span className="text-sm font-medium text-muted-foreground">{source.value} clicks</span>
+                      <span className="text-sm font-medium text-muted-foreground">{source.value} {t("clicks")}</span>
                     </div>
                   ))}
                 </div>
