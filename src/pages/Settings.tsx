@@ -577,7 +577,7 @@ export default function Settings() {
                 onClick={() => setForgotPasswordDialogOpen(true)}
                 className="h-8 px-3 text-xs border-border text-secondary-foreground hover:bg-muted"
               >
-                Send Reset Email
+                 {t("send_reset_email")}
               </Button>
             </div>
 
