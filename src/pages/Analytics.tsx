@@ -193,8 +193,8 @@ const Analytics = () => {
                   icon: Globe,
                   trend: null
                 },
-                { 
-                  label: "Cities", 
+                 { 
+                   label: t("cities"), 
                   value: cityStats.length, 
                   icon: MapPin,
                   trend: null
