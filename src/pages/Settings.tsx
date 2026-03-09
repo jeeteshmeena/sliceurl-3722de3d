@@ -819,13 +819,13 @@ export default function Settings() {
       <Dialog open={passwordDialogOpen} onOpenChange={setPasswordDialogOpen}>
         <DialogContent className="bg-popover border-border sm:max-w-md">
           <DialogHeader className="space-y-3">
-            <DialogTitle>
-              {hasPassword ? "Change Password" : "Set Password"}
-            </DialogTitle>
-            <DialogDescription className="mb-2">
-              {hasPassword
-                ? "Enter your current password and choose a new one."
-                : "Create a password to enable email/password login alongside Google."}
+             <DialogTitle>
+               {hasPassword ? t("change_password") : t("set_password")}
+             </DialogTitle>
+             <DialogDescription className="mb-2">
+               {hasPassword
+                 ? t("enter_current_password")
+                 : t("create_password_google")}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 pt-2">
