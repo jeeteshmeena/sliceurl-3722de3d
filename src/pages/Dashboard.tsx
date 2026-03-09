@@ -195,7 +195,7 @@ const Dashboard = () => {
           className="mb-6"
         >
           <h2 className="text-xl sm:text-2xl font-bold text-foreground">
-            {displayName ? `Welcome, ${displayName} 👋` : "Welcome 👋"}
+            {displayName ? t("welcome_back_name").replace("{{name}}", displayName) : t("welcome_back_default")}
           </h2>
         </motion.div>
 
@@ -224,10 +224,10 @@ const Dashboard = () => {
               className="text-center max-w-sm mx-auto"
             >
               <h3 className="text-xl font-semibold text-foreground mb-2">
-                No Links Yet
+                {t("no_links_title")}
               </h3>
               <p className="text-muted-foreground text-sm mb-8">
-                Create your first link to get started
+                {t("no_links_desc")}
               </p>
               
               <Button 
@@ -236,7 +236,7 @@ const Dashboard = () => {
                 className="gap-2 bg-foreground text-background hover:bg-foreground/90"
               >
                 <Plus className="h-4 w-4" />
-                Create Link
+                {t("create_link")}
               </Button>
             </motion.div>
           </motion.div>
