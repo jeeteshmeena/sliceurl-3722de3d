@@ -382,7 +382,7 @@ export function CreateLinkDialog({ open, onOpenChange, onCreateLink }: CreateLin
                     />
                   </div>
                   <div className="space-y-1.5">
-                    <Label htmlFor="max-clicks" className="text-[13px]">Max Clicks</Label>
+                    <Label htmlFor="max-clicks" className="text-[13px]">{t("max_clicks")}</Label>
                     <Input
                       id="max-clicks"
                       type="number"
