@@ -274,8 +274,8 @@ const Dashboard = () => {
                   }} 
                   className="gap-1.5 h-9 text-xs sm:text-sm px-2.5 sm:px-3 border-dashed border-2 hover:border-solid hover:bg-secondary/50 active:scale-95 transition-all duration-150"
                 >
-                  <Scissors className="h-3.5 w-3.5 shrink-0" />
-                  <span>Bulk</span>
+                   <Scissors className="h-3.5 w-3.5 shrink-0" />
+                   <span>{t("bulk")}</span>
                 </Button>
                 <Button onClick={() => setShowCreate(true)} className="gap-1.5 h-9 text-xs sm:text-sm flex-1 sm:flex-initial px-3">
                   <Plus className="h-3.5 w-3.5 shrink-0" /> 
