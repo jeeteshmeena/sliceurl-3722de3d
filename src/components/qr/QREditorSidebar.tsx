@@ -245,7 +245,7 @@ export const QREditorSidebar = memo(function QREditorSidebar({
             variant="outline"
             onClick={handleReset}
             className="h-10 w-10 rounded-xl shrink-0 p-0"
-            title="Reset to defaults"
+            title={t("reset_to_defaults")}
           >
             <RotateCcw className="w-4 h-4" />
           </Button>
