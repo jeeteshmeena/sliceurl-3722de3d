@@ -122,7 +122,7 @@ export function useAnalytics(linkId: string, dateRangeStart?: Date | null) {
       fill: DEVICE_COLORS[name.toLowerCase()] || DEVICE_COLORS.unknown,
     }));
 
-    // Browser stats with monochrome colors
+    const MONO_COLORS = getThemedColors();
     const browserCounts: Record<string, number> = {};
     dataToProcess.forEach((c) => {
       const browser = c.browser || "Unknown";
@@ -134,7 +134,7 @@ export function useAnalytics(linkId: string, dateRangeStart?: Date | null) {
       .map(([name, value], i) => ({
         name,
         value,
-        fill: MONO_COLORS[i] || "#cccccc",
+        fill: MONO_COLORS[i] || MONO_COLORS[MONO_COLORS.length - 1],
       }));
 
     // OS stats with monochrome colors
