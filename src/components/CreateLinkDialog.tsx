@@ -84,14 +84,14 @@ export function CreateLinkDialog({ open, onOpenChange, onCreateLink }: CreateLin
     e.preventDefault();
     
     if (!url) {
-      toast.error("URL is required");
+      toast.error(t("url_required"));
       return;
     }
 
     try {
       new URL(url);
     } catch {
-      toast.error("Invalid URL", { description: "Please enter a valid URL" });
+      toast.error(t("invalid_url"), { description: t("enter_valid_url") });
       return;
     }
 
