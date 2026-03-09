@@ -303,7 +303,7 @@ export function CreateLinkDialog({ open, onOpenChange, onCreateLink }: CreateLin
                 {isPasswordProtected && (
                   <div className="px-4 pb-4 space-y-3 animate-fade-in border-t border-border pt-3">
                     <div className="space-y-1.5">
-                      <Label htmlFor="password" className="text-[13px]">Password</Label>
+                      <Label htmlFor="password" className="text-[13px]">{t("settings_password")}</Label>
                       <Input
                         id="password"
                         type="password"
