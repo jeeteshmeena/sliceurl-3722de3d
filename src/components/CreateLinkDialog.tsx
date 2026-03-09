@@ -112,13 +112,13 @@ export function CreateLinkDialog({ open, onOpenChange, onCreateLink }: CreateLin
 
     // UTM validation
     if (utmEnabled && !utmParams.utm_source.trim()) {
-      toast.error("UTM Source is required when UTM tracking is enabled");
+      toast.error(t("utm_source_required"));
       return;
     }
 
     // Slug validation - reject if taken or invalid
     if (customSlug && (slugStatus === 'taken' || slugStatus === 'invalid')) {
-      toast.error(slugStatus === 'taken' ? "Slug already in use" : "Invalid slug");
+      toast.error(slugStatus === 'taken' ? t("slug_taken") : t("invalid_slug"));
       return;
     }
 
