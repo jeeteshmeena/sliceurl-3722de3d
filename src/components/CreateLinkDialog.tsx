@@ -318,7 +318,7 @@ export function CreateLinkDialog({ open, onOpenChange, onCreateLink }: CreateLin
                       <Input
                         id="confirm-password"
                         type="password"
-                        placeholder="Confirm password"
+                        placeholder={t("create_confirm_password")}
                         value={confirmPassword}
                         onChange={(e) => setConfirmPassword(e.target.value)}
                         className="h-10"
