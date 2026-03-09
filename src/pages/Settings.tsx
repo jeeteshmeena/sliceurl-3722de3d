@@ -53,7 +53,7 @@ export default function Settings() {
     updateLinkPreview, 
     updateSecurityMode: updateBehaviorSecurityMode 
   } = useLinkBehavior();
-  const { language, setLanguage } = useLanguage();
+  const { language, setLanguage, t } = useLanguage();
   const { theme, setTheme } = useTheme();
   const resolvedTheme = theme === "system" ? "light" : theme;
 
@@ -371,16 +371,16 @@ export default function Settings() {
             className="gap-2 text-muted-foreground hover:text-foreground -ml-2"
           >
             <ArrowLeft className="h-4 w-4" />
-            Back
+            {t("back")}
           </Button>
 
           {/* Page Header */}
           <div>
             <h1 className="text-2xl font-semibold text-foreground">
-              Settings
+              {t("settings")}
             </h1>
             <p className="text-sm text-muted-foreground mt-1">
-              Manage your account and preferences
+              {t("manage_account_preferences")}
             </p>
           </div>
 
@@ -395,10 +395,10 @@ export default function Settings() {
                 <AlertTriangle className="h-5 w-5 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
                 <div className="flex-1">
                   <p className="text-sm font-medium text-amber-800 dark:text-amber-200">
-                    Account scheduled for deletion
+                    {t("account_scheduled_deletion")}
                   </p>
                   <p className="text-xs text-amber-700 dark:text-amber-300 mt-1">
-                    Your account will be permanently deleted on {scheduledDeletionAt.toLocaleDateString()}. Log in within 30 days to cancel.
+                    {t("account_deleted_on").replace("{{date}}", scheduledDeletionAt.toLocaleDateString())}
                   </p>
                   <Button
                     variant="outline"
@@ -406,7 +406,7 @@ export default function Settings() {
                     onClick={handleCancelDeletion}
                     className="mt-3 h-8 text-xs border-amber-300 dark:border-amber-700 text-amber-700 dark:text-amber-300 hover:bg-amber-100 dark:hover:bg-amber-900/40"
                   >
-                    Cancel Deletion
+                    {t("cancel_deletion")}
                   </Button>
                 </div>
               </div>
@@ -423,7 +423,7 @@ export default function Settings() {
             className="bg-secondary rounded-xl border border-border p-5 space-y-5"
           >
             <h2 className="text-sm font-medium text-foreground uppercase tracking-wide">
-              Profile Information
+              {t("profile_information")}
             </h2>
 
             {/* Name Field */}

@@ -195,7 +195,7 @@ const Dashboard = () => {
           className="mb-6"
         >
           <h2 className="text-xl sm:text-2xl font-bold text-foreground">
-            {displayName ? `Welcome, ${displayName} 👋` : "Welcome 👋"}
+            {displayName ? t("welcome_back_name").replace("{{name}}", displayName) : t("welcome_back_default")}
           </h2>
         </motion.div>
 
@@ -224,10 +224,10 @@ const Dashboard = () => {
               className="text-center max-w-sm mx-auto"
             >
               <h3 className="text-xl font-semibold text-foreground mb-2">
-                No Links Yet
+                {t("no_links_title")}
               </h3>
               <p className="text-muted-foreground text-sm mb-8">
-                Create your first link to get started
+                {t("no_links_desc")}
               </p>
               
               <Button 
@@ -236,7 +236,7 @@ const Dashboard = () => {
                 className="gap-2 bg-foreground text-background hover:bg-foreground/90"
               >
                 <Plus className="h-4 w-4" />
-                Create Link
+                {t("create_link")}
               </Button>
             </motion.div>
           </motion.div>
@@ -263,7 +263,7 @@ const Dashboard = () => {
                     className="gap-1.5 h-9 text-xs sm:text-sm px-2.5 sm:px-3"
                   >
                     <CheckSquare className="h-3.5 w-3.5 shrink-0" />
-                    <span className="hidden xs:inline">{selectionMode ? "Cancel" : "Select"}</span>
+                    <span className="hidden xs:inline">{selectionMode ? t("cancel") : t("select")}</span>
                   </Button>
                 )}
                 <Button 
@@ -275,7 +275,7 @@ const Dashboard = () => {
                   className="gap-1.5 h-9 text-xs sm:text-sm px-2.5 sm:px-3 border-dashed border-2 hover:border-solid hover:bg-secondary/50 active:scale-95 transition-all duration-150"
                 >
                   <Scissors className="h-3.5 w-3.5 shrink-0" />
-                  <span>Bulk</span>
+                  <span>{t("bulk")}</span>
                 </Button>
                 <Button onClick={() => setShowCreate(true)} className="gap-1.5 h-9 text-xs sm:text-sm flex-1 sm:flex-initial px-3">
                   <Plus className="h-3.5 w-3.5 shrink-0" /> 

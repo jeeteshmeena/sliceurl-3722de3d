@@ -16,6 +16,7 @@ import { useLinkBehavior } from "@/hooks/useLinkBehavior";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useSlugValidation } from "@/hooks/useSlugValidation";
 import { InfoTooltip } from "./InfoTooltip";
+import { useLanguage } from "@/lib/i18n";
 
 interface CreateLinkDialogProps {
   open: boolean;
@@ -33,6 +34,7 @@ const emptyUtmParams: UtmParams = {
 
 export function CreateLinkDialog({ open, onOpenChange, onCreateLink }: CreateLinkDialogProps) {
   const isMobile = useIsMobile();
+  const { t } = useLanguage();
   const [loading, setLoading] = useState(false);
   const [showAdvanced, setShowAdvanced] = useState(false);
   
@@ -82,41 +84,41 @@ export function CreateLinkDialog({ open, onOpenChange, onCreateLink }: CreateLin
     e.preventDefault();
     
     if (!url) {
-      toast.error("URL is required");
+      toast.error(t("url_required"));
       return;
     }
 
     try {
       new URL(url);
     } catch {
-      toast.error("Invalid URL", { description: "Please enter a valid URL" });
+      toast.error(t("invalid_url"), { description: t("enter_valid_url") });
       return;
     }
 
     if (isPasswordProtected) {
       if (!password) {
-        toast.error("Password required", { description: "Please enter a password" });
+        toast.error(t("create_password_required"), { description: t("enter_password_msg") });
         return;
       }
       if (password.length < 4) {
-        toast.error("Password too short", { description: "Password must be at least 4 characters" });
+        toast.error(t("password_too_short"), { description: t("password_min_4") });
         return;
       }
       if (password !== confirmPassword) {
-        toast.error("Passwords don't match");
+        toast.error(t("passwords_dont_match"));
         return;
       }
     }
 
     // UTM validation
     if (utmEnabled && !utmParams.utm_source.trim()) {
-      toast.error("UTM Source is required when UTM tracking is enabled");
+      toast.error(t("utm_source_required"));
       return;
     }
 
     // Slug validation - reject if taken or invalid
     if (customSlug && (slugStatus === 'taken' || slugStatus === 'invalid')) {
-      toast.error(slugStatus === 'taken' ? "Slug already in use" : "Invalid slug");
+      toast.error(slugStatus === 'taken' ? t("slug_taken") : t("invalid_slug"));
       return;
     }
 
@@ -188,14 +190,14 @@ export function CreateLinkDialog({ open, onOpenChange, onCreateLink }: CreateLin
           >
             {/* Header */}
             <div className="flex items-center justify-between px-5 py-4 border-b border-border shrink-0">
-              <h2 className="text-base font-semibold">Create New Link</h2>
+              <h2 className="text-base font-semibold">{t("create_new_link")}</h2>
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={handleClose}
                 className="text-muted-foreground hover:text-foreground h-8 px-3"
               >
-                Close
+                {t("close")}
               </Button>
             </div>
 
@@ -203,10 +205,10 @@ export function CreateLinkDialog({ open, onOpenChange, onCreateLink }: CreateLin
             <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto px-5 py-4 space-y-4">
               {/* 1. Destination URL */}
               <div className="space-y-2">
-                <Label htmlFor="url" className="text-[13px] font-medium">Destination URL</Label>
+                <Label htmlFor="url" className="text-[13px] font-medium">{t("destination_url")}</Label>
                 <Input
                   id="url"
-                  placeholder="https://example.com/very-long-url"
+                  placeholder={t("destination_url_placeholder")}
                   value={url}
                   onChange={(e) => setUrl(e.target.value)}
                   className="text-[14px] h-11"
@@ -215,14 +217,14 @@ export function CreateLinkDialog({ open, onOpenChange, onCreateLink }: CreateLin
 
               {/* 2. Custom Slug - paa.ge style */}
               <div className="space-y-2">
-                <Label htmlFor="slug" className="text-[13px] font-medium">Custom Slug (optional)</Label>
+                <Label htmlFor="slug" className="text-[13px] font-medium">{t("custom_slug_optional")}</Label>
                 <div className="flex items-center rounded-[12px] border border-border bg-muted/30 overflow-hidden focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-0">
                   <span className="px-3 text-[13px] text-muted-foreground whitespace-nowrap bg-muted/50 h-11 flex items-center border-r border-border">
                     {getDisplayDomain()}/s/
                   </span>
                   <Input
                     id="slug"
-                    placeholder="my-link"
+                    placeholder={t("custom_slug_placeholder")}
                     value={customSlug}
                     onChange={(e) => handleSlugChange(e.target.value)}
                     className="text-[14px] h-11 border-0 focus-visible:ring-0 rounded-none"
@@ -237,22 +239,22 @@ export function CreateLinkDialog({ open, onOpenChange, onCreateLink }: CreateLin
                   )}
                 </div>
                 {slugStatus === 'available' && customSlug && (
-                  <p className="text-xs text-green-500">Slug available</p>
+                  <p className="text-xs text-green-500">{t("slug_available")}</p>
                 )}
                 {slugStatus === 'taken' && customSlug && (
-                  <p className="text-xs text-destructive">Slug already in use</p>
+                  <p className="text-xs text-destructive">{t("slug_already_used")}</p>
                 )}
                 {slugStatus === 'invalid' && customSlug && (
-                  <p className="text-xs text-destructive">Invalid (min 2 chars, letters, numbers, dashes only)</p>
+                  <p className="text-xs text-destructive">{t("slug_invalid")}</p>
                 )}
               </div>
 
               {/* 3. Title (optional) */}
               <div className="space-y-2">
-                <Label htmlFor="title" className="text-[13px] font-medium">Title (optional)</Label>
+                <Label htmlFor="title" className="text-[13px] font-medium">{t("title_optional")}</Label>
                 <Input
                   id="title"
-                  placeholder="My awesome link"
+                  placeholder={t("title_placeholder")}
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
                   className="text-[14px] h-11"
@@ -266,9 +268,9 @@ export function CreateLinkDialog({ open, onOpenChange, onCreateLink }: CreateLin
                     <Eye className="h-4 w-4 text-muted-foreground" />
                     <div className="flex items-center gap-1.5">
                       <Label htmlFor="preview-toggle" className="cursor-pointer text-[13px] font-medium">
-                        Link Preview
+                        {t("create_link_preview")}
                       </Label>
-                      <InfoTooltip content="Show a preview page before redirecting visitors." />
+                      <InfoTooltip content={t("link_preview_tooltip")} />
                     </div>
                   </div>
                   <SlidingToggle
@@ -286,9 +288,9 @@ export function CreateLinkDialog({ open, onOpenChange, onCreateLink }: CreateLin
                     <Lock className="h-4 w-4 text-muted-foreground" />
                     <div className="flex items-center gap-1.5">
                       <Label htmlFor="password-toggle" className="cursor-pointer text-[13px] font-medium">
-                        Password Protection
+                        {t("password_protection")}
                       </Label>
-                      <InfoTooltip content="Require visitors to enter a password before accessing the link." />
+                      <InfoTooltip content={t("password_protection_tooltip")} />
                     </div>
                   </div>
                   <SlidingToggle
@@ -336,9 +338,9 @@ export function CreateLinkDialog({ open, onOpenChange, onCreateLink }: CreateLin
                     <BarChart3 className="h-4 w-4 text-muted-foreground" />
                     <div className="flex items-center gap-1.5">
                       <Label htmlFor="utm-toggle" className="cursor-pointer text-[13px] font-medium">
-                        UTM Tracking
+                        {t("utm_tracking")}
                       </Label>
-                      <InfoTooltip content="Add UTM parameters for analytics tracking." />
+                      <InfoTooltip content={t("utm_tracking_tooltip")} />
                     </div>
                   </div>
                   <SlidingToggle
@@ -365,14 +367,14 @@ export function CreateLinkDialog({ open, onOpenChange, onCreateLink }: CreateLin
                   >
                     <span className="flex items-center gap-3">
                       <Settings2 className="h-4 w-4 text-muted-foreground" />
-                      <span className="text-[13px] font-medium">Advanced Options</span>
+                      <span className="text-[13px] font-medium">{t("advanced_options")}</span>
                     </span>
                     <ChevronDown className={`h-4 w-4 text-muted-foreground transition-transform duration-200 ${showAdvanced ? 'rotate-180' : ''}`} />
                   </Button>
                 </CollapsibleTrigger>
                 <CollapsibleContent className="space-y-3 pt-3 animate-fade-in">
                   <div className="space-y-1.5">
-                    <Label htmlFor="expires" className="text-[13px]">Expiration Date</Label>
+                    <Label htmlFor="expires" className="text-[13px]">{t("expiration_date")}</Label>
                     <Input
                       id="expires"
                       type="datetime-local"
@@ -382,11 +384,11 @@ export function CreateLinkDialog({ open, onOpenChange, onCreateLink }: CreateLin
                     />
                   </div>
                   <div className="space-y-1.5">
-                    <Label htmlFor="max-clicks" className="text-[13px]">Max Clicks</Label>
+                    <Label htmlFor="max-clicks" className="text-[13px]">{t("max_clicks")}</Label>
                     <Input
                       id="max-clicks"
                       type="number"
-                      placeholder="Unlimited"
+                      placeholder={t("unlimited")}
                       min="1"
                       value={maxClicks}
                       onChange={(e) => setMaxClicks(e.target.value)}
@@ -402,7 +404,7 @@ export function CreateLinkDialog({ open, onOpenChange, onCreateLink }: CreateLin
                 className="w-full h-12 text-[14px] font-medium rounded-[12px]" 
                 disabled={loading}
               >
-                {loading ? "Creating..." : "Create Link"}
+                {loading ? t("creating") : t("create_link")}
               </Button>
             </form>
           </motion.div>
