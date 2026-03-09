@@ -176,51 +176,209 @@ export default function AppPage() {
     });
   }, []);
 
-  // Desktop block screen
+  // Desktop block screen — premium glass panel
   if (isMobile === false) {
     const currentUrl = window.location.href;
     return (
-      <div className="min-h-dvh bg-background flex items-center justify-center p-5">
-        <div 
-          className="text-center bg-card rounded-3xl shadow-lg border border-border/50"
-          style={{ maxWidth: 420, padding: 40 }}
+      <div
+        className="min-h-dvh flex items-center justify-center p-5 relative overflow-hidden"
+        style={{ background: '#0a0a0a' }}
+      >
+        {/* Ambient background glow */}
+        <div
+          className="absolute inset-0 pointer-events-none"
+          style={{
+            background: 'radial-gradient(ellipse 60% 50% at 50% 50%, rgba(40,40,40,0.5) 0%, transparent 70%)',
+            animation: 'desktopAmbient 20s ease-in-out infinite alternate',
+          }}
+        />
+        <style>{`
+          @keyframes desktopAmbient {
+            0% { transform: translate(0, 0) scale(1); opacity: 0.6; }
+            50% { transform: translate(15px, -10px) scale(1.05); opacity: 0.8; }
+            100% { transform: translate(-10px, 8px) scale(0.97); opacity: 0.6; }
+          }
+          @keyframes phoneFloat {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-6px); }
+          }
+          @keyframes qrReveal {
+            from { opacity: 0; transform: scale(0.8); }
+            to { opacity: 1; transform: scale(1); }
+          }
+          @keyframes phoneMockFade {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
+          }
+          @keyframes mockLoad {
+            0% { width: 0%; }
+            60% { width: 70%; }
+            100% { width: 100%; }
+          }
+        `}</style>
+
+        {/* Glass panel */}
+        <div
+          className="relative z-10 text-center transition-all duration-300"
+          style={{
+            maxWidth: 420,
+            padding: 36,
+            backdropFilter: 'blur(20px)',
+            WebkitBackdropFilter: 'blur(20px)',
+            background: 'rgba(255,255,255,0.06)',
+            border: '1px solid rgba(255,255,255,0.08)',
+            borderRadius: 22,
+            boxShadow: '0 20px 60px rgba(0,0,0,0.45)',
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.transform = 'scale(1.02)';
+            e.currentTarget.style.boxShadow = '0 24px 70px rgba(0,0,0,0.55)';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.transform = 'scale(1)';
+            e.currentTarget.style.boxShadow = '0 20px 60px rgba(0,0,0,0.45)';
+          }}
         >
-          <div className="w-20 h-20 mx-auto mb-6 rounded-2xl bg-muted flex items-center justify-center">
-            <Smartphone className="w-10 h-10 text-muted-foreground" />
+          {/* Animated phone icon */}
+          <div
+            className="mx-auto flex items-center justify-center"
+            style={{
+              width: 56,
+              height: 56,
+              animation: 'phoneFloat 3s ease-in-out infinite',
+            }}
+          >
+            <Smartphone style={{ width: 40, height: 40, color: 'rgba(255,255,255,0.7)' }} />
           </div>
-          <h1 className="text-2xl font-bold text-foreground mb-3">
+
+          {/* Title */}
+          <h1 style={{ fontSize: 28, fontWeight: 700, color: '#ffffff', marginTop: 12, marginBottom: 0, letterSpacing: '-0.02em' }}>
             Mobile Only
           </h1>
-          <p className="text-muted-foreground text-base leading-relaxed mb-6">
+
+          {/* Description */}
+          <p style={{ fontSize: 16, color: 'rgba(255,255,255,0.85)', lineHeight: '24px', marginTop: 10, marginBottom: 0 }}>
             SliceAPPs app pages are designed to work only on mobile devices.
-            <br />
+          </p>
+
+          {/* Instruction */}
+          <p style={{ fontSize: 14, color: 'rgba(255,255,255,0.6)', marginTop: 6, marginBottom: 0 }}>
             Scan the QR code below to open this page on your phone.
           </p>
-          <div className="mx-auto mb-6 inline-flex p-4 bg-background rounded-2xl border border-border/30">
-            <QRCodeSVG
-              value={currentUrl}
-              size={180}
-              level="M"
-              bgColor="transparent"
-              fgColor="currentColor"
-              className="text-foreground"
-            />
+
+          {/* QR code with reveal animation */}
+          <div
+            className="mx-auto inline-flex flex-col items-center"
+            style={{ marginTop: 22 }}
+          >
+            <div
+              className="p-4 rounded-2xl"
+              style={{
+                background: 'rgba(255,255,255,0.95)',
+                animation: 'qrReveal 0.5s ease-out 0.2s both',
+              }}
+            >
+              <QRCodeSVG
+                value={currentUrl}
+                size={170}
+                level="M"
+                bgColor="transparent"
+                fgColor="#111111"
+              />
+            </div>
+
+            {/* Phone preview mock */}
+            <div
+              className="flex flex-col items-center"
+              style={{ marginTop: 14, animation: 'phoneMockFade 0.5s ease-out 0.6s both' }}
+            >
+              <div
+                style={{
+                  width: 64,
+                  height: 110,
+                  borderRadius: 10,
+                  border: '2px solid rgba(255,255,255,0.15)',
+                  background: 'rgba(255,255,255,0.04)',
+                  padding: 6,
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: 4,
+                  overflow: 'hidden',
+                }}
+              >
+                {/* Notch */}
+                <div style={{ width: 20, height: 3, borderRadius: 2, background: 'rgba(255,255,255,0.15)', margin: '0 auto' }} />
+                {/* Simulated loading bars */}
+                <div style={{ width: '80%', height: 4, borderRadius: 2, background: 'rgba(255,255,255,0.12)', animation: 'mockLoad 1.5s ease-out 0.8s both' }} />
+                <div style={{ width: '60%', height: 3, borderRadius: 2, background: 'rgba(255,255,255,0.08)', animation: 'mockLoad 1.5s ease-out 1s both' }} />
+                <div style={{ width: 20, height: 20, borderRadius: 5, background: 'rgba(255,255,255,0.06)', marginTop: 4, animation: 'mockLoad 1.2s ease-out 1.1s both' }} />
+                <div style={{ width: '70%', height: 3, borderRadius: 2, background: 'rgba(255,255,255,0.08)', animation: 'mockLoad 1.5s ease-out 1.3s both' }} />
+                <div style={{ width: '50%', height: 3, borderRadius: 2, background: 'rgba(255,255,255,0.06)', animation: 'mockLoad 1.5s ease-out 1.4s both' }} />
+              </div>
+            </div>
           </div>
-          <div className="flex items-center justify-center gap-3">
-            <Button
-              variant="outline"
-              className="rounded-full px-6"
+
+          {/* Buttons */}
+          <div className="flex items-center justify-center gap-3" style={{ marginTop: 20 }}>
+            <button
               onClick={() => {
                 navigator.clipboard.writeText(currentUrl);
                 toast.success("Link copied!");
               }}
+              style={{
+                padding: '10px 18px',
+                borderRadius: 999,
+                border: '1px solid rgba(255,255,255,0.15)',
+                background: 'transparent',
+                color: 'rgba(255,255,255,0.85)',
+                fontSize: 14,
+                fontWeight: 500,
+                cursor: 'pointer',
+                transition: 'all 0.2s ease',
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.borderColor = 'rgba(255,255,255,0.35)';
+                e.currentTarget.style.transform = 'translateY(-2px)';
+                e.currentTarget.style.boxShadow = '0 4px 16px rgba(255,255,255,0.06)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.borderColor = 'rgba(255,255,255,0.15)';
+                e.currentTarget.style.transform = 'translateY(0)';
+                e.currentTarget.style.boxShadow = 'none';
+              }}
+              onPointerDown={(e) => { e.currentTarget.style.transform = 'scale(0.97)'; }}
+              onPointerUp={(e) => { e.currentTarget.style.transform = 'translateY(-2px)'; }}
             >
               Copy Link
-            </Button>
+            </button>
             <Link to="/">
-              <Button variant="outline" className="rounded-full px-6">
+              <button
+                style={{
+                  padding: '10px 18px',
+                  borderRadius: 999,
+                  border: '1px solid rgba(255,255,255,0.15)',
+                  background: 'transparent',
+                  color: 'rgba(255,255,255,0.85)',
+                  fontSize: 14,
+                  fontWeight: 500,
+                  cursor: 'pointer',
+                  transition: 'all 0.2s ease',
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.borderColor = 'rgba(255,255,255,0.35)';
+                  e.currentTarget.style.transform = 'translateY(-2px)';
+                  e.currentTarget.style.boxShadow = '0 4px 16px rgba(255,255,255,0.06)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.borderColor = 'rgba(255,255,255,0.15)';
+                  e.currentTarget.style.transform = 'translateY(0)';
+                  e.currentTarget.style.boxShadow = 'none';
+                }}
+                onPointerDown={(e) => { e.currentTarget.style.transform = 'scale(0.97)'; }}
+                onPointerUp={(e) => { e.currentTarget.style.transform = 'translateY(-2px)'; }}
+              >
                 Go to SliceURL
-              </Button>
+              </button>
             </Link>
           </div>
         </div>
