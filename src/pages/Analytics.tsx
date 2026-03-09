@@ -296,7 +296,7 @@ const Analytics = () => {
             <div className="flex items-center gap-2 mb-3 sm:mb-4 flex-wrap">
               <Grid3X3 className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-muted-foreground" />
               <h3 className="font-semibold text-sm sm:text-base">{t("click_heatmap")}</h3>
-              <span className="text-[10px] sm:text-xs text-muted-foreground ml-auto">Hour × Day of Week</span>
+              <span className="text-[10px] sm:text-xs text-muted-foreground ml-auto">{t("hour_day_week")}</span>
             </div>
             <div className="min-w-[320px]">
               <ClickHeatmap clicks={filteredClicks} />
