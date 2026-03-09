@@ -601,7 +601,7 @@ export default function Settings() {
                     <p className="text-sm font-medium text-foreground">
                       {/Mobile|Android|iPhone|iPad|iPod/i.test(navigator.userAgent) ? t("mobile_device") : t("desktop_device")} • {t("active_now")}
                     </p>
-                    <p className="text-xs text-green-600 dark:text-green-400">Current session</p>
+                    <p className="text-xs text-green-600 dark:text-green-400">{t("current_session")}</p>
                   </div>
                 </div>
               </div>
