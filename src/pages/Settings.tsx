@@ -841,7 +841,7 @@ export default function Settings() {
               </div>
             )}
             <div className="space-y-2">
-              <Label>{hasPassword ? "New Password" : "Password"}</Label>
+              <Label>{hasPassword ? t("new_password") : t("settings_password")}</Label>
               <Input
                 type="password"
                 value={newPassword}
