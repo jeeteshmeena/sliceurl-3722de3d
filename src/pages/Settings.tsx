@@ -890,10 +890,10 @@ export default function Settings() {
       <Dialog open={forgotPasswordDialogOpen} onOpenChange={setForgotPasswordDialogOpen}>
         <DialogContent className="bg-popover border-border">
           <DialogHeader>
-            <DialogTitle>Reset Password</DialogTitle>
-            <DialogDescription>
-              We'll send a password reset link to your email address.
-            </DialogDescription>
+             <DialogTitle>{t("settings_reset_password")}</DialogTitle>
+             <DialogDescription>
+               {t("send_reset_link")}
+             </DialogDescription>
           </DialogHeader>
           <div className="py-4">
             <div className="bg-secondary rounded-lg p-3 flex items-center gap-3">
