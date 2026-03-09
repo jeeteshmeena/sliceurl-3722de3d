@@ -458,7 +458,7 @@ export default function Settings() {
                         setEditingName(false);
                       }}
                     >
-                      Cancel
+                       {t("cancel")}
                     </button>
                   </>
                 ) : (
