@@ -235,9 +235,9 @@ const Analytics = () => {
             className="p-3 sm:p-5 rounded-xl sm:rounded-2xl border border-border bg-card hover:shadow-sm transition-shadow"
           >
             <div className="flex items-center justify-between mb-3 sm:mb-4 flex-wrap gap-2">
-              <h3 className="font-semibold text-sm sm:text-base">Clicks Over Time</h3>
+              <h3 className="font-semibold text-sm sm:text-base">{t("clicks_over_time")}</h3>
               <span className="text-[10px] sm:text-xs text-muted-foreground px-2 py-1 bg-muted rounded-full">
-                {dateRange === "all" ? "All time" : `Last ${dateRange.replace("d", " days")}`}
+                {dateRange === "all" ? t("all_time") : dateRange === "7d" ? t("last_7_days") : dateRange === "30d" ? t("last_30_days") : t("last_90_days")}
               </span>
             </div>
             <div className="h-48 sm:h-64">
