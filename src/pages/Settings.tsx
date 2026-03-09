@@ -406,7 +406,7 @@ export default function Settings() {
                     onClick={handleCancelDeletion}
                     className="mt-3 h-8 text-xs border-amber-300 dark:border-amber-700 text-amber-700 dark:text-amber-300 hover:bg-amber-100 dark:hover:bg-amber-900/40"
                   >
-                    Cancel Deletion
+                    {t("cancel_deletion")}
                   </Button>
                 </div>
               </div>
