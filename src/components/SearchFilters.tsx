@@ -109,8 +109,8 @@ export function SearchFilters({ filters, onFiltersChange, availableCountries }: 
             {availableCountries.length > 0 && (
               <div className="space-y-2">
                 <label className="text-xs font-medium text-muted-foreground flex items-center gap-1">
-                  <Globe className="h-3 w-3" />
-                  Country
+                 <Globe className="h-3 w-3" />
+                 {t("analytics_country")}
                 </label>
                 <select
                   value={filters.country || ''}
