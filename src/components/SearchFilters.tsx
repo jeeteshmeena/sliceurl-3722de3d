@@ -152,17 +152,17 @@ export function SearchFilters({ filters, onFiltersChange, availableCountries }: 
                  <Clock className="h-3 w-3" />
                  {t("filters_expiration")}
               </label>
-              <div className="flex gap-1 flex-wrap">
-                {expirationOptions.map(opt => (
-                  <Button
-                    key={opt.value}
-                    variant={filters.expiration === opt.value ? "secondary" : "ghost"}
-                    size="sm"
-                    className="h-7 text-xs"
-                    onClick={() => updateFilter('expiration', filters.expiration === opt.value ? null : opt.value)}
-                  >
-                    {opt.label}
-                  </Button>
+               <div className="flex gap-1 flex-wrap">
+                 {expirationOptionKeys.map(opt => (
+                   <Button
+                     key={opt.value}
+                     variant={filters.expiration === opt.value ? "secondary" : "ghost"}
+                     size="sm"
+                     className="h-7 text-xs"
+                     onClick={() => updateFilter('expiration', filters.expiration === opt.value ? null : opt.value)}
+                   >
+                     {t(opt.key)}
+                   </Button>
                 ))}
               </div>
             </div>
