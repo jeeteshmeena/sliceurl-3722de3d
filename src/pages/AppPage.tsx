@@ -330,21 +330,18 @@ export default function AppPage() {
   const actualDownloads = app?.total_downloads || fileInfo?.download_count || 0;
 
   return (
-    <div className="min-h-dvh bg-background flex">
-      <SliceAppsSidebar />
+    <div className="min-h-dvh bg-background">
+      {/* Sticky Navbar */}
+      <div
+        className="sticky top-0 z-[999] transition-colors duration-500"
+        style={{ borderBottom: '1px solid var(--sa-border)' }}
+      >
+        <SliceAppsHeader />
+      </div>
 
-      <div className="flex-1 min-w-0">
-        {/* Mobile Sticky Navbar */}
+      <div className="max-w-[720px] mx-auto">
+        {/* ===== HERO ===== */}
         <div
-          className="sticky top-0 z-[999] lg:relative lg:z-auto bg-[var(--sa-hero-bg)] transition-colors duration-500"
-          style={{ borderBottom: '1px solid var(--sa-border)' }}
-        >
-          <SliceAppsHeader />
-        </div>
-
-        {/* ===== MOBILE HERO ===== */}
-        <div
-          className="lg:hidden"
           style={{
             background: 'linear-gradient(135deg, #6f7a83 0%, #a3aab1 100%)',
             backdropFilter: 'blur(20px)',
@@ -373,70 +370,24 @@ export default function AppPage() {
           </div>
         </div>
 
-        {/* ===== DESKTOP HERO — Apple App Store style ===== */}
-        <div
-          className="hidden lg:block"
-          style={{
-            background: 'linear-gradient(135deg, #4a4e54 0%, #6f7a83 50%, #a3aab1 100%)',
-            padding: '40px 0',
-          }}
-        >
-          <div className="max-w-[980px] mx-auto px-10">
-            <div style={{ display: 'flex', alignItems: 'center', gap: 28 }}>
-              <div className="flex-shrink-0 overflow-hidden" style={{ width: 190, height: 190, borderRadius: 38, boxShadow: '0 12px 40px rgba(0,0,0,0.2)' }}>
-                {app.icon_url ? (
-                  <img src={app.icon_url} alt={app.app_name} className="w-full h-full object-cover" loading="lazy" />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center text-6xl font-bold bg-muted text-muted-foreground">{app.app_name.charAt(0)}</div>
-                )}
-              </div>
-              <div style={{ display: 'flex', flexDirection: 'column', flex: 1, minWidth: 0 }}>
-                <h1 style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Display", system-ui, sans-serif', fontWeight: 700, fontSize: 32, lineHeight: '38px', letterSpacing: '-0.02em', color: '#ffffff', margin: 0 }}>
-                  {app.app_name}
-                </h1>
-                <p style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Text", system-ui, sans-serif', fontWeight: 400, fontSize: 16, lineHeight: '22px', color: 'rgba(255,255,255,0.85)', marginTop: 6, marginBottom: 0 }}>
-                  {app.short_description || `The official app by ${app.developer_name || "Unknown"}`}
-                </p>
-                <p style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Text", system-ui, sans-serif', fontWeight: 400, fontSize: 14, lineHeight: '20px', color: 'rgba(255,255,255,0.6)', marginTop: 8, marginBottom: 0 }}>
-                  Free · {app.category || "Productivity"}
-                </p>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginTop: 16 }}>
-                  <DownloadButton size="large" />
-                  <button
-                    onClick={handleShare}
-                    style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'rgba(255,255,255,0.15)', border: 'none', borderRadius: 20, padding: '8px 18px', color: '#ffffff', fontSize: 15, fontWeight: 500, cursor: 'pointer', transition: 'background 0.15s' }}
-                    onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.25)'; }}
-                    onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.15)'; }}
-                  >
-                    <Share2 className="h-4 w-4" />
-                    Share
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
         {/* ===== METADATA STRIP ===== */}
         <div className="border-b border-border/30">
-          <div className="max-w-[980px] mx-auto">
-            <MetadataStrip
-              ratingAvg={app.rating_avg}
-              ratingCount={app.rating_count}
-              downloads={formatDownloads(actualDownloads)}
-              fileSize={fileInfo ? formatFileSize(fileInfo.file_size) : "--"}
-              ageRating={app.age_rating || "4+"}
-              category={app.category || "Productivity"}
-              developer={app.developer_name || "Unknown"}
-              developerUrl={app.developer_url}
-            />
-          </div>
+          <MetadataStrip
+            ratingAvg={app.rating_avg}
+            ratingCount={app.rating_count}
+            downloads={formatDownloads(actualDownloads)}
+            fileSize={fileInfo ? formatFileSize(fileInfo.file_size) : "--"}
+            ageRating={app.age_rating || "4+"}
+            category={app.category || "Productivity"}
+            developer={app.developer_name || "Unknown"}
+            developerUrl={app.developer_url}
+          />
         </div>
 
         {/* ===== CONTENT ===== */}
-        <main className="max-w-[980px] mx-auto">
+        <main>
           {fileUnavailable && (
-            <div className="flex items-center gap-3 mx-5 lg:mx-10 mt-4 text-muted-foreground">
+            <div className="flex items-center gap-3 mx-5 mt-4 text-muted-foreground">
               <AlertTriangle className="h-4 w-4 flex-shrink-0" />
               <p className="text-sm">{fileUnavailable}</p>
             </div>
@@ -445,11 +396,11 @@ export default function AppPage() {
           {/* ===== SCREENSHOTS ===== */}
           {app.screenshots && app.screenshots.length > 0 && (
             <div className="py-5 overflow-x-auto scrollbar-hide">
-              <div className="flex gap-3 lg:gap-4 px-5 lg:px-10">
+              <div className="flex gap-3 px-5">
                 {app.screenshots.map((url, index) => (
                   <div
                     key={index}
-                    className="relative min-w-[205px] lg:min-w-[250px] h-[370px] lg:h-[460px] rounded-[20px] overflow-hidden flex-shrink-0 cursor-pointer bg-[#E8F4F8] border border-border/10"
+                    className="relative min-w-[205px] h-[370px] rounded-[20px] overflow-hidden flex-shrink-0 cursor-pointer bg-[#E8F4F8] border border-border/10"
                     onClick={() => setSelectedScreenshot(index)}
                   >
                     <img src={url} alt={`Screenshot ${index + 1}`} className="w-full h-full object-cover" loading="lazy" />
@@ -459,8 +410,8 @@ export default function AppPage() {
             </div>
           )}
 
-          {/* All content sections — full width on desktop */}
-          <div className="px-5 lg:px-10">
+          {/* All content sections */}
+          <div className="px-5">
             {/* ===== DESCRIPTION ===== */}
             {app.full_description && (
               <div className="py-5 border-t border-border/30">
@@ -505,10 +456,10 @@ export default function AppPage() {
               </div>
             )}
 
-            {/* ===== INFORMATION — 3-column grid like App Store ===== */}
+            {/* ===== INFORMATION ===== */}
             <div className="py-5 border-t border-border/30">
               <h2 className="text-[22px] font-bold text-foreground mb-5">Information</h2>
-              <div className="grid grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-0">
+              <div className="grid grid-cols-2 gap-x-8 gap-y-0">
                 {[
                   { label: "Size", value: fileInfo ? formatFileSize(fileInfo.file_size) : "--" },
                   { label: "Category", value: app.category || "Productivity" },
