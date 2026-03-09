@@ -168,7 +168,7 @@ const Dashboard = () => {
     const link = links.find(l => l.id === linkId);
     const isPinned = (link as any)?.is_pinned;
     await togglePin(linkId);
-    toast.success(isPinned ? "Unpinned" : "Pinned successfully");
+    toast.success(isPinned ? t("unpinned") : t("pinned_successfully"));
   };
 
   const handleDeleteLink = async (linkId: string) => {
