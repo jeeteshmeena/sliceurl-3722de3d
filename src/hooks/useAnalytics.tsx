@@ -149,7 +149,7 @@ export function useAnalytics(linkId: string, dateRangeStart?: Date | null) {
       .map(([name, value], i) => ({
         name,
         value,
-        fill: MONO_COLORS[i] || "#cccccc",
+        fill: MONO_COLORS[i] || MONO_COLORS[MONO_COLORS.length - 1],
       }));
 
     // Country stats
