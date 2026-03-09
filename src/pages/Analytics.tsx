@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { useAnalytics } from "@/hooks/useAnalytics";
 import { useLinks } from "@/hooks/useLinks";
 import { useSharedAnalytics } from "@/hooks/useSharedAnalytics";
+import { useLanguage } from "@/lib/i18n";
 import { getCountryFlag } from "@/lib/countryFlags";
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, BarChart, Bar } from "recharts";
 
