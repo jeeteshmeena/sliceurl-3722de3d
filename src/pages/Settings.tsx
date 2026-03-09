@@ -851,7 +851,7 @@ export default function Settings() {
               />
             </div>
             <div className="space-y-2">
-              <Label>Confirm Password</Label>
+              <Label>{t("settings_confirm_password")}</Label>
               <Input
                 type="password"
                 value={confirmPassword}
