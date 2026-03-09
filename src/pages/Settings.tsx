@@ -769,10 +769,10 @@ export default function Settings() {
               <div className="flex items-center gap-3">
                 <RefreshCw className="h-4 w-4 text-muted-foreground" />
                 <div>
-                  <span className="text-sm text-secondary-foreground">Auto Dashboard Refresh</span>
-                  <p className="text-xs text-muted-foreground">
-                    Automatically refresh dashboard data
-                  </p>
+                   <span className="text-sm text-secondary-foreground">{t("auto_dashboard_refresh")}</span>
+                   <p className="text-xs text-muted-foreground">
+                     {t("auto_refresh_dashboard")}
+                   </p>
                 </div>
               </div>
               <SlidingToggle
