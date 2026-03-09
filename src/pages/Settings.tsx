@@ -569,7 +569,7 @@ export default function Settings() {
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <KeyRound className="h-4 w-4 text-muted-foreground" />
-                <span className="text-sm text-secondary-foreground">Forgot Password</span>
+                <span className="text-sm text-secondary-foreground">{t("settings_forgot_password")}</span>
               </div>
               <Button
                 variant="outline"
