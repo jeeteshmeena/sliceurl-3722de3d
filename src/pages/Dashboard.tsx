@@ -195,7 +195,7 @@ const Dashboard = () => {
           className="mb-6"
         >
           <h2 className="text-xl sm:text-2xl font-bold text-foreground">
-            {displayName ? `Welcome, ${displayName} 👋` : "Welcome 👋"}
+            {displayName ? t("welcome_back_name").replace("{{name}}", displayName) : t("welcome_back_default")}
           </h2>
         </motion.div>
 
