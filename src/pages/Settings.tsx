@@ -795,7 +795,7 @@ export default function Settings() {
               {t("danger_zone")}
             </h2>
             <p className="text-xs text-muted-foreground">
-              Permanently delete your account and all associated data.
+              {t("delete_account_permanently")}
             </p>
             <Button
               variant="destructive"
