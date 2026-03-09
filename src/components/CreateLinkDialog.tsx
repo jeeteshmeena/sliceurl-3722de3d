@@ -372,7 +372,7 @@ export function CreateLinkDialog({ open, onOpenChange, onCreateLink }: CreateLin
                 </CollapsibleTrigger>
                 <CollapsibleContent className="space-y-3 pt-3 animate-fade-in">
                   <div className="space-y-1.5">
-                    <Label htmlFor="expires" className="text-[13px]">Expiration Date</Label>
+                    <Label htmlFor="expires" className="text-[13px]">{t("expiration_date")}</Label>
                     <Input
                       id="expires"
                       type="datetime-local"
