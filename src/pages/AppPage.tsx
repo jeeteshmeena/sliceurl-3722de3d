@@ -95,6 +95,20 @@ export default function AppPage() {
   const [aboutExpanded, setAboutExpanded] = useState(false);
   const [whatsNewExpanded, setWhatsNewExpanded] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  
+  const [isMobile, setIsMobile] = useState<boolean | null>(null);
+
+  // Check device type on mount
+  useEffect(() => {
+    setIsMobile(isMobileDevice());
+    
+    const handleResize = () => {
+      setIsMobile(isMobileDevice());
+    };
+    
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 40);
@@ -141,6 +155,44 @@ export default function AppPage() {
       setIsLoading(false);
     }
   };
+
+  // Desktop block screen
+  if (isMobile === false) {
+    return (
+      <div className="min-h-dvh bg-background flex items-center justify-center p-5">
+        <div 
+          className="text-center bg-card rounded-3xl shadow-lg border border-border/50"
+          style={{ maxWidth: 420, padding: 40 }}
+        >
+          <div className="w-20 h-20 mx-auto mb-6 rounded-2xl bg-muted flex items-center justify-center">
+            <Smartphone className="w-10 h-10 text-muted-foreground" />
+          </div>
+          <h1 className="text-2xl font-bold text-foreground mb-3">
+            Mobile Only
+          </h1>
+          <p className="text-muted-foreground text-base leading-relaxed mb-6">
+            SliceAPPs app pages are designed to work only on mobile devices.
+            <br />
+            Please open this page on your phone to continue.
+          </p>
+          <Link to="/">
+            <Button variant="outline" className="rounded-full px-6">
+              Go to SliceURL
+            </Button>
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
+  // Loading state for device detection
+  if (isMobile === null) {
+    return (
+      <div className="min-h-dvh bg-background flex items-center justify-center">
+        <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
+  }
 
   const handleDownload = async () => {
     if (!fileInfo || !app) return;
