@@ -32,10 +32,10 @@ const deviceOptionKeys = [
   { value: 'tablet', key: 'tablet' },
 ];
 
-const expirationOptions = [
-  { value: 'active', label: 'Active' },
-  { value: 'expired', label: 'Expired' },
-  { value: 'expiring-soon', label: 'Expiring Soon' },
+const expirationOptionKeys = [
+  { value: 'active', key: 'filters_active' },
+  { value: 'expired', key: 'filters_expired' },
+  { value: 'expiring-soon', key: 'expiring_soon' },
 ];
 
 export function SearchFilters({ filters, onFiltersChange, availableCountries }: SearchFiltersProps) {
