@@ -161,7 +161,7 @@ const Dashboard = () => {
 
   const copyLink = (code: string) => {
     navigator.clipboard.writeText(`${window.location.origin}/s/${code}`);
-    toast.success(t("copied"), { description: "Link copied to clipboard" });
+    toast.success(t("copied"), { description: t("link_copied") });
   };
 
   const handleTogglePin = async (linkId: string) => {
