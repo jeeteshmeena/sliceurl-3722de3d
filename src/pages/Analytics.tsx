@@ -187,8 +187,8 @@ const Analytics = () => {
                   isPercent: true,
                   trend: null
                 },
-                { 
-                  label: "Countries", 
+                 { 
+                   label: t("analytics_countries"), 
                   value: summary.countryStats.length, 
                   icon: Globe,
                   trend: null
