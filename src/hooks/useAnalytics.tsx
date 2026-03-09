@@ -27,22 +27,33 @@ export interface AnalyticsSummary {
   clicksTimeline: { date: string; clicks: number }[];
 }
 
-// Monochrome grey scale colors for charts
-const MONO_COLORS = [
-  "#1a1a1a", // Darkest
-  "#404040",
-  "#666666",
-  "#888888",
-  "#aaaaaa",
-  "#cccccc", // Lightest
-];
+// Theme-aware colors using CSS custom properties
+// These will be resolved at render time via getComputedStyle
+function getThemedColors(): string[] {
+  if (typeof window === 'undefined') return ['#1a1a1a','#404040','#666666','#888888','#aaaaaa','#cccccc'];
+  const fg = getComputedStyle(document.documentElement).getPropertyValue('--foreground').trim();
+  if (!fg) return ['#1a1a1a','#404040','#666666','#888888','#aaaaaa','#cccccc'];
+  return [
+    `hsl(${fg} / 1)`,
+    `hsl(${fg} / 0.7)`,
+    `hsl(${fg} / 0.5)`,
+    `hsl(${fg} / 0.35)`,
+    `hsl(${fg} / 0.2)`,
+    `hsl(${fg} / 0.1)`,
+  ];
+}
 
-const DEVICE_COLORS: Record<string, string> = {
-  mobile: "#1a1a1a",
-  desktop: "#666666",
-  tablet: "#aaaaaa",
-  unknown: "#cccccc",
-};
+function getDeviceColors(): Record<string, string> {
+  if (typeof window === 'undefined') return { mobile: '#1a1a1a', desktop: '#666666', tablet: '#aaaaaa', unknown: '#cccccc' };
+  const fg = getComputedStyle(document.documentElement).getPropertyValue('--foreground').trim();
+  if (!fg) return { mobile: '#1a1a1a', desktop: '#666666', tablet: '#aaaaaa', unknown: '#cccccc' };
+  return {
+    mobile: `hsl(${fg} / 1)`,
+    desktop: `hsl(${fg} / 0.5)`,
+    tablet: `hsl(${fg} / 0.2)`,
+    unknown: `hsl(${fg} / 0.1)`,
+  };
+}
 
 export function useAnalytics(linkId: string, dateRangeStart?: Date | null) {
   const [clicks, setClicks] = useState<Click[]>([]);
