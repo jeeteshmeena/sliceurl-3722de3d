@@ -33,7 +33,8 @@ const emptyUtmParams: UtmParams = {
 };
 
 export function CreateLinkDialog({ open, onOpenChange, onCreateLink }: CreateLinkDialogProps) {
-  const isMobile = useIsMobile();
+   const { t } = useLanguage();
+   const isMobile = useIsMobile();
   const [loading, setLoading] = useState(false);
   const [showAdvanced, setShowAdvanced] = useState(false);
   
