@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { SlidingToggle } from "@/components/ui/sliding-toggle";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Lock, ChevronDown, Settings2, Eye, BarChart3, Check, X, Loader2 } from "lucide-react";
+import { useLanguage } from "@/lib/i18n";
 import { toast } from "sonner";
 import { CreateLinkData } from "@/hooks/useLinks";
 import { getDisplayDomain } from "@/lib/domain";
