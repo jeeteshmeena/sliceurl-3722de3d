@@ -476,13 +476,13 @@ const Analytics = () => {
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.4 }}
-              className="p-5 rounded-2xl border border-border bg-card"
+              className="p-3 sm:p-5 rounded-xl sm:rounded-2xl border border-border bg-card"
             >
-              <h3 className="font-semibold mb-4">Browsers</h3>
+              <h3 className="font-semibold text-sm sm:text-base mb-3 sm:mb-4">{t("browsers")}</h3>
               {summary.browserStats.length === 0 ? (
                 <div className="py-8 text-center">
                   <Globe className="h-8 w-8 mx-auto mb-2 text-muted-foreground/30" />
-                  <p className="text-sm text-muted-foreground">No data yet</p>
+                  <p className="text-sm text-muted-foreground">{t("no_data_yet")}</p>
                 </div>
               ) : (
                 <>
