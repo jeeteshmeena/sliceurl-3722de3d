@@ -636,7 +636,7 @@ export default function Settings() {
                     <div>
                       <p className="text-sm font-medium text-foreground">{t("google")}</p>
                       <p className="text-xs text-muted-foreground">
-                        {googleIdentity.identity_data?.email || 'Connected'}
+                        {googleIdentity.identity_data?.email || t("connected")}
                       </p>
                     </div>
                   </div>
