@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useParams, Link } from "react-router-dom";
-import { Lock, AlertTriangle, Share2, ChevronRight } from "lucide-react";
+import { Lock, AlertTriangle, Share2, ChevronRight, Smartphone } from "lucide-react";
 import { formatFileSize, formatDownloads } from "@/lib/fileUtils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -16,6 +16,19 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { SliceAppsHeader, RatingsReviewsSection } from "@/components/sliceapps";
 import { MetadataStrip } from "@/components/sliceapps/MetadataStrip";
+
+// Detect if device is mobile
+const isMobileDevice = (): boolean => {
+  const userAgent = navigator.userAgent || navigator.vendor || (window as any).opera;
+  // Check for mobile user agents
+  const mobileRegex = /android|webos|iphone|ipad|ipod|blackberry|iemobile|opera mini|mobile|tablet/i;
+  if (mobileRegex.test(userAgent.toLowerCase())) return true;
+  // Also check screen width as fallback
+  if (window.innerWidth <= 768) return true;
+  // Check for touch capability on small screens
+  if ('ontouchstart' in window && window.innerWidth <= 1024) return true;
+  return false;
+};
 
 interface AppListing {
   id: string;
@@ -82,6 +95,20 @@ export default function AppPage() {
   const [aboutExpanded, setAboutExpanded] = useState(false);
   const [whatsNewExpanded, setWhatsNewExpanded] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  
+  const [isMobile, setIsMobile] = useState<boolean | null>(null);
+
+  // Check device type on mount
+  useEffect(() => {
+    setIsMobile(isMobileDevice());
+    
+    const handleResize = () => {
+      setIsMobile(isMobileDevice());
+    };
+    
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 40);
@@ -129,12 +156,6 @@ export default function AppPage() {
     }
   };
 
-  const handleDownload = async () => {
-    if (!fileInfo || !app) return;
-    if (fileInfo.password_hash) { setShowPasswordDialog(true); return; }
-    await initiateDownload();
-  };
-
   const simulateProgress = useCallback(() => {
     return new Promise<void>((resolve) => {
       let progress = 0;
@@ -153,6 +174,50 @@ export default function AppPage() {
       requestAnimationFrame(tick);
     });
   }, []);
+
+  // Desktop block screen
+  if (isMobile === false) {
+    return (
+      <div className="min-h-dvh bg-background flex items-center justify-center p-5">
+        <div 
+          className="text-center bg-card rounded-3xl shadow-lg border border-border/50"
+          style={{ maxWidth: 420, padding: 40 }}
+        >
+          <div className="w-20 h-20 mx-auto mb-6 rounded-2xl bg-muted flex items-center justify-center">
+            <Smartphone className="w-10 h-10 text-muted-foreground" />
+          </div>
+          <h1 className="text-2xl font-bold text-foreground mb-3">
+            Mobile Only
+          </h1>
+          <p className="text-muted-foreground text-base leading-relaxed mb-6">
+            SliceAPPs app pages are designed to work only on mobile devices.
+            <br />
+            Please open this page on your phone to continue.
+          </p>
+          <Link to="/">
+            <Button variant="outline" className="rounded-full px-6">
+              Go to SliceURL
+            </Button>
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
+  // Loading state for device detection
+  if (isMobile === null) {
+    return (
+      <div className="min-h-dvh bg-background flex items-center justify-center">
+        <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
+  }
+
+  const handleDownload = async () => {
+    if (!fileInfo || !app) return;
+    if (fileInfo.password_hash) { setShowPasswordDialog(true); return; }
+    await initiateDownload();
+  };
 
   const initiateDownload = async (passwordForDownload?: string) => {
     if (!fileInfo) return;
