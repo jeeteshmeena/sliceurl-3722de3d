@@ -131,17 +131,17 @@ export function SearchFilters({ filters, onFiltersChange, availableCountries }: 
                  <Smartphone className="h-3 w-3" />
                  {t("device")}
               </label>
-              <div className="flex gap-1">
-                {deviceOptions.map(opt => (
-                  <Button
-                    key={opt.value}
-                    variant={filters.device === opt.value ? "secondary" : "ghost"}
-                    size="sm"
-                    className="h-7 text-xs flex-1"
-                    onClick={() => updateFilter('device', filters.device === opt.value ? null : opt.value)}
-                  >
-                    {opt.label}
-                  </Button>
+               <div className="flex gap-1">
+                 {deviceOptionKeys.map(opt => (
+                   <Button
+                     key={opt.value}
+                     variant={filters.device === opt.value ? "secondary" : "ghost"}
+                     size="sm"
+                     className="h-7 text-xs flex-1"
+                     onClick={() => updateFilter('device', filters.device === opt.value ? null : opt.value)}
+                   >
+                     {t(opt.key)}
+                   </Button>
                 ))}
               </div>
             </div>
