@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { useAnalytics } from "@/hooks/useAnalytics";
 import { useLinks } from "@/hooks/useLinks";
 import { useSharedAnalytics } from "@/hooks/useSharedAnalytics";
+import { useLanguage } from "@/lib/i18n";
 import { getCountryFlag } from "@/lib/countryFlags";
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, BarChart, Bar } from "recharts";
 
@@ -23,6 +24,7 @@ import { ClickLogTable } from "@/components/analytics/ClickLogTable";
 import { ShareAnalyticsDialog } from "@/components/analytics/ShareAnalyticsDialog";
 
 const Analytics = () => {
+  const { t } = useLanguage();
   const { id } = useParams<{ id: string }>();
   const [dateRange, setDateRange] = useState<DateRange>("30d");
   const dateRangeStart = getDateFromRange(dateRange);
@@ -81,14 +83,14 @@ const Analytics = () => {
   };
 
   // Monochrome colors for sources
-  const sourceColors = ["#1a1a1a", "#404040", "#666666", "#888888", "#aaaaaa", "#cccccc", "#e5e5e5", "#f5f5f5"];
+  const chartFgColor = "hsl(var(--foreground))";
 
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="flex flex-col items-center gap-3">
           <div className="h-8 w-8 rounded-full border-2 border-foreground border-t-transparent animate-spin" />
-          <p className="text-sm text-muted-foreground">Loading analytics...</p>
+          <p className="text-sm text-muted-foreground">{t("loading_analytics")}</p>
         </div>
       </div>
     );
@@ -159,39 +161,39 @@ const Analytics = () => {
             <div className="flex items-center justify-between mb-3 sm:mb-4">
               <div className="flex items-center gap-2">
                 <TrendingUp className="h-4 w-4 sm:h-5 sm:w-5 text-foreground" />
-                <h2 className="text-base sm:text-lg font-semibold">Overview</h2>
+                <h2 className="text-base sm:text-lg font-semibold">{t("overview")}</h2>
               </div>
               <TrendIndicator clicks={clicks} periodDays={7} />
             </div>
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2 sm:gap-3">
               {[
                 { 
-                  label: "Total Clicks", 
+                  label: t("analytics_total_clicks"), 
                   value: summary.totalClicks, 
                   icon: MousePointer,
                   trend: { current: trendStats.currentTotal, previous: trendStats.previousTotal }
                 },
                 { 
-                  label: "Unique Visitors", 
+                  label: t("unique_visitors"), 
                   value: summary.uniqueClicks, 
                   icon: Users,
                   trend: { current: trendStats.currentUnique, previous: trendStats.previousUnique }
                 },
                 { 
-                  label: "Conversion", 
+                  label: t("conversion"), 
                   value: ctr, 
                   icon: Activity, 
                   isPercent: true,
                   trend: null
                 },
                 { 
-                  label: "Countries", 
+                  label: t("analytics_countries"), 
                   value: summary.countryStats.length, 
                   icon: Globe,
                   trend: null
                 },
                 { 
-                  label: "Cities", 
+                  label: t("cities"), 
                   value: cityStats.length, 
                   icon: MapPin,
                   trend: null
@@ -233,9 +235,9 @@ const Analytics = () => {
             className="p-3 sm:p-5 rounded-xl sm:rounded-2xl border border-border bg-card hover:shadow-sm transition-shadow"
           >
             <div className="flex items-center justify-between mb-3 sm:mb-4 flex-wrap gap-2">
-              <h3 className="font-semibold text-sm sm:text-base">Clicks Over Time</h3>
+              <h3 className="font-semibold text-sm sm:text-base">{t("clicks_over_time")}</h3>
               <span className="text-[10px] sm:text-xs text-muted-foreground px-2 py-1 bg-muted rounded-full">
-                {dateRange === "all" ? "All time" : `Last ${dateRange.replace("d", " days")}`}
+                {dateRange === "all" ? t("all_time") : dateRange === "7d" ? t("last_7_days") : dateRange === "30d" ? t("last_30_days") : t("last_90_days")}
               </span>
             </div>
             <div className="h-48 sm:h-64">
@@ -243,8 +245,8 @@ const Analytics = () => {
                 <AreaChart data={summary.clicksTimeline}>
                   <defs>
                     <linearGradient id="colorClicksMono" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#1a1a1a" stopOpacity={0.2} />
-                      <stop offset="95%" stopColor="#1a1a1a" stopOpacity={0} />
+                      <stop offset="5%" stopColor="hsl(var(--foreground))" stopOpacity={0.2} />
+                      <stop offset="95%" stopColor="hsl(var(--foreground))" stopOpacity={0} />
                     </linearGradient>
                   </defs>
                   <XAxis 
@@ -274,7 +276,7 @@ const Analytics = () => {
                   <Area 
                     type="monotone" 
                     dataKey="clicks" 
-                    stroke="#1a1a1a" 
+                    stroke="hsl(var(--foreground))" 
                     fill="url(#colorClicksMono)" 
                     strokeWidth={2}
                   />
@@ -292,8 +294,8 @@ const Analytics = () => {
           >
             <div className="flex items-center gap-2 mb-3 sm:mb-4 flex-wrap">
               <Grid3X3 className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-muted-foreground" />
-              <h3 className="font-semibold text-sm sm:text-base">Click Heatmap</h3>
-              <span className="text-[10px] sm:text-xs text-muted-foreground ml-auto">Hour × Day of Week</span>
+              <h3 className="font-semibold text-sm sm:text-base">{t("click_heatmap")}</h3>
+              <span className="text-[10px] sm:text-xs text-muted-foreground ml-auto">{t("hour_day_week")}</span>
             </div>
             <div className="min-w-[320px]">
               <ClickHeatmap clicks={filteredClicks} />
@@ -311,11 +313,11 @@ const Analytics = () => {
             >
               <div className="flex items-center gap-2 mb-3 sm:mb-4">
                 <Zap className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-muted-foreground" />
-                <h3 className="font-semibold text-sm sm:text-base">Live Activity</h3>
+                <h3 className="font-semibold text-sm sm:text-base">{t("live_activity")}</h3>
                 {clicks.length > 0 && (
                   <span className="ml-auto flex items-center gap-1">
                     <span className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-foreground animate-pulse" />
-                    <span className="text-[10px] sm:text-xs text-muted-foreground">Live</span>
+                    <span className="text-[10px] sm:text-xs text-muted-foreground">{t("live")}</span>
                   </span>
                 )}
               </div>
@@ -331,12 +333,12 @@ const Analytics = () => {
             >
               <div className="flex items-center gap-2 mb-3 sm:mb-4">
                 <Globe className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-muted-foreground" />
-                <h3 className="font-semibold text-sm sm:text-base">Top Countries</h3>
+                <h3 className="font-semibold text-sm sm:text-base">{t("top_countries")}</h3>
               </div>
               {summary.countryStats.length === 0 ? (
                 <div className="py-6 sm:py-8 text-center">
                   <Globe className="h-6 w-6 sm:h-8 sm:w-8 mx-auto mb-2 text-muted-foreground/30" />
-                  <p className="text-xs sm:text-sm text-muted-foreground">No data yet</p>
+                  <p className="text-xs sm:text-sm text-muted-foreground">{t("no_data_yet")}</p>
                 </div>
               ) : (
                 <div className="space-y-2 sm:space-y-2.5">
@@ -370,12 +372,12 @@ const Analytics = () => {
             >
               <div className="flex items-center gap-2 mb-3 sm:mb-4">
                 <MapPin className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-muted-foreground" />
-                <h3 className="font-semibold text-sm sm:text-base">Top Cities</h3>
+                <h3 className="font-semibold text-sm sm:text-base">{t("top_cities")}</h3>
               </div>
               {cityStats.length === 0 ? (
                 <div className="py-6 sm:py-8 text-center">
                   <MapPin className="h-6 w-6 sm:h-8 sm:w-8 mx-auto mb-2 text-muted-foreground/30" />
-                  <p className="text-xs sm:text-sm text-muted-foreground">No data yet</p>
+                  <p className="text-xs sm:text-sm text-muted-foreground">{t("no_data_yet")}</p>
                 </div>
               ) : (
                 <div className="space-y-2 sm:space-y-2.5">
@@ -415,12 +417,12 @@ const Analytics = () => {
             >
               <div className="flex items-center gap-2 mb-3 sm:mb-4">
                 <Monitor className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-muted-foreground" />
-                <h3 className="font-semibold text-sm sm:text-base">Devices</h3>
+                <h3 className="font-semibold text-sm sm:text-base">{t("devices")}</h3>
               </div>
               {summary.deviceStats.length === 0 ? (
                 <div className="py-8 text-center">
                   <Monitor className="h-8 w-8 mx-auto mb-2 text-muted-foreground/30" />
-                  <p className="text-sm text-muted-foreground">No data yet</p>
+                  <p className="text-sm text-muted-foreground">{t("no_data_yet")}</p>
                 </div>
               ) : (
                 <>
@@ -474,13 +476,13 @@ const Analytics = () => {
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.4 }}
-              className="p-5 rounded-2xl border border-border bg-card"
+              className="p-3 sm:p-5 rounded-xl sm:rounded-2xl border border-border bg-card"
             >
-              <h3 className="font-semibold mb-4">Browsers</h3>
+              <h3 className="font-semibold text-sm sm:text-base mb-3 sm:mb-4">{t("browsers")}</h3>
               {summary.browserStats.length === 0 ? (
                 <div className="py-8 text-center">
                   <Globe className="h-8 w-8 mx-auto mb-2 text-muted-foreground/30" />
-                  <p className="text-sm text-muted-foreground">No data yet</p>
+                  <p className="text-sm text-muted-foreground">{t("no_data_yet")}</p>
                 </div>
               ) : (
                 <>
@@ -529,13 +531,13 @@ const Analytics = () => {
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.45 }}
-              className="p-5 rounded-2xl border border-border bg-card"
+              className="p-3 sm:p-5 rounded-xl sm:rounded-2xl border border-border bg-card"
             >
-              <h3 className="font-semibold mb-4">Operating Systems</h3>
+              <h3 className="font-semibold text-sm sm:text-base mb-3 sm:mb-4">{t("operating_systems")}</h3>
               {summary.osStats.length === 0 ? (
                 <div className="py-8 text-center">
                   <Monitor className="h-8 w-8 mx-auto mb-2 text-muted-foreground/30" />
-                  <p className="text-sm text-muted-foreground">No data yet</p>
+                  <p className="text-sm text-muted-foreground">{t("no_data_yet")}</p>
                 </div>
               ) : (
                 <>
@@ -585,13 +587,13 @@ const Analytics = () => {
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.5 }}
-            className="p-5 rounded-2xl border border-border bg-card"
+            className="p-3 sm:p-5 rounded-xl sm:rounded-2xl border border-border bg-card"
           >
-            <h3 className="font-semibold mb-4">Traffic Sources</h3>
+            <h3 className="font-semibold text-sm sm:text-base mb-3 sm:mb-4">{t("traffic_sources")}</h3>
             {summary.referrerStats.length === 0 ? (
               <div className="py-8 text-center">
                 <Link2 className="h-8 w-8 mx-auto mb-2 text-muted-foreground/30" />
-                <p className="text-sm text-muted-foreground">No data yet</p>
+                <p className="text-sm text-muted-foreground">{t("no_data_yet")}</p>
               </div>
             ) : (
               <div className="grid lg:grid-cols-2 gap-6">
@@ -614,7 +616,7 @@ const Analytics = () => {
                           borderRadius: "8px"
                         }}
                       />
-                      <Bar dataKey="value" fill="#1a1a1a" radius={[0, 6, 6, 0]} />
+                      <Bar dataKey="value" fill="hsl(var(--foreground))" radius={[0, 6, 6, 0]} />
                     </BarChart>
                   </ResponsiveContainer>
                 </div>
@@ -624,11 +626,11 @@ const Analytics = () => {
                       <div className="flex items-center gap-2.5">
                         <div 
                           className="w-2.5 h-2.5 rounded-full shrink-0" 
-                          style={{ backgroundColor: sourceColors[idx % sourceColors.length] }} 
+                          style={{ backgroundColor: `hsl(var(--foreground) / ${1 - idx * 0.12})` }} 
                         />
                         <span className="text-sm">{source.name}</span>
                       </div>
-                      <span className="text-sm font-medium text-muted-foreground">{source.value} clicks</span>
+                      <span className="text-sm font-medium text-muted-foreground">{source.value} {t("clicks")}</span>
                     </div>
                   ))}
                 </div>
@@ -641,12 +643,12 @@ const Analytics = () => {
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.55 }}
-            className="p-5 rounded-2xl border border-border bg-card"
+            className="p-3 sm:p-5 rounded-xl sm:rounded-2xl border border-border bg-card"
           >
-            <div className="flex items-center gap-2 mb-4">
+            <div className="flex items-center gap-2 mb-3 sm:mb-4">
               <List className="h-4 w-4 text-muted-foreground" />
-              <h3 className="font-semibold">Click Log</h3>
-              <span className="text-xs text-muted-foreground ml-auto">{filteredClicks.length} total</span>
+              <h3 className="font-semibold text-sm sm:text-base">{t("click_log")}</h3>
+              <span className="text-xs text-muted-foreground ml-auto">{filteredClicks.length} {t("total")}</span>
             </div>
             <ClickLogTable clicks={filteredClicks} itemsPerPage={10} />
           </motion.section>

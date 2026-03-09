@@ -8,6 +8,7 @@ import { LogoSection } from "./LogoSection";
 import { FrameSection } from "./FrameSection";
 import { TextSection } from "./TextSection";
 import { TemplatesSection } from "./TemplatesSection";
+import { useLanguage } from "@/lib/i18n";
 import { toast } from "sonner";
 import { toPng, toSvg } from "html-to-image";
 
@@ -29,12 +30,12 @@ interface SectionConfig {
   iconExtra?: typeof Scissors;
 }
 
-const sections: SectionConfig[] = [
-  { id: "templates", title: "Templates", icon: LayoutTemplate },
-  { id: "colors", title: "QR Colors", icon: Palette },
-  { id: "logo", title: "Logo", icon: Image },
-  { id: "frames", title: "Frames & Shapes", icon: Frame },
-  { id: "text", title: "Extra Text", icon: Type },
+const getSections = (t: (key: string) => string): SectionConfig[] => [
+  { id: "templates", title: t("qr_templates"), icon: LayoutTemplate },
+  { id: "colors", title: t("qr_colors"), icon: Palette },
+  { id: "logo", title: t("qr_logo"), icon: Image },
+  { id: "frames", title: t("qr_frames_shapes"), icon: Frame },
+  { id: "text", title: t("qr_extra_text"), icon: Type },
 ];
 
 export const QREditorSidebar = memo(function QREditorSidebar({
@@ -45,6 +46,8 @@ export const QREditorSidebar = memo(function QREditorSidebar({
   saving,
   destinationUrl,
 }: QREditorSidebarProps) {
+  const { t } = useLanguage();
+  const sections = getSections(t);
   const [expandedSections, setExpandedSections] = useState<Set<SectionId>>(
     new Set(["templates", "colors"])
   );
@@ -89,10 +92,10 @@ export const QREditorSidebar = memo(function QREditorSidebar({
       link.href = dataUrl;
       link.click();
 
-      toast.success("PNG downloaded!");
+      toast.success(t("png_downloaded"));
     } catch (error) {
       console.error("Export error:", error);
-      toast.error("Failed to export PNG");
+      toast.error(t("failed_export_png"));
     } finally {
       setExporting(null);
     }
@@ -128,10 +131,10 @@ export const QREditorSidebar = memo(function QREditorSidebar({
       link.click();
 
       URL.revokeObjectURL(downloadUrl);
-      toast.success("SVG downloaded!");
+      toast.success(t("svg_downloaded"));
     } catch (error) {
       console.error("Export error:", error);
-      toast.error("Failed to export SVG");
+      toast.error(t("failed_export_svg"));
     } finally {
       setExporting(null);
     }
@@ -139,8 +142,8 @@ export const QREditorSidebar = memo(function QREditorSidebar({
 
   const handleReset = useCallback(() => {
     onReset();
-    toast.success("Design reset to defaults");
-  }, [onReset]);
+    toast.success(t("design_reset"));
+  }, [onReset, t]);
 
   const renderSectionContent = (id: SectionId) => {
     switch (id) {
@@ -163,8 +166,8 @@ export const QREditorSidebar = memo(function QREditorSidebar({
     <div className="h-full flex flex-col bg-card border-r border-border/50">
       {/* Header */}
       <div className="p-5 border-b border-border/50">
-        <h2 className="text-lg font-semibold text-foreground">QR Editor</h2>
-        <p className="text-xs text-muted-foreground mt-1">Customize your QR code</p>
+        <h2 className="text-lg font-semibold text-foreground">{t("qr_editor")}</h2>
+        <p className="text-xs text-muted-foreground mt-1">{t("customize_your_qr")}</p>
       </div>
 
       {/* Scrollable Sections */}
@@ -236,13 +239,13 @@ export const QREditorSidebar = memo(function QREditorSidebar({
             ) : (
               <Save className="w-4 h-4" />
             )}
-            {saving ? "Saving..." : "Save Design"}
+            {saving ? t("saving_design") : t("save_design")}
           </Button>
           <Button
             variant="outline"
             onClick={handleReset}
             className="h-10 w-10 rounded-xl shrink-0 p-0"
-            title="Reset to defaults"
+            title={t("reset_to_defaults")}
           >
             <RotateCcw className="w-4 h-4" />
           </Button>

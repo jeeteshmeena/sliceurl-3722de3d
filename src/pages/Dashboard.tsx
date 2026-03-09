@@ -161,14 +161,14 @@ const Dashboard = () => {
 
   const copyLink = (code: string) => {
     navigator.clipboard.writeText(`${window.location.origin}/s/${code}`);
-    toast.success(t("copied"), { description: "Link copied to clipboard" });
+    toast.success(t("copied"), { description: t("link_copied") });
   };
 
   const handleTogglePin = async (linkId: string) => {
     const link = links.find(l => l.id === linkId);
     const isPinned = (link as any)?.is_pinned;
     await togglePin(linkId);
-    toast.success(isPinned ? "Unpinned" : "Pinned successfully");
+    toast.success(isPinned ? t("unpinned") : t("pinned_successfully"));
   };
 
   const handleDeleteLink = async (linkId: string) => {
@@ -424,7 +424,7 @@ const Dashboard = () => {
                               className="w-full mt-4 gap-2"
                             >
                               <Palette className="h-4 w-4" />
-                              Customize QR Design
+                              {t("customize_qr")}
                             </Button>
                           </DialogContent>
                         </Dialog>
@@ -434,7 +434,7 @@ const Dashboard = () => {
                           variant="ghost" 
                           size="icon-sm" 
                           onClick={() => handleTogglePin(link.id)}
-                          title={isPinned ? 'Unpin' : 'Pin to top'}
+                          title={isPinned ? t("unpin_label") : t("pin_label")}
                           className="h-8 w-8"
                         >
                           <Pin className={`h-3.5 w-3.5 sm:h-4 sm:w-4 ${isPinned ? 'fill-primary text-primary' : ''}`} />
@@ -445,7 +445,7 @@ const Dashboard = () => {
                           variant="ghost" 
                           size="icon-sm" 
                           onClick={() => setEditingLink(link)}
-                          title="Edit"
+                          title={t("edit_label")}
                           className="h-8 w-8"
                         >
                           <Edit className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
@@ -467,24 +467,24 @@ const Dashboard = () => {
                                 </AlertDialogTrigger>
                               </TooltipTrigger>
                               <TooltipContent>
-                                <p>Delete link</p>
+                                <p>{t("delete_link")}</p>
                               </TooltipContent>
                             </Tooltip>
                           </TooltipProvider>
                           <AlertDialogContent>
                             <AlertDialogHeader>
-                              <AlertDialogTitle>Delete this link?</AlertDialogTitle>
+                              <AlertDialogTitle>{t("delete_link_title")}</AlertDialogTitle>
                               <AlertDialogDescription>
-                                This action cannot be undone.
+                                {t("action_cannot_undone")}
                               </AlertDialogDescription>
                             </AlertDialogHeader>
                             <AlertDialogFooter>
-                              <AlertDialogCancel>Cancel</AlertDialogCancel>
+                              <AlertDialogCancel>{t("cancel")}</AlertDialogCancel>
                               <AlertDialogAction 
                                 onClick={() => handleDeleteLink(link.id)}
                                 className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                               >
-                                Delete
+                                {t("delete_label")}
                               </AlertDialogAction>
                             </AlertDialogFooter>
                           </AlertDialogContent>
@@ -498,7 +498,7 @@ const Dashboard = () => {
                           className="gap-1 sm:gap-1.5 text-muted-foreground hover:text-foreground h-8 px-2 sm:px-2.5"
                         >
                           <BarChart3 className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-                          <span className="text-[10px] sm:text-xs">Analysis</span>
+                          <span className="text-[10px] sm:text-xs">{t("analysis_label")}</span>
                         </Button>
                       </div>
                     )}

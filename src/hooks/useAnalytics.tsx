@@ -27,22 +27,33 @@ export interface AnalyticsSummary {
   clicksTimeline: { date: string; clicks: number }[];
 }
 
-// Monochrome grey scale colors for charts
-const MONO_COLORS = [
-  "#1a1a1a", // Darkest
-  "#404040",
-  "#666666",
-  "#888888",
-  "#aaaaaa",
-  "#cccccc", // Lightest
-];
+// Theme-aware colors using CSS custom properties
+// These will be resolved at render time via getComputedStyle
+function getThemedColors(): string[] {
+  if (typeof window === 'undefined') return ['#1a1a1a','#404040','#666666','#888888','#aaaaaa','#cccccc'];
+  const fg = getComputedStyle(document.documentElement).getPropertyValue('--foreground').trim();
+  if (!fg) return ['#1a1a1a','#404040','#666666','#888888','#aaaaaa','#cccccc'];
+  return [
+    `hsl(${fg} / 1)`,
+    `hsl(${fg} / 0.7)`,
+    `hsl(${fg} / 0.5)`,
+    `hsl(${fg} / 0.35)`,
+    `hsl(${fg} / 0.2)`,
+    `hsl(${fg} / 0.1)`,
+  ];
+}
 
-const DEVICE_COLORS: Record<string, string> = {
-  mobile: "#1a1a1a",
-  desktop: "#666666",
-  tablet: "#aaaaaa",
-  unknown: "#cccccc",
-};
+function getDeviceColors(): Record<string, string> {
+  if (typeof window === 'undefined') return { mobile: '#1a1a1a', desktop: '#666666', tablet: '#aaaaaa', unknown: '#cccccc' };
+  const fg = getComputedStyle(document.documentElement).getPropertyValue('--foreground').trim();
+  if (!fg) return { mobile: '#1a1a1a', desktop: '#666666', tablet: '#aaaaaa', unknown: '#cccccc' };
+  return {
+    mobile: `hsl(${fg} / 1)`,
+    desktop: `hsl(${fg} / 0.5)`,
+    tablet: `hsl(${fg} / 0.2)`,
+    unknown: `hsl(${fg} / 0.1)`,
+  };
+}
 
 export function useAnalytics(linkId: string, dateRangeStart?: Date | null) {
   const [clicks, setClicks] = useState<Click[]>([]);
@@ -99,6 +110,7 @@ export function useAnalytics(linkId: string, dateRangeStart?: Date | null) {
     const uniqueClicks = dataToProcess.filter((c) => c.is_unique).length;
 
     // Device stats with monochrome colors
+    const DEVICE_COLORS = getDeviceColors();
     const deviceCounts: Record<string, number> = {};
     dataToProcess.forEach((c) => {
       const device = c.device_type || "Unknown";
@@ -107,10 +119,10 @@ export function useAnalytics(linkId: string, dateRangeStart?: Date | null) {
     const deviceStats = Object.entries(deviceCounts).map(([name, value]) => ({
       name: name.charAt(0).toUpperCase() + name.slice(1),
       value,
-      fill: DEVICE_COLORS[name.toLowerCase()] || "#cccccc",
+      fill: DEVICE_COLORS[name.toLowerCase()] || DEVICE_COLORS.unknown,
     }));
 
-    // Browser stats with monochrome colors
+    const MONO_COLORS = getThemedColors();
     const browserCounts: Record<string, number> = {};
     dataToProcess.forEach((c) => {
       const browser = c.browser || "Unknown";
@@ -122,7 +134,7 @@ export function useAnalytics(linkId: string, dateRangeStart?: Date | null) {
       .map(([name, value], i) => ({
         name,
         value,
-        fill: MONO_COLORS[i] || "#cccccc",
+        fill: MONO_COLORS[i] || MONO_COLORS[MONO_COLORS.length - 1],
       }));
 
     // OS stats with monochrome colors
@@ -137,7 +149,7 @@ export function useAnalytics(linkId: string, dateRangeStart?: Date | null) {
       .map(([name, value], i) => ({
         name,
         value,
-        fill: MONO_COLORS[i] || "#cccccc",
+        fill: MONO_COLORS[i] || MONO_COLORS[MONO_COLORS.length - 1],
       }));
 
     // Country stats
