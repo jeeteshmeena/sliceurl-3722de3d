@@ -422,7 +422,7 @@ const Analytics = () => {
               {summary.deviceStats.length === 0 ? (
                 <div className="py-8 text-center">
                   <Monitor className="h-8 w-8 mx-auto mb-2 text-muted-foreground/30" />
-                  <p className="text-sm text-muted-foreground">No data yet</p>
+                  <p className="text-sm text-muted-foreground">{t("no_data_yet")}</p>
                 </div>
               ) : (
                 <>
