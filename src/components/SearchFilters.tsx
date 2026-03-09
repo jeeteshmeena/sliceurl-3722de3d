@@ -26,10 +26,10 @@ const clickOptionKeys = [
   { value: '100+', key: '100_plus_clicks' },
 ];
 
-const deviceOptions = [
-  { value: 'mobile', label: 'Mobile' },
-  { value: 'desktop', label: 'Desktop' },
-  { value: 'tablet', label: 'Tablet' },
+const deviceOptionKeys = [
+  { value: 'mobile', key: 'mobile_analytics' },
+  { value: 'desktop', key: 'desktop_device' },
+  { value: 'tablet', key: 'tablet' },
 ];
 
 const expirationOptions = [
