@@ -314,7 +314,7 @@ export function CreateLinkDialog({ open, onOpenChange, onCreateLink }: CreateLin
                       />
                     </div>
                     <div className="space-y-1.5">
-                      <Label htmlFor="confirm-password" className="text-[13px]">Confirm Password</Label>
+                      <Label htmlFor="confirm-password" className="text-[13px]">{t("create_confirm_password")}</Label>
                       <Input
                         id="confirm-password"
                         type="password"
