@@ -846,7 +846,7 @@ export default function Settings() {
                 type="password"
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
-                placeholder={hasPassword ? "Enter new password" : "Create a password"}
+                placeholder={hasPassword ? t("enter_new_password") : t("create_password")}
                   className="bg-card"
               />
             </div>
