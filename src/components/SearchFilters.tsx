@@ -205,7 +205,7 @@ export function SearchFilters({ filters, onFiltersChange, availableCountries }: 
         )}
         {filters.expiration && (
           <Badge variant="secondary" className="gap-0.5 sm:gap-1 text-[10px] sm:text-xs px-1.5 sm:px-2 h-6 sm:h-7">
-            <span className="truncate max-w-[60px] sm:max-w-none">{expirationOptions.find(o => o.value === filters.expiration)?.label}</span>
+            <span className="truncate max-w-[60px] sm:max-w-none">{t(expirationOptionKeys.find(o => o.value === filters.expiration)?.key || '')}</span>
             <X className="h-3 w-3 cursor-pointer shrink-0" onClick={() => updateFilter('expiration', null)} />
           </Badge>
         )}
