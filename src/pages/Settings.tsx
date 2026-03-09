@@ -371,16 +371,16 @@ export default function Settings() {
             className="gap-2 text-muted-foreground hover:text-foreground -ml-2"
           >
             <ArrowLeft className="h-4 w-4" />
-            Back
+            {t("back")}
           </Button>
 
           {/* Page Header */}
           <div>
             <h1 className="text-2xl font-semibold text-foreground">
-              Settings
+              {t("settings")}
             </h1>
             <p className="text-sm text-muted-foreground mt-1">
-              Manage your account and preferences
+              {t("manage_account_preferences")}
             </p>
           </div>
 
