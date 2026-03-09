@@ -485,7 +485,7 @@ export default function Settings() {
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="your@email.com"
+                  placeholder={t("your_email")}
                   disabled={!editingEmail}
                   className="bg-card border-input text-foreground h-9 text-sm flex-1"
                 />
