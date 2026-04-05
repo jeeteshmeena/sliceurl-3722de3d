@@ -3,7 +3,7 @@ import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import { 
   ArrowLeft, Code, Copy, Check, Zap, Lock, BarChart3, Trash2, List,
-  Terminal, Globe, FileJson, AlertCircle
+  Terminal, Globe, FileJson, AlertCircle, Bot, Layers
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -103,7 +103,7 @@ const Developers = () => {
                   code={`curl -X POST "${BASE_URL}?action=shorten" \\
   -H "Authorization: Bearer YOUR_API_KEY" \\
   -H "Content-Type: application/json" \\
-  -d '{"url": "https://example.com"}'`}
+  -d '{"long_url": "https://example.com"}'`}
                 />
               </div>
               <div className="space-y-2">
@@ -111,11 +111,11 @@ const Developers = () => {
                 <CodeBlock
                   language="json"
                   code={`{
+  "success": true,
   "short_url": "https://sliceurl.app/s/abc123",
-  "slug": "abc123",
   "original_url": "https://example.com",
-  "created_at": "2024-01-15T12:00:00Z",
-  "api_generated": true
+  "slug": "abc123",
+  "created_at": "2024-01-15T12:00:00Z"
 }`}
                 />
               </div>
@@ -132,15 +132,17 @@ const Developers = () => {
             </CardHeader>
             <CardContent className="space-y-4">
               <p className="text-sm text-muted-foreground">
-                All API requests require authentication via Bearer token. Include your API key in the Authorization header:
+                All API requests require your API key. You can send it in <strong>either</strong> of these headers:
               </p>
-              <CodeBlock code={`Authorization: Bearer slc_your_api_key_here`} />
+              <CodeBlock code={`Authorization: Bearer slc_your_api_key_here
+# — OR —
+X-API-Key: slc_your_api_key_here`} />
               
               <div className="flex items-start gap-2 p-3 rounded-lg bg-orange-500/10 border border-orange-500/30">
                 <AlertCircle className="h-4 w-4 text-orange-500 mt-0.5" />
                 <div className="text-sm">
                   <p className="font-medium text-orange-600 dark:text-orange-400">Security Notice</p>
-                  <p className="text-muted-foreground">Never expose your API key in client-side code. Use server-side requests only.</p>
+                  <p className="text-muted-foreground">Never expose your API key in client-side code. Use server-side requests only (bots, backends).</p>
                 </div>
               </div>
             </CardContent>
@@ -152,11 +154,16 @@ const Developers = () => {
               <CardTitle>Rate Limits</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="grid gap-4 md:grid-cols-2">
+              <div className="grid gap-4 md:grid-cols-3">
                 <div className="p-4 rounded-lg border border-border">
-                  <p className="font-medium">Free Tier</p>
+                  <p className="font-medium">Daily Quota</p>
                   <p className="text-2xl font-bold text-primary">100</p>
-                  <p className="text-sm text-muted-foreground">requests per day</p>
+                  <p className="text-sm text-muted-foreground">requests per key per day</p>
+                </div>
+                <div className="p-4 rounded-lg border border-border">
+                  <p className="font-medium">Batch Limit</p>
+                  <p className="text-2xl font-bold text-primary">25</p>
+                  <p className="text-sm text-muted-foreground">URLs per batch request</p>
                 </div>
                 <div className="p-4 rounded-lg border border-border">
                   <p className="font-medium">Rate Reset</p>
@@ -165,9 +172,8 @@ const Developers = () => {
                 </div>
               </div>
               <p className="text-sm text-muted-foreground">
-                When you exceed the rate limit, the API returns a <code className="px-1 py-0.5 rounded bg-muted">429</code> status with:
+                When you exceed the rate limit, the API returns a <code className="px-1 py-0.5 rounded bg-muted">429</code> status.
               </p>
-              <CodeBlock language="json" code={`{"error": "RATE_LIMIT_EXCEEDED"}`} />
             </CardContent>
           </Card>
 
@@ -178,29 +184,34 @@ const Developers = () => {
                 <Globe className="h-5 w-5" />
                 API Endpoints
               </CardTitle>
-              <CardDescription>Base URL: {BASE_URL}</CardDescription>
+              <CardDescription>Base URL: <code className="text-xs">{BASE_URL}</code></CardDescription>
             </CardHeader>
             <CardContent>
               <Tabs defaultValue="shorten" className="w-full">
-                <TabsList className="grid grid-cols-4 mb-4">
-                  <TabsTrigger value="shorten" className="gap-1">
+                <TabsList className="grid grid-cols-5 mb-4">
+                  <TabsTrigger value="shorten" className="gap-1 text-xs sm:text-sm">
                     <Zap className="h-3 w-3" />
                     Shorten
                   </TabsTrigger>
-                  <TabsTrigger value="analytics" className="gap-1">
+                  <TabsTrigger value="batch" className="gap-1 text-xs sm:text-sm">
+                    <Layers className="h-3 w-3" />
+                    Batch
+                  </TabsTrigger>
+                  <TabsTrigger value="analytics" className="gap-1 text-xs sm:text-sm">
                     <BarChart3 className="h-3 w-3" />
                     Analytics
                   </TabsTrigger>
-                  <TabsTrigger value="list" className="gap-1">
+                  <TabsTrigger value="list" className="gap-1 text-xs sm:text-sm">
                     <List className="h-3 w-3" />
                     List
                   </TabsTrigger>
-                  <TabsTrigger value="delete" className="gap-1">
+                  <TabsTrigger value="delete" className="gap-1 text-xs sm:text-sm">
                     <Trash2 className="h-3 w-3" />
                     Delete
                   </TabsTrigger>
                 </TabsList>
 
+                {/* ── Shorten ── */}
                 <TabsContent value="shorten" className="space-y-4">
                   <div className="flex items-center gap-2">
                     <Badge>POST</Badge>
@@ -213,27 +224,50 @@ const Developers = () => {
                     <CodeBlock
                       language="json"
                       code={`{
-  "url": "https://example.com/long-url",
-  "custom_slug": "my-custom-slug"  // optional
+  "long_url": "https://example.com/very/long/destination",
+  "custom_alias": "my-brand"  // optional
 }`}
                     />
+                    <p className="text-xs text-muted-foreground">
+                      Also accepts <code>url</code> and <code>custom_slug</code> as field names for backward compatibility.
+                    </p>
                   </div>
 
-                  <Tabs defaultValue="curl" className="w-full">
+                  <Tabs defaultValue="python" className="w-full">
                     <p className="text-sm font-medium mb-2">Examples</p>
                     <TabsList className="h-8">
+                      <TabsTrigger value="python" className="text-xs">Python</TabsTrigger>
                       <TabsTrigger value="curl" className="text-xs">cURL</TabsTrigger>
                       <TabsTrigger value="js" className="text-xs">JavaScript</TabsTrigger>
                       <TabsTrigger value="node" className="text-xs">Node.js</TabsTrigger>
-                      <TabsTrigger value="python" className="text-xs">Python</TabsTrigger>
-                      <TabsTrigger value="php" className="text-xs">PHP</TabsTrigger>
                     </TabsList>
+                    <TabsContent value="python">
+                      <CodeBlock
+                        language="python"
+                        code={`import requests
+
+API_KEY = "slc_your_key_here"
+API_URL = "${BASE_URL}"
+
+response = requests.post(
+    f"{API_URL}?action=shorten",
+    headers={"X-API-Key": API_KEY},
+    json={"long_url": "https://example.com"}
+)
+
+data = response.json()
+if data["success"]:
+    print(data["short_url"])
+else:
+    print(f"Error: {data['error']}")`}
+                      />
+                    </TabsContent>
                     <TabsContent value="curl">
                       <CodeBlock
                         code={`curl -X POST "${BASE_URL}?action=shorten" \\
-  -H "Authorization: Bearer YOUR_API_KEY" \\
+  -H "X-API-Key: YOUR_API_KEY" \\
   -H "Content-Type: application/json" \\
-  -d '{"url": "https://example.com"}'`}
+  -d '{"long_url": "https://example.com"}'`}
                       />
                     </TabsContent>
                     <TabsContent value="js">
@@ -242,10 +276,10 @@ const Developers = () => {
                         code={`const response = await fetch("${BASE_URL}?action=shorten", {
   method: "POST",
   headers: {
-    "Authorization": "Bearer YOUR_API_KEY",
+    "X-API-Key": "YOUR_API_KEY",
     "Content-Type": "application/json"
   },
-  body: JSON.stringify({ url: "https://example.com" })
+  body: JSON.stringify({ long_url: "https://example.com" })
 });
 
 const data = await response.json();
@@ -257,76 +291,90 @@ console.log(data.short_url);`}
                         language="javascript"
                         code={`const axios = require('axios');
 
-const response = await axios.post(
+const { data } = await axios.post(
   "${BASE_URL}?action=shorten",
-  { url: "https://example.com" },
-  {
-    headers: {
-      "Authorization": "Bearer YOUR_API_KEY",
-      "Content-Type": "application/json"
-    }
-  }
+  { long_url: "https://example.com" },
+  { headers: { "X-API-Key": "YOUR_API_KEY" } }
 );
 
-console.log(response.data.short_url);`}
-                      />
-                    </TabsContent>
-                    <TabsContent value="python">
-                      <CodeBlock
-                        language="python"
-                        code={`import requests
-
-response = requests.post(
-    "${BASE_URL}?action=shorten",
-    headers={
-        "Authorization": "Bearer YOUR_API_KEY",
-        "Content-Type": "application/json"
-    },
-    json={"url": "https://example.com"}
-)
-
-data = response.json()
-print(data["short_url"])`}
-                      />
-                    </TabsContent>
-                    <TabsContent value="php">
-                      <CodeBlock
-                        language="php"
-                        code={`<?php
-$ch = curl_init();
-curl_setopt($ch, CURLOPT_URL, "${BASE_URL}?action=shorten");
-curl_setopt($ch, CURLOPT_POST, true);
-curl_setopt($ch, CURLOPT_HTTPHEADER, [
-    "Authorization: Bearer YOUR_API_KEY",
-    "Content-Type: application/json"
-]);
-curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode([
-    "url" => "https://example.com"
-]));
-curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-
-$response = curl_exec($ch);
-$data = json_decode($response, true);
-echo $data["short_url"];`}
+console.log(data.short_url);`}
                       />
                     </TabsContent>
                   </Tabs>
 
                   <div className="space-y-2">
-                    <p className="text-sm font-medium">Response</p>
+                    <p className="text-sm font-medium">Response <Badge variant="secondary" className="ml-1">201</Badge></p>
                     <CodeBlock
                       language="json"
                       code={`{
+  "success": true,
   "short_url": "https://sliceurl.app/s/abc123",
-  "slug": "abc123",
   "original_url": "https://example.com",
-  "created_at": "2024-01-15T12:00:00Z",
-  "api_generated": true
+  "slug": "abc123",
+  "created_at": "2024-01-15T12:00:00Z"
 }`}
                     />
                   </div>
                 </TabsContent>
 
+                {/* ── Batch ── */}
+                <TabsContent value="batch" className="space-y-4">
+                  <div className="flex items-center gap-2">
+                    <Badge>POST</Badge>
+                    <code className="text-sm">?action=batch</code>
+                  </div>
+                  <p className="text-sm text-muted-foreground">Shorten up to 25 URLs in a single request. Perfect for bots and automation.</p>
+
+                  <div className="space-y-2">
+                    <p className="text-sm font-medium">Request Body</p>
+                    <CodeBlock
+                      language="json"
+                      code={`{
+  "urls": [
+    "https://example.com/page-1",
+    "https://example.com/page-2",
+    "https://example.com/page-3"
+  ]
+}`}
+                    />
+                  </div>
+
+                  <CodeBlock
+                    language="python"
+                    code={`import requests
+
+response = requests.post(
+    f"{API_URL}?action=batch",
+    headers={"X-API-Key": API_KEY},
+    json={"urls": [
+        "https://example.com/a",
+        "https://example.com/b",
+    ]}
+)
+
+for item in response.json()["results"]:
+    if item["success"]:
+        print(f'{item["original_url"]} → {item["short_url"]}')`}
+                  />
+
+                  <div className="space-y-2">
+                    <p className="text-sm font-medium">Response <Badge variant="secondary" className="ml-1">201</Badge></p>
+                    <CodeBlock
+                      language="json"
+                      code={`{
+  "success": true,
+  "results": [
+    { "success": true, "short_url": "https://sliceurl.app/s/x1y2z3", "original_url": "https://example.com/a", "slug": "x1y2z3" },
+    { "success": true, "short_url": "https://sliceurl.app/s/a4b5c6", "original_url": "https://example.com/b", "slug": "a4b5c6" }
+  ],
+  "total": 2,
+  "succeeded": 2
+}`}
+                    />
+                  </div>
+                </TabsContent>
+
+                {/* ── Analytics ── */}
                 <TabsContent value="analytics" className="space-y-4">
                   <div className="flex items-center gap-2">
                     <Badge variant="secondary">GET</Badge>
@@ -336,7 +384,7 @@ echo $data["short_url"];`}
                   
                   <CodeBlock
                     code={`curl "${BASE_URL}?action=analytics&slug=abc123" \\
-  -H "Authorization: Bearer YOUR_API_KEY"`}
+  -H "X-API-Key: YOUR_API_KEY"`}
                   />
 
                   <div className="space-y-2">
@@ -344,31 +392,33 @@ echo $data["short_url"];`}
                     <CodeBlock
                       language="json"
                       code={`{
+  "success": true,
   "slug": "abc123",
   "original_url": "https://example.com",
   "total_clicks": 150,
   "unique_clicks": 89,
-  "countries": {"India": 45, "United States": 38, "Germany": 12},
-  "devices": {"mobile": 85, "desktop": 60, "tablet": 5},
-  "browsers": {"Chrome": 90, "Safari": 35, "Firefox": 15},
+  "countries": {"India": 45, "United States": 38},
+  "devices": {"mobile": 85, "desktop": 60},
+  "browsers": {"Chrome": 90, "Safari": 35},
   "os": {"Android": 50, "iOS": 35, "Windows": 40},
-  "referrers": {"Direct": 80, "WhatsApp": 40, "Twitter": 20},
+  "referrers": {"Direct": 80, "WhatsApp": 40},
   "last_30_days": [{"date": "2024-01-01", "clicks": 5}, ...]
 }`}
                     />
                   </div>
                 </TabsContent>
 
+                {/* ── List ── */}
                 <TabsContent value="list" className="space-y-4">
                   <div className="flex items-center gap-2">
                     <Badge variant="secondary">GET</Badge>
                     <code className="text-sm">?action=list&limit=50&offset=0</code>
                   </div>
-                  <p className="text-sm text-muted-foreground">List all your shortened links with pagination.</p>
+                  <p className="text-sm text-muted-foreground">List all your shortened links with pagination (max 100 per page).</p>
                   
                   <CodeBlock
                     code={`curl "${BASE_URL}?action=list&limit=10" \\
-  -H "Authorization: Bearer YOUR_API_KEY"`}
+  -H "X-API-Key: YOUR_API_KEY"`}
                   />
 
                   <div className="space-y-2">
@@ -376,8 +426,10 @@ echo $data["short_url"];`}
                     <CodeBlock
                       language="json"
                       code={`{
+  "success": true,
   "links": [
     {
+      "short_url": "https://sliceurl.app/s/abc123",
       "slug": "abc123",
       "original_url": "https://example.com",
       "title": "API: example.com",
@@ -394,6 +446,7 @@ echo $data["short_url"];`}
                   </div>
                 </TabsContent>
 
+                {/* ── Delete ── */}
                 <TabsContent value="delete" className="space-y-4">
                   <div className="flex items-center gap-2">
                     <Badge variant="destructive">DELETE</Badge>
@@ -403,7 +456,7 @@ echo $data["short_url"];`}
                   
                   <CodeBlock
                     code={`curl -X DELETE "${BASE_URL}?action=delete&slug=abc123" \\
-  -H "Authorization: Bearer YOUR_API_KEY"`}
+  -H "X-API-Key: YOUR_API_KEY"`}
                   />
 
                   <div className="space-y-2">
@@ -421,6 +474,80 @@ echo $data["short_url"];`}
             </CardContent>
           </Card>
 
+          {/* Telegram Bot Integration */}
+          <Card className="border-primary/20">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Bot className="h-5 w-5 text-primary" />
+                Python Telegram Bot Integration
+              </CardTitle>
+              <CardDescription>
+                Complete example for integrating SliceURL into a python-telegram-bot project
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <CodeBlock
+                language="python"
+                code={`import requests
+from telegram import Update
+from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes
+
+SLICEURL_API = "${BASE_URL}"
+SLICEURL_KEY = "slc_your_key_here"
+
+def shorten(long_url: str, alias: str = None) -> dict:
+    """Shorten a URL via SliceURL API."""
+    payload = {"long_url": long_url}
+    if alias:
+        payload["custom_alias"] = alias
+
+    resp = requests.post(
+        f"{SLICEURL_API}?action=shorten",
+        headers={"X-API-Key": SLICEURL_KEY},
+        json=payload,
+        timeout=10,
+    )
+    return resp.json()
+
+async def slice_cmd(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
+    """Handle /slice <url> [alias] command."""
+    args = ctx.args
+    if not args:
+        await update.message.reply_text("Usage: /slice <url> [custom_alias]")
+        return
+
+    long_url = args[0]
+    alias = args[1] if len(args) > 1 else None
+
+    result = shorten(long_url, alias)
+
+    if result.get("success"):
+        await update.message.reply_text(
+            f"✅ Sliced!\\n{result['short_url']}"
+        )
+    else:
+        await update.message.reply_text(
+            f"❌ {result.get('error', 'Unknown error')}"
+        )
+
+app = ApplicationBuilder().token("YOUR_BOT_TOKEN").build()
+app.add_handler(CommandHandler("slice", slice_cmd))
+app.run_polling()`}
+              />
+              <div className="flex items-start gap-2 p-3 rounded-lg bg-primary/5 border border-primary/20">
+                <Zap className="h-4 w-4 text-primary mt-0.5" />
+                <div className="text-sm">
+                  <p className="font-medium">Tip for high-traffic bots</p>
+                  <p className="text-muted-foreground">
+                    Use the <code className="px-1 py-0.5 rounded bg-muted">?action=batch</code> endpoint to shorten
+                    multiple URLs in a single request — reducing latency and API calls.
+                    Use <code className="px-1 py-0.5 rounded bg-muted">requests.Session()</code> to reuse TCP connections.
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
           {/* Error Codes */}
           <Card>
             <CardHeader>
@@ -432,12 +559,12 @@ echo $data["short_url"];`}
             <CardContent>
               <div className="space-y-3">
                 {[
-                  { code: 400, message: "Bad Request", desc: "Invalid request body or parameters" },
+                  { code: 400, message: "Bad Request", desc: "Invalid request body, missing long_url, or invalid URL format" },
                   { code: 401, message: "Unauthorized", desc: "Missing or invalid API key" },
-                  { code: 403, message: "Forbidden", desc: "API key revoked or invalid" },
-                  { code: 404, message: "Not Found", desc: "Link not found or not owned by you" },
-                  { code: 409, message: "Conflict", desc: "Custom slug already taken" },
-                  { code: 429, message: "Too Many Requests", desc: "Rate limit exceeded" },
+                  { code: 403, message: "Forbidden", desc: "API key has been revoked" },
+                  { code: 404, message: "Not Found", desc: "Link not found or unknown action" },
+                  { code: 409, message: "Conflict", desc: "Custom alias already exists" },
+                  { code: 429, message: "Too Many Requests", desc: "Daily rate limit exceeded" },
                   { code: 500, message: "Server Error", desc: "Internal server error" },
                 ].map((error) => (
                   <div key={error.code} className="flex items-center gap-4 p-3 rounded-lg border border-border">
@@ -450,6 +577,10 @@ echo $data["short_url"];`}
                     </div>
                   </div>
                 ))}
+              </div>
+              <div className="mt-4 space-y-2">
+                <p className="text-sm font-medium">Error response format</p>
+                <CodeBlock language="json" code={`{ "success": false, "error": "Custom alias already exists." }`} />
               </div>
             </CardContent>
           </Card>
