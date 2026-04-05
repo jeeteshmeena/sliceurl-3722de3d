@@ -18,6 +18,7 @@ import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { SettingsPageSkeleton } from "@/components/Skeleton";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { DeveloperDashboard } from "@/components/DeveloperDashboard";
 import { useAuth } from "@/hooks/useAuth";
 import { useProfile, SecurityMode } from "@/hooks/useProfile";
 import { useLinkBehavior } from "@/hooks/useLinkBehavior";
@@ -780,6 +781,25 @@ export default function Settings() {
                 onCheckedChange={handleAutoRefreshChange}
               />
             </div>
+          </motion.section>
+
+          {/* ═══════════════════════════════════════════════════════════════════ */}
+          {/* DEVELOPER API SECTION */}
+          {/* ═══════════════════════════════════════════════════════════════════ */}
+          <motion.section
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.18 }}
+            className="bg-secondary rounded-xl border border-border p-5 space-y-4"
+          >
+            <h2 className="text-sm font-medium text-foreground uppercase tracking-wide flex items-center gap-2">
+              <KeyRound className="h-4 w-4" />
+              Developer API
+            </h2>
+            <p className="text-xs text-muted-foreground">
+              Manage your API keys for external integrations like Telegram bots, scripts, and more.
+            </p>
+            <DeveloperDashboard />
           </motion.section>
 
           {/* ═══════════════════════════════════════════════════════════════════ */}
