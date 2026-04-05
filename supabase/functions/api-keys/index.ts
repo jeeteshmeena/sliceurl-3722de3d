@@ -80,7 +80,7 @@ serve(async (req) => {
           key_hash: keyHash,
           name: name || 'API Key',
           status: 'active',
-          rate_limit_daily: 100,
+          rate_limit_daily: 1000,
           requests_today: 0,
           rate_limit_reset_at: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString()
         })
