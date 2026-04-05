@@ -18,6 +18,7 @@ import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { SettingsPageSkeleton } from "@/components/Skeleton";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { DeveloperDashboard } from "@/components/DeveloperDashboard";
 import { useAuth } from "@/hooks/useAuth";
 import { useProfile, SecurityMode } from "@/hooks/useProfile";
 import { useLinkBehavior } from "@/hooks/useLinkBehavior";
