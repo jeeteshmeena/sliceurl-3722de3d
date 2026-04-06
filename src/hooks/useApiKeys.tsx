@@ -29,8 +29,45 @@ export function useApiKeys() {
   const [loading, setLoading] = useState(true);
   const [creating, setCreating] = useState(false);
 
+  const callApiKeyAction = useCallback(async <T = Record<string, unknown>>(
+    action: string,
+    body?: Record<string, unknown>
+  ): Promise<{ data?: T; error?: string }> => {
+    const { data: { session } } = await supabase.auth.getSession();
+
+    if (!session?.access_token) {
+      return { error: "No active session" };
+    }
+
+    const response = await fetch(
+      `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/api-keys?action=${action}`,
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${session.access_token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(body ?? {}),
+      }
+    );
+
+    const text = await response.text();
+    const result = text ? JSON.parse(text) : {};
+
+    if (!response.ok) {
+      return { error: result.error || `Request failed (${response.status})` };
+    }
+
+    return { data: result as T };
+  }, []);
+
   const fetchKeys = useCallback(async () => {
-    if (!user) return;
+    if (!user) {
+      setKeys([]);
+      setUsage(null);
+      setLoading(false);
+      return;
+    }
 
     try {
       const { data, error } = await supabase
@@ -49,7 +86,10 @@ export function useApiKeys() {
   }, [user]);
 
   const fetchUsage = useCallback(async () => {
-    if (!user) return;
+    if (!user) {
+      setUsage(null);
+      return;
+    }
 
     // Calculate usage from keys
     const activeKeys = keys.filter(k => k.status === 'active');
@@ -60,7 +100,7 @@ export function useApiKeys() {
       requests_used: totalRequests,
       requests_limit: totalLimit || 1000,
       requests_remaining: Math.max(0, (totalLimit || 1000) - totalRequests),
-      reset_at: new Date().toISOString(),
+      reset_at: activeKeys[0]?.rate_limit_reset_at || new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
     });
   }, [user, keys]);
 
@@ -69,65 +109,30 @@ export function useApiKeys() {
 
     setCreating(true);
     try {
-      // Use secure edge function for API key creation with SHA-256 hashing
-      const { data: { session } } = await supabase.auth.getSession();
-      
-      if (!session?.access_token) {
-        return { error: 'No active session' };
-      }
+      const { data, error } = await callApiKeyAction<{ api_key?: string }>("create", {
+        name: name || "API Key",
+      });
 
-      const response = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/api-keys?action=create`,
-        {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${session.access_token}`,
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({ name: name || 'API Key' })
-        }
-      );
-
-      const result = await response.json();
-
-      if (!response.ok) {
-        return { error: result.error || 'Failed to create API key' };
+      if (error) {
+        return { error };
       }
 
       await fetchKeys();
-      return { api_key: result.api_key };
+      return { api_key: data?.api_key };
     } catch (error) {
       console.error('Error creating API key:', error);
       return { error: 'Failed to create API key' };
     } finally {
       setCreating(false);
     }
-  }, [user, fetchKeys]);
+  }, [user, fetchKeys, callApiKeyAction]);
 
   const revokeKey = useCallback(async (keyId: string): Promise<boolean> => {
     if (!user) return false;
 
     try {
-      // Use secure edge function for API key revocation
-      const { data: { session } } = await supabase.auth.getSession();
-      
-      if (!session?.access_token) {
-        return false;
-      }
-
-      const response = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/api-keys?action=revoke`,
-        {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${session.access_token}`,
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({ key_id: keyId })
-        }
-      );
-
-      if (!response.ok) {
+      const { error } = await callApiKeyAction("revoke", { key_id: keyId });
+      if (error) {
         return false;
       }
 
@@ -137,32 +142,14 @@ export function useApiKeys() {
       console.error('Error revoking API key:', error);
       return false;
     }
-  }, [user, fetchKeys]);
+  }, [user, fetchKeys, callApiKeyAction]);
 
   const deleteKey = useCallback(async (keyId: string): Promise<boolean> => {
     if (!user) return false;
 
     try {
-      // Use secure edge function for API key deletion
-      const { data: { session } } = await supabase.auth.getSession();
-      
-      if (!session?.access_token) {
-        return false;
-      }
-
-      const response = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/api-keys?action=delete`,
-        {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${session.access_token}`,
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({ key_id: keyId })
-        }
-      );
-
-      if (!response.ok) {
+      const { error } = await callApiKeyAction("delete", { key_id: keyId });
+      if (error) {
         return false;
       }
 
@@ -172,11 +159,15 @@ export function useApiKeys() {
       console.error('Error deleting API key:', error);
       return false;
     }
-  }, [user, fetchKeys]);
+  }, [user, fetchKeys, callApiKeyAction]);
 
   useEffect(() => {
     if (user) {
       fetchKeys();
+    } else {
+      setKeys([]);
+      setUsage(null);
+      setLoading(false);
     }
   }, [user, fetchKeys]);
 

@@ -157,7 +157,7 @@ X-API-Key: slc_your_api_key_here`} />
               <div className="grid gap-4 md:grid-cols-3">
                 <div className="p-4 rounded-lg border border-border">
                   <p className="font-medium">Daily Quota</p>
-                  <p className="text-2xl font-bold text-primary">100</p>
+                  <p className="text-2xl font-bold text-primary">1000</p>
                   <p className="text-sm text-muted-foreground">requests per key per day</p>
                 </div>
                 <div className="p-4 rounded-lg border border-border">

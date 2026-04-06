@@ -4,7 +4,8 @@ import { encode as hexEncode } from "https://deno.land/std@0.168.0/encoding/hex.
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-api-key',
+  'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
 };
 
 // Hash function for API keys
@@ -38,7 +39,8 @@ serve(async (req) => {
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
     const url = new URL(req.url);
-    const action = url.searchParams.get('action');
+    const requestBody = req.method === 'POST' ? await req.json().catch(() => ({})) : {};
+    const action = url.searchParams.get('action') || requestBody.action;
 
     // Get auth header for user authentication
     const authHeader = req.headers.get('authorization');
@@ -66,7 +68,7 @@ serve(async (req) => {
     // Handle different actions
     if (action === 'create') {
       // Generate new API key
-      const { name } = await req.json().catch(() => ({ name: null }));
+      const { name } = requestBody as { name?: string };
       
       const rawKey = generateApiKey();
       const keyHash = await hashApiKey(rawKey);
@@ -132,7 +134,7 @@ serve(async (req) => {
     }
 
     if (action === 'revoke') {
-      const { key_id } = await req.json();
+      const { key_id } = requestBody as { key_id?: string };
       
       if (!key_id) {
         return new Response(
@@ -167,7 +169,7 @@ serve(async (req) => {
     }
 
     if (action === 'delete') {
-      const { key_id } = await req.json();
+      const { key_id } = requestBody as { key_id?: string };
       
       if (!key_id) {
         return new Response(

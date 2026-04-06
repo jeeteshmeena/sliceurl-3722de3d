@@ -24,6 +24,7 @@ const Settings = lazy(() => import("@/pages/Settings"));
 const QRCustomizer = lazy(() => import("@/pages/QRCustomizer"));
 const UtmBuilder = lazy(() => import("@/pages/UtmBuilder"));
 const BulkStats = lazy(() => import("@/pages/BulkStats"));
+const Developers = lazy(() => import("@/pages/Developers"));
 const Privacy = lazy(() => import("@/pages/Privacy"));
 const Terms = lazy(() => import("@/pages/Terms"));
 const About = lazy(() => import("@/pages/About"));
@@ -110,9 +111,13 @@ const App = () => (
                       </Suspense>
                     </AuthGuard>
                   } />
-                  <Route path="/developers" element={<Navigate to="/" replace />} />
-                  <Route path="/developer" element={<Navigate to="/" replace />} />
-                  <Route path="/developer-api" element={<Navigate to="/" replace />} />
+                  <Route path="/developers" element={
+                    <Suspense fallback={<PageLoader />}>
+                      <Developers />
+                    </Suspense>
+                  } />
+                  <Route path="/developer" element={<Navigate to="/developers" replace />} />
+                  <Route path="/developer-api" element={<Navigate to="/developers" replace />} />
                   
                   {/* Legal & Info Pages */}
                   <Route path="/privacy" element={
