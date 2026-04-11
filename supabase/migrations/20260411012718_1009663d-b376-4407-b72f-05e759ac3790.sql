@@ -1,0 +1,1 @@
+ALTER TABLE public.api_keys ALTER COLUMN key_prefix TYPE varchar(16);
