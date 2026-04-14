@@ -205,8 +205,12 @@ export default function Preview() {
         injectGooglePixel(linkInfo.google_pixel);
       }
 
-      // Redirect instantly using replace (no browser history entry)
-      window.location.replace(pendingRedirectUrl);
+      // For UPI deep links, use window.location.href (replace may not work for custom schemes)
+      if (/^upi:/i.test(pendingRedirectUrl)) {
+        window.location.href = pendingRedirectUrl;
+      } else {
+        window.location.replace(pendingRedirectUrl);
+      }
     }
   };
 
@@ -436,8 +440,12 @@ export default function Preview() {
       injectGooglePixel(googlePixel);
     }
 
-    // Use replace() for instant redirect - no browser history entry
-    window.location.replace(redirectUrl);
+    // For UPI deep links, use href instead of replace
+    if (/^upi:/i.test(redirectUrl)) {
+      window.location.href = redirectUrl;
+    } else {
+      window.location.replace(redirectUrl);
+    }
   };
 
   const handleOpenLink = async () => {
