@@ -48,6 +48,59 @@ function isValidHttpUrl(url: string): boolean {
   }
 }
 
+function isValidUpiUrl(url: string): { valid: boolean; error?: string } {
+  // Max 4KB
+  if (url.length > 4096) {
+    return { valid: false, error: 'UPI URL exceeds maximum length (4KB)' };
+  }
+  // Must start with upi://pay? (case-insensitive scheme)
+  if (!/^upi:\/\/pay\?/i.test(url)) {
+    return { valid: false, error: 'UPI URL must start with upi://pay?' };
+  }
+  // Parse query params from everything after "upi://pay?"
+  const qIndex = url.indexOf('?');
+  if (qIndex === -1) {
+    return { valid: false, error: 'UPI URL missing query parameters' };
+  }
+  const params = new URLSearchParams(url.slice(qIndex + 1));
+  const pa = params.get('pa');
+  const am = params.get('am');
+  if (!pa || pa.trim() === '') {
+    return { valid: false, error: 'UPI URL must include pa= (payee VPA)' };
+  }
+  if (!am || am.trim() === '') {
+    return { valid: false, error: 'UPI URL must include am= (amount)' };
+  }
+  // Validate amount is a positive number
+  if (isNaN(Number(am)) || Number(am) <= 0) {
+    return { valid: false, error: 'UPI amount (am) must be a positive number' };
+  }
+  return { valid: true };
+}
+
+function isValidShortenUrl(url: string): { valid: boolean; error?: string } {
+  // Check UPI first
+  if (/^upi:/i.test(url)) {
+    return isValidUpiUrl(url);
+  }
+  // Standard HTTP(S)
+  if (isValidHttpUrl(url)) {
+    return { valid: true };
+  }
+  return { valid: false, error: 'Invalid URL. Only http://, https://, and upi://pay? URLs are accepted.' };
+}
+
+function safeTitleForUrl(url: string): string {
+  if (/^upi:/i.test(url)) {
+    return 'API: UPI Payment';
+  }
+  try {
+    return `API: ${new URL(url).hostname}`;
+  } catch {
+    return 'API: Link';
+  }
+}
+
 // ─── Auth ──────────────────────────────────────────────
 
 function extractApiKey(req: Request): string | null {
@@ -164,8 +217,9 @@ serve(async (req) => {
         return errorRes('long_url is required', 400);
       }
 
-      if (!isValidHttpUrl(originalUrl)) {
-        return errorRes('Invalid URL. Only http:// and https:// URLs are accepted.', 400);
+      const urlCheck = isValidShortenUrl(originalUrl);
+      if (!urlCheck.valid) {
+        return errorRes(urlCheck.error!, 400);
       }
 
       // Generate or validate slug
@@ -197,7 +251,7 @@ serve(async (req) => {
           user_id: keyData.user_id,
           api_source: true,
           api_key_id: keyData.id,
-          title: `API: ${new URL(originalUrl).hostname}`,
+          title: safeTitleForUrl(originalUrl),
         })
         .select()
         .single();
@@ -241,8 +295,9 @@ serve(async (req) => {
       const results: { success: boolean; short_url?: string; original_url: string; slug?: string; error?: string }[] = [];
 
       for (const rawUrl of urls) {
-        if (!isValidHttpUrl(rawUrl)) {
-          results.push({ success: false, original_url: rawUrl, error: 'Invalid URL' });
+        const batchCheck = isValidShortenUrl(rawUrl);
+        if (!batchCheck.valid) {
+          results.push({ success: false, original_url: rawUrl, error: batchCheck.error || 'Invalid URL' });
           continue;
         }
         const code = nanoid(7);
@@ -252,7 +307,7 @@ serve(async (req) => {
           user_id: keyData.user_id,
           api_source: true,
           api_key_id: keyData.id,
-          title: `API: ${new URL(rawUrl).hostname}`,
+          title: safeTitleForUrl(rawUrl),
         });
         if (error) {
           results.push({ success: false, original_url: rawUrl, error: 'Insert failed' });

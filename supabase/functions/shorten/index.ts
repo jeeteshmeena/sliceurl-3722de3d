@@ -37,6 +37,15 @@ function generateShortCode(length = 6): string {
 }
 
 function isValidUrl(url: string): boolean {
+  // Allow UPI payment deep links
+  if (/^upi:\/\/pay\?/i.test(url)) {
+    const qIndex = url.indexOf('?');
+    if (qIndex === -1) return false;
+    const params = new URLSearchParams(url.slice(qIndex + 1));
+    const pa = params.get('pa');
+    const am = params.get('am');
+    return !!(pa && pa.trim() && am && am.trim() && !isNaN(Number(am)) && Number(am) > 0);
+  }
   try {
     const parsed = new URL(url);
     const isStandardProtocol = ['http:', 'https:', 'tel:', 'mailto:', 'sms:'].includes(parsed.protocol);

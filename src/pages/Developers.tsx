@@ -217,7 +217,9 @@ X-API-Key: slc_your_api_key_here`} />
                     <Badge>POST</Badge>
                     <code className="text-sm">?action=shorten</code>
                   </div>
-                  <p className="text-sm text-muted-foreground">Create a new shortened URL.</p>
+                  <p className="text-sm text-muted-foreground">
+                    Create a new shortened URL. Supports standard web URLs and <code className="px-1 py-0.5 rounded bg-muted">upi://pay</code> UPI payment links for in-app payment flows (e.g. Telegram bots).
+                  </p>
                   
                   <div className="space-y-2">
                     <p className="text-sm font-medium">Request Body</p>
@@ -229,7 +231,8 @@ X-API-Key: slc_your_api_key_here`} />
 }`}
                     />
                     <p className="text-xs text-muted-foreground">
-                      Also accepts <code>url</code> and <code>custom_slug</code> as field names for backward compatibility.
+                      Also accepts <code>url</code> and <code>custom_slug</code> as field names.
+                      For UPI links use: <code>{`"long_url": "upi://pay?pa=merchant@upi&am=100&pn=Store&cu=INR"`}</code>
                     </p>
                   </div>
 
@@ -544,6 +547,22 @@ app.run_polling()`}
                     Use <code className="px-1 py-0.5 rounded bg-muted">requests.Session()</code> to reuse TCP connections.
                   </p>
                 </div>
+              </div>
+
+              <div className="space-y-2">
+                <p className="text-sm font-medium">UPI Payment Link Example</p>
+                <CodeBlock
+                  language="python"
+                  code={`# Shorten a UPI payment link for Telegram inline buttons
+upi_url = "upi://pay?pa=merchant@ybl&pn=MyStore&am=499.00&cu=INR&tn=Order123"
+result = shorten(upi_url)
+# result["short_url"] → "https://sliceurl.app/s/xyz789"
+# Use this HTTPS URL in Telegram InlineKeyboardButton`}
+                />
+                <p className="text-xs text-muted-foreground">
+                  Telegram only allows <code>https://</code> in inline buttons. SliceURL converts the UPI deep link
+                  into an HTTPS short URL that auto-opens the user's UPI app on tap.
+                </p>
               </div>
             </CardContent>
           </Card>
