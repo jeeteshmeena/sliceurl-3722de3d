@@ -175,6 +175,14 @@ serve(async (req) => {
 
       console.log(`Instant redirect (preview disabled): ${shortCode} -> ${redirectUrl}`);
 
+      // For UPI deep links, return JSON with redirect_url so frontend handles the scheme
+      if (/^upi:/i.test(redirectUrl)) {
+        return new Response(
+          JSON.stringify({ redirect_url: redirectUrl, is_upi: true }),
+          { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
       return new Response(null, {
         status: 302,
         headers: {
@@ -255,6 +263,14 @@ serve(async (req) => {
         .eq('id', link.id);
 
       console.log(`Instant redirect: ${shortCode} -> ${redirectUrl}`);
+
+      // For UPI deep links, return JSON so frontend handles the scheme
+      if (/^upi:/i.test(redirectUrl)) {
+        return new Response(
+          JSON.stringify({ redirect_url: redirectUrl, is_upi: true }),
+          { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
 
       return new Response(null, {
         status: 302,
