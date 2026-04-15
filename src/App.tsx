@@ -28,6 +28,9 @@ const Developers = lazy(() => import("@/pages/Developers"));
 const Privacy = lazy(() => import("@/pages/Privacy"));
 const Terms = lazy(() => import("@/pages/Terms"));
 const About = lazy(() => import("@/pages/About"));
+const Pricing = lazy(() => import("@/pages/Pricing"));
+const Contact = lazy(() => import("@/pages/Contact"));
+const RefundPolicy = lazy(() => import("@/pages/RefundPolicy"));
 const CreepyURL = lazy(() => import("@/pages/CreepyURL"));
 const SliceBox = lazy(() => import("@/pages/SliceBox"));
 const LittleSlice = lazy(() => import("@/pages/LittleSlice"));
@@ -138,6 +141,21 @@ const App = () => (
                   <Route path="/creepyurl" element={
                     <Suspense fallback={<PageLoader />}>
                       <CreepyURL />
+                    </Suspense>
+                  } />
+                  <Route path="/pricing" element={
+                    <Suspense fallback={<PageLoader />}>
+                      <Pricing />
+                    </Suspense>
+                  } />
+                  <Route path="/contact" element={
+                    <Suspense fallback={<PageLoader />}>
+                      <Contact />
+                    </Suspense>
+                  } />
+                  <Route path="/refund-policy" element={
+                    <Suspense fallback={<PageLoader />}>
+                      <RefundPolicy />
                     </Suspense>
                   } />
                   
