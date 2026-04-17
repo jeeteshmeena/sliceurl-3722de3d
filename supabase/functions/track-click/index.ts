@@ -189,7 +189,7 @@ serve(async (req) => {
     // Check if link exists and is not expired
     const { data: link, error: linkError } = await supabase
       .from('links')
-      .select('id, expires_at, click_count')
+      .select('id, expires_at, click_count, api_key_id')
       .eq('id', link_id)
       .maybeSingle();
 
@@ -262,6 +262,32 @@ serve(async (req) => {
         last_clicked_at: new Date().toISOString()
       })
       .eq('id', link_id);
+
+    // If this link was created via the public API, attribute the click to
+    // the API key so the developer dashboard usage counter reflects real traffic.
+    if (link.api_key_id) {
+      const { data: keyRow } = await supabase
+        .from('api_keys')
+        .select('id, requests_today, rate_limit_reset_at')
+        .eq('id', link.api_key_id)
+        .maybeSingle();
+
+      if (keyRow) {
+        const now = new Date();
+        const resetAt = new Date(keyRow.rate_limit_reset_at);
+        const past = now >= resetAt;
+        await supabase
+          .from('api_keys')
+          .update({
+            requests_today: past ? 1 : (keyRow.requests_today || 0) + 1,
+            rate_limit_reset_at: past
+              ? new Date(now.getTime() + 86400000).toISOString()
+              : keyRow.rate_limit_reset_at,
+            last_request_at: now.toISOString(),
+          })
+          .eq('id', keyRow.id);
+      }
+    }
 
     console.log(`Click tracked for link ${link_id}: ${device_type}/${browser}/${os} from ${geo.country}/${geo.city} via ${referrerSource}`);
 

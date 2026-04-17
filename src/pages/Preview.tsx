@@ -7,6 +7,9 @@ import { PasswordModal } from "@/components/PasswordModal";
 import { Badge } from "@/components/ui/badge";
 import { SliceAnimation } from "@/components/SliceAnimation";
 import { SliceLogo as SliceLogoComponent } from "@/components/SliceLogo";
+import { UpiPaymentLanding } from "@/components/UpiPaymentLanding";
+
+const isUpiUrl = (u: string | null | undefined) => !!u && /^upi:/i.test(u);
 
 interface LinkInfo {
   id: string;
@@ -32,7 +35,7 @@ interface SafetyResult {
 }
 
 type SecurityMode = 'warn' | 'strict';
-type PreviewStatus = "loading" | "ready" | "password-required" | "redirecting" | "expired" | "max-clicks" | "not-found" | "error" | "blocked" | "warning" | "instant-redirect";
+type PreviewStatus = "loading" | "ready" | "password-required" | "redirecting" | "expired" | "max-clicks" | "not-found" | "error" | "blocked" | "warning" | "instant-redirect" | "upi-landing";
 
 // Category badge mapping - separate adult from malware
 const categoryBadges: Record<string, { label: string; icon: React.ElementType; color: string; isMalware: boolean }> = {
@@ -150,16 +153,28 @@ export default function Preview() {
           return;
         }
         
-        // Store link info for redirect
+        // Store link info
         setPendingRedirectUrl(redirectUrl);
-        setLinkInfo({
+        const info: LinkInfo = {
           id: result.link_id || result.id,
           original_url: redirectUrl,
           requires_password: false,
           facebook_pixel: result.facebook_pixel,
           google_pixel: result.google_pixel,
           link_preview_enabled: false,
-        });
+        };
+        setLinkInfo(info);
+
+        // CRITICAL: UPI links must NEVER auto-redirect.
+        // Show the secure HTTPS payment landing instead so the deep link
+        // is triggered only by an explicit user tap.
+        if (isUpiUrl(redirectUrl)) {
+          setShowInstantRedirectOverlay(false);
+          setStatus("upi-landing");
+          // Track the click immediately (landing view = a click)
+          trackClickOnly(info.id);
+          return;
+        }
       } else {
         // Error - fall back to normal flow
         setShowInstantRedirectOverlay(false);
@@ -170,6 +185,18 @@ export default function Preview() {
       setShowInstantRedirectOverlay(false);
       fetchLinkInfo();
     }
+  };
+
+  // Lightweight click tracker (used for UPI landing view)
+  const trackClickOnly = (linkId: string) => {
+    fetch(
+      `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/track-click`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ link_id: linkId, referrer: document.referrer }),
+      }
+    ).catch(err => console.error("Error tracking click:", err));
   };
 
   const handleInstantRedirectComplete = () => {
@@ -307,6 +334,13 @@ export default function Preview() {
       if (result.requires_password) {
         setStatus("password-required");
         setShowPasswordModal(true);
+        return;
+      }
+
+      // UPI links ALWAYS show the secure landing — never auto-redirect
+      if (isUpiUrl(linkData.original_url)) {
+        setStatus("upi-landing");
+        trackClickOnly(linkData.id);
         return;
       }
 
@@ -535,6 +569,26 @@ export default function Preview() {
       win.gtag('config', trackingId);
     };
   };
+
+  // UPI payment landing — secure HTTPS page, no auto-redirect
+  if (status === "upi-landing" && linkInfo) {
+    return (
+      <UpiPaymentLanding
+        upiUrl={linkInfo.original_url}
+        onAppSelected={(app) => {
+          // Log app selection (best-effort, doesn't block deep link)
+          fetch(
+            `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/record-redirect`,
+            {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ link_id: linkInfo.id, app }),
+            }
+          ).catch(() => {});
+        }}
+      />
+    );
+  }
 
   // Instant redirect state - show Slice Animation fullscreen, then redirect
   if (status === "instant-redirect" && showInstantRedirectOverlay) {
