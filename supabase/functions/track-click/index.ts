@@ -189,7 +189,7 @@ serve(async (req) => {
     // Check if link exists and is not expired
     const { data: link, error: linkError } = await supabase
       .from('links')
-      .select('id, expires_at, click_count')
+      .select('id, expires_at, click_count, api_key_id')
       .eq('id', link_id)
       .maybeSingle();
 
