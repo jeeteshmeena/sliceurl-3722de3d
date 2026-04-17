@@ -7,6 +7,9 @@ import { PasswordModal } from "@/components/PasswordModal";
 import { Badge } from "@/components/ui/badge";
 import { SliceAnimation } from "@/components/SliceAnimation";
 import { SliceLogo as SliceLogoComponent } from "@/components/SliceLogo";
+import { UpiPaymentLanding } from "@/components/UpiPaymentLanding";
+
+const isUpiUrl = (u: string | null | undefined) => !!u && /^upi:/i.test(u);
 
 interface LinkInfo {
   id: string;
