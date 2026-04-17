@@ -337,6 +337,13 @@ export default function Preview() {
         return;
       }
 
+      // UPI links ALWAYS show the secure landing — never auto-redirect
+      if (isUpiUrl(linkData.original_url)) {
+        setStatus("upi-landing");
+        trackClickOnly(linkData.id);
+        return;
+      }
+
       // If preview is disabled, show animation and redirect
       if (!previewEnabled && !redirectTriggered.current) {
         redirectTriggered.current = true;
