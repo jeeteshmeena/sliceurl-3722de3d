@@ -35,7 +35,7 @@ interface SafetyResult {
 }
 
 type SecurityMode = 'warn' | 'strict';
-type PreviewStatus = "loading" | "ready" | "password-required" | "redirecting" | "expired" | "max-clicks" | "not-found" | "error" | "blocked" | "warning" | "instant-redirect";
+type PreviewStatus = "loading" | "ready" | "password-required" | "redirecting" | "expired" | "max-clicks" | "not-found" | "error" | "blocked" | "warning" | "instant-redirect" | "upi-landing";
 
 // Category badge mapping - separate adult from malware
 const categoryBadges: Record<string, { label: string; icon: React.ElementType; color: string; isMalware: boolean }> = {
