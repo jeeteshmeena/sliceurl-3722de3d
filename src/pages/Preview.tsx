@@ -570,6 +570,26 @@ export default function Preview() {
     };
   };
 
+  // UPI payment landing — secure HTTPS page, no auto-redirect
+  if (status === "upi-landing" && linkInfo) {
+    return (
+      <UpiPaymentLanding
+        upiUrl={linkInfo.original_url}
+        onAppSelected={(app) => {
+          // Log app selection (best-effort, doesn't block deep link)
+          fetch(
+            `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/record-redirect`,
+            {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ link_id: linkInfo.id, app }),
+            }
+          ).catch(() => {});
+        }}
+      />
+    );
+  }
+
   // Instant redirect state - show Slice Animation fullscreen, then redirect
   if (status === "instant-redirect" && showInstantRedirectOverlay) {
     return (
