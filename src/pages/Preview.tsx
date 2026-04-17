@@ -153,16 +153,28 @@ export default function Preview() {
           return;
         }
         
-        // Store link info for redirect
+        // Store link info
         setPendingRedirectUrl(redirectUrl);
-        setLinkInfo({
+        const info: LinkInfo = {
           id: result.link_id || result.id,
           original_url: redirectUrl,
           requires_password: false,
           facebook_pixel: result.facebook_pixel,
           google_pixel: result.google_pixel,
           link_preview_enabled: false,
-        });
+        };
+        setLinkInfo(info);
+
+        // CRITICAL: UPI links must NEVER auto-redirect.
+        // Show the secure HTTPS payment landing instead so the deep link
+        // is triggered only by an explicit user tap.
+        if (isUpiUrl(redirectUrl)) {
+          setShowInstantRedirectOverlay(false);
+          setStatus("upi-landing");
+          // Track the click immediately (landing view = a click)
+          trackClickOnly(info.id);
+          return;
+        }
       } else {
         // Error - fall back to normal flow
         setShowInstantRedirectOverlay(false);
@@ -173,6 +185,18 @@ export default function Preview() {
       setShowInstantRedirectOverlay(false);
       fetchLinkInfo();
     }
+  };
+
+  // Lightweight click tracker (used for UPI landing view)
+  const trackClickOnly = (linkId: string) => {
+    fetch(
+      `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/track-click`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ link_id: linkId, referrer: document.referrer }),
+      }
+    ).catch(err => console.error("Error tracking click:", err));
   };
 
   const handleInstantRedirectComplete = () => {
