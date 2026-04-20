@@ -535,8 +535,29 @@ serve(async (req) => {
       });
     }
 
+    // ════════════════════════════════════════════════════
+    // GET ?action=usage  — current API key usage
+    // ════════════════════════════════════════════════════
+    if (action === 'usage' && req.method === 'GET') {
+      // Re-fetch fresh values (validation already ran)
+      const { data: fresh } = await supabase
+        .from('api_keys')
+        .select('requests_today, rate_limit_daily, rate_limit_reset_at, last_request_at')
+        .eq('id', keyData.id)
+        .single();
+
+      return jsonRes({
+        success: true,
+        requests_used: fresh?.requests_today ?? keyData.requests_today,
+        requests_limit: fresh?.rate_limit_daily ?? keyData.rate_limit_daily,
+        requests_remaining: Math.max(0, (fresh?.rate_limit_daily ?? 0) - (fresh?.requests_today ?? 0)),
+        reset_at: fresh?.rate_limit_reset_at ?? keyData.rate_limit_reset_at,
+        last_request_at: fresh?.last_request_at ?? null,
+      });
+    }
+
     return errorRes(
-      'Unknown action. Use action=shorten|batch|analytics|delete|list',
+      'Unknown action. Use action=shorten|batch|info|analytics|delete|list|usage',
       404
     );
   } catch (error) {
