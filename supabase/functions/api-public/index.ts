@@ -210,6 +210,10 @@ serve(async (req) => {
       // Accept both field-name conventions
       const originalUrl: string | undefined = body.long_url || body.url;
       const customAlias: string | undefined = body.custom_alias || body.custom_slug;
+      const title: string | undefined = body.title;
+      const expiresAt: string | undefined = body.expires_at;
+      const maxClicks: number | undefined = body.max_clicks;
+      const password: string | undefined = body.password;
 
       if (!originalUrl) {
         return errorRes('long_url is required', 400);
@@ -241,6 +245,26 @@ serve(async (req) => {
         shortCode = nanoid(7);
       }
 
+      // Optional password hashing (PBKDF2 — same format as shorten function)
+      let passwordHash: string | null = null;
+      if (password && typeof password === 'string' && password.length > 0) {
+        const salt = crypto.getRandomValues(new Uint8Array(16));
+        const encoder = new TextEncoder();
+        const keyMaterial = await crypto.subtle.importKey('raw', encoder.encode(password), 'PBKDF2', false, ['deriveBits']);
+        const hash = await crypto.subtle.deriveBits(
+          { name: 'PBKDF2', salt: salt.buffer as ArrayBuffer, iterations: 100000, hash: 'SHA-256' },
+          keyMaterial,
+          256
+        );
+        const b64 = (buf: ArrayBuffer | Uint8Array) => {
+          const bytes = buf instanceof Uint8Array ? buf : new Uint8Array(buf);
+          let bin = '';
+          for (let i = 0; i < bytes.byteLength; i++) bin += String.fromCharCode(bytes[i]);
+          return btoa(bin);
+        };
+        passwordHash = `pbkdf2$${b64(salt)}$${b64(hash)}`;
+      }
+
       const { data: link, error: linkError } = await supabase
         .from('links')
         .insert({
@@ -249,7 +273,11 @@ serve(async (req) => {
           user_id: keyData.user_id,
           api_source: true,
           api_key_id: keyData.id,
-          title: safeTitleForUrl(originalUrl),
+          title: title || safeTitleForUrl(originalUrl),
+          expires_at: expiresAt || null,
+          max_clicks: maxClicks || null,
+          is_password_protected: !!passwordHash,
+          password_hash: passwordHash,
         })
         .select()
         .single();
@@ -269,6 +297,10 @@ serve(async (req) => {
           short_url: `${siteUrl}/s/${shortCode}`,
           original_url: originalUrl,
           slug: shortCode,
+          title: link.title,
+          expires_at: link.expires_at,
+          max_clicks: link.max_clicks,
+          password_protected: !!passwordHash,
           created_at: link.created_at,
         },
         201
