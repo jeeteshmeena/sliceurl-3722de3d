@@ -165,13 +165,11 @@ async function validateApiKey(
 }
 
 async function bumpRequestCount(supabase: ReturnType<typeof createClient>, keyData: ApiKeyData) {
-  await supabase
-    .from('api_keys')
-    .update({
-      requests_today: keyData.requests_today + 1,
-      last_request_at: new Date().toISOString(),
-    })
-    .eq('id', keyData.id);
+  // Atomic increment via SQL function — race-condition-safe
+  const { error } = await supabase.rpc('bump_api_key_usage', { _key_id: keyData.id });
+  if (error) {
+    console.error('Failed to bump usage counter:', error);
+  }
 }
 
 // ─── Handler ───────────────────────────────────────────
