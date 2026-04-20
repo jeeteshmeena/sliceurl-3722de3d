@@ -165,13 +165,11 @@ async function validateApiKey(
 }
 
 async function bumpRequestCount(supabase: ReturnType<typeof createClient>, keyData: ApiKeyData) {
-  await supabase
-    .from('api_keys')
-    .update({
-      requests_today: keyData.requests_today + 1,
-      last_request_at: new Date().toISOString(),
-    })
-    .eq('id', keyData.id);
+  // Atomic increment via SQL function — race-condition-safe
+  const { error } = await supabase.rpc('bump_api_key_usage', { _key_id: keyData.id });
+  if (error) {
+    console.error('Failed to bump usage counter:', error);
+  }
 }
 
 // ─── Handler ───────────────────────────────────────────
@@ -212,6 +210,10 @@ serve(async (req) => {
       // Accept both field-name conventions
       const originalUrl: string | undefined = body.long_url || body.url;
       const customAlias: string | undefined = body.custom_alias || body.custom_slug;
+      const title: string | undefined = body.title;
+      const expiresAt: string | undefined = body.expires_at;
+      const maxClicks: number | undefined = body.max_clicks;
+      const password: string | undefined = body.password;
 
       if (!originalUrl) {
         return errorRes('long_url is required', 400);
@@ -243,6 +245,26 @@ serve(async (req) => {
         shortCode = nanoid(7);
       }
 
+      // Optional password hashing (PBKDF2 — same format as shorten function)
+      let passwordHash: string | null = null;
+      if (password && typeof password === 'string' && password.length > 0) {
+        const salt = crypto.getRandomValues(new Uint8Array(16));
+        const encoder = new TextEncoder();
+        const keyMaterial = await crypto.subtle.importKey('raw', encoder.encode(password), 'PBKDF2', false, ['deriveBits']);
+        const hash = await crypto.subtle.deriveBits(
+          { name: 'PBKDF2', salt: salt.buffer as ArrayBuffer, iterations: 100000, hash: 'SHA-256' },
+          keyMaterial,
+          256
+        );
+        const b64 = (buf: ArrayBuffer | Uint8Array) => {
+          const bytes = buf instanceof Uint8Array ? buf : new Uint8Array(buf);
+          let bin = '';
+          for (let i = 0; i < bytes.byteLength; i++) bin += String.fromCharCode(bytes[i]);
+          return btoa(bin);
+        };
+        passwordHash = `pbkdf2$${b64(salt)}$${b64(hash)}`;
+      }
+
       const { data: link, error: linkError } = await supabase
         .from('links')
         .insert({
@@ -251,7 +273,11 @@ serve(async (req) => {
           user_id: keyData.user_id,
           api_source: true,
           api_key_id: keyData.id,
-          title: safeTitleForUrl(originalUrl),
+          title: title || safeTitleForUrl(originalUrl),
+          expires_at: expiresAt || null,
+          max_clicks: maxClicks || null,
+          is_password_protected: !!passwordHash,
+          password_hash: passwordHash,
         })
         .select()
         .single();
@@ -271,6 +297,10 @@ serve(async (req) => {
           short_url: `${siteUrl}/s/${shortCode}`,
           original_url: originalUrl,
           slug: shortCode,
+          title: link.title,
+          expires_at: link.expires_at,
+          max_clicks: link.max_clicks,
+          password_protected: !!passwordHash,
           created_at: link.created_at,
         },
         201
@@ -282,25 +312,46 @@ serve(async (req) => {
     // ════════════════════════════════════════════════════
     if (action === 'batch' && req.method === 'POST') {
       const body = await req.json();
-      const urls: string[] = body.urls;
+      // Accept either: ["url", ...]  OR  [{ long_url, custom_alias }, ...]
+      const rawItems: Array<string | { long_url?: string; url?: string; custom_alias?: string; custom_slug?: string }> = body.urls || body.items;
 
-      if (!Array.isArray(urls) || urls.length === 0) {
-        return errorRes('urls must be a non-empty array of strings', 400);
+      if (!Array.isArray(rawItems) || rawItems.length === 0) {
+        return errorRes('urls (or items) must be a non-empty array', 400);
       }
-      if (urls.length > 25) {
+      if (rawItems.length > 25) {
         return errorRes('Maximum 25 URLs per batch request', 400);
       }
 
       const siteUrl = Deno.env.get('SITE_URL') || 'https://sliceurl.app';
       const results: { success: boolean; short_url?: string; original_url: string; slug?: string; error?: string }[] = [];
 
-      for (const rawUrl of urls) {
+      for (const item of rawItems) {
+        const rawUrl = typeof item === 'string' ? item : (item.long_url || item.url || '');
+        const alias = typeof item === 'string' ? undefined : (item.custom_alias || item.custom_slug);
+
         const batchCheck = isValidShortenUrl(rawUrl);
         if (!batchCheck.valid) {
           results.push({ success: false, original_url: rawUrl, error: batchCheck.error || 'Invalid URL' });
           continue;
         }
-        const code = nanoid(7);
+
+        let code: string;
+        if (alias && alias.trim()) {
+          const trimmed = alias.trim();
+          if (!/^[a-zA-Z0-9_-]{2,64}$/.test(trimmed)) {
+            results.push({ success: false, original_url: rawUrl, error: 'Invalid custom_alias format' });
+            continue;
+          }
+          const { data: existing } = await supabase.from('links').select('id').eq('short_code', trimmed).maybeSingle();
+          if (existing) {
+            results.push({ success: false, original_url: rawUrl, error: 'Custom alias already exists' });
+            continue;
+          }
+          code = trimmed;
+        } else {
+          code = nanoid(7);
+        }
+
         const { error } = await supabase.from('links').insert({
           original_url: rawUrl,
           short_code: code,
@@ -323,7 +374,42 @@ serve(async (req) => {
 
       await bumpRequestCount(supabase, keyData);
 
-      return jsonRes({ success: true, results, total: urls.length, succeeded: results.filter(r => r.success).length }, 201);
+      return jsonRes({ success: true, results, total: rawItems.length, succeeded: results.filter(r => r.success).length }, 201);
+    }
+
+    // ════════════════════════════════════════════════════
+    // GET ?action=info&slug=…
+    // Lightweight metadata about a single link
+    // ════════════════════════════════════════════════════
+    if (action === 'info' && req.method === 'GET') {
+      const slug = url.searchParams.get('slug');
+      if (!slug) return errorRes('slug query parameter is required', 400);
+
+      const { data: link, error: linkError } = await supabase
+        .from('links')
+        .select('short_code, original_url, title, click_count, created_at, expires_at, max_clicks, is_password_protected, api_source')
+        .eq('short_code', slug)
+        .eq('user_id', keyData.user_id)
+        .single();
+
+      if (linkError || !link) return errorRes('Link not found or not owned by you', 404);
+
+      await bumpRequestCount(supabase, keyData);
+
+      const siteUrl = Deno.env.get('SITE_URL') || 'https://sliceurl.app';
+      return jsonRes({
+        success: true,
+        slug: link.short_code,
+        short_url: `${siteUrl}/s/${link.short_code}`,
+        original_url: link.original_url,
+        title: link.title,
+        clicks: link.click_count || 0,
+        expires_at: link.expires_at,
+        max_clicks: link.max_clicks,
+        password_protected: link.is_password_protected,
+        api_generated: link.api_source || false,
+        created_at: link.created_at,
+      });
     }
 
     // ════════════════════════════════════════════════════
@@ -449,8 +535,29 @@ serve(async (req) => {
       });
     }
 
+    // ════════════════════════════════════════════════════
+    // GET ?action=usage  — current API key usage
+    // ════════════════════════════════════════════════════
+    if (action === 'usage' && req.method === 'GET') {
+      // Re-fetch fresh values (validation already ran)
+      const { data: fresh } = await supabase
+        .from('api_keys')
+        .select('requests_today, rate_limit_daily, rate_limit_reset_at, last_request_at')
+        .eq('id', keyData.id)
+        .single();
+
+      return jsonRes({
+        success: true,
+        requests_used: fresh?.requests_today ?? keyData.requests_today,
+        requests_limit: fresh?.rate_limit_daily ?? keyData.rate_limit_daily,
+        requests_remaining: Math.max(0, (fresh?.rate_limit_daily ?? 0) - (fresh?.requests_today ?? 0)),
+        reset_at: fresh?.rate_limit_reset_at ?? keyData.rate_limit_reset_at,
+        last_request_at: fresh?.last_request_at ?? null,
+      });
+    }
+
     return errorRes(
-      'Unknown action. Use action=shorten|batch|analytics|delete|list',
+      'Unknown action. Use action=shorten|batch|info|analytics|delete|list|usage',
       404
     );
   } catch (error) {
