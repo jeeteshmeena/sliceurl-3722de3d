@@ -312,25 +312,46 @@ serve(async (req) => {
     // ════════════════════════════════════════════════════
     if (action === 'batch' && req.method === 'POST') {
       const body = await req.json();
-      const urls: string[] = body.urls;
+      // Accept either: ["url", ...]  OR  [{ long_url, custom_alias }, ...]
+      const rawItems: Array<string | { long_url?: string; url?: string; custom_alias?: string; custom_slug?: string }> = body.urls || body.items;
 
-      if (!Array.isArray(urls) || urls.length === 0) {
-        return errorRes('urls must be a non-empty array of strings', 400);
+      if (!Array.isArray(rawItems) || rawItems.length === 0) {
+        return errorRes('urls (or items) must be a non-empty array', 400);
       }
-      if (urls.length > 25) {
+      if (rawItems.length > 25) {
         return errorRes('Maximum 25 URLs per batch request', 400);
       }
 
       const siteUrl = Deno.env.get('SITE_URL') || 'https://sliceurl.app';
       const results: { success: boolean; short_url?: string; original_url: string; slug?: string; error?: string }[] = [];
 
-      for (const rawUrl of urls) {
+      for (const item of rawItems) {
+        const rawUrl = typeof item === 'string' ? item : (item.long_url || item.url || '');
+        const alias = typeof item === 'string' ? undefined : (item.custom_alias || item.custom_slug);
+
         const batchCheck = isValidShortenUrl(rawUrl);
         if (!batchCheck.valid) {
           results.push({ success: false, original_url: rawUrl, error: batchCheck.error || 'Invalid URL' });
           continue;
         }
-        const code = nanoid(7);
+
+        let code: string;
+        if (alias && alias.trim()) {
+          const trimmed = alias.trim();
+          if (!/^[a-zA-Z0-9_-]{2,64}$/.test(trimmed)) {
+            results.push({ success: false, original_url: rawUrl, error: 'Invalid custom_alias format' });
+            continue;
+          }
+          const { data: existing } = await supabase.from('links').select('id').eq('short_code', trimmed).maybeSingle();
+          if (existing) {
+            results.push({ success: false, original_url: rawUrl, error: 'Custom alias already exists' });
+            continue;
+          }
+          code = trimmed;
+        } else {
+          code = nanoid(7);
+        }
+
         const { error } = await supabase.from('links').insert({
           original_url: rawUrl,
           short_code: code,
@@ -353,7 +374,42 @@ serve(async (req) => {
 
       await bumpRequestCount(supabase, keyData);
 
-      return jsonRes({ success: true, results, total: urls.length, succeeded: results.filter(r => r.success).length }, 201);
+      return jsonRes({ success: true, results, total: rawItems.length, succeeded: results.filter(r => r.success).length }, 201);
+    }
+
+    // ════════════════════════════════════════════════════
+    // GET ?action=info&slug=…
+    // Lightweight metadata about a single link
+    // ════════════════════════════════════════════════════
+    if (action === 'info' && req.method === 'GET') {
+      const slug = url.searchParams.get('slug');
+      if (!slug) return errorRes('slug query parameter is required', 400);
+
+      const { data: link, error: linkError } = await supabase
+        .from('links')
+        .select('short_code, original_url, title, click_count, created_at, expires_at, max_clicks, is_password_protected, api_source')
+        .eq('short_code', slug)
+        .eq('user_id', keyData.user_id)
+        .single();
+
+      if (linkError || !link) return errorRes('Link not found or not owned by you', 404);
+
+      await bumpRequestCount(supabase, keyData);
+
+      const siteUrl = Deno.env.get('SITE_URL') || 'https://sliceurl.app';
+      return jsonRes({
+        success: true,
+        slug: link.short_code,
+        short_url: `${siteUrl}/s/${link.short_code}`,
+        original_url: link.original_url,
+        title: link.title,
+        clicks: link.click_count || 0,
+        expires_at: link.expires_at,
+        max_clicks: link.max_clicks,
+        password_protected: link.is_password_protected,
+        api_generated: link.api_source || false,
+        created_at: link.created_at,
+      });
     }
 
     // ════════════════════════════════════════════════════
