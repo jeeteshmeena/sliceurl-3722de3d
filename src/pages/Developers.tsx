@@ -4,6 +4,7 @@ import { Link } from "react-router-dom";
 import {
   ArrowLeft, Code, Copy, Check, Zap, Lock, BarChart3, Trash2, List,
   Globe, FileJson, AlertCircle, Bot, Layers, Info, Activity, Terminal,
+  type LucideIcon,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
