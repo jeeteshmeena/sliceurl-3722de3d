@@ -1229,6 +1229,7 @@ export type Database = {
       }
     }
     Functions: {
+      bump_api_key_usage: { Args: { _key_id: string }; Returns: undefined }
       generate_app_shortcode: {
         Args: { target_length?: number }
         Returns: string
