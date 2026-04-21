@@ -49,7 +49,7 @@ function Section({ children }: { children: React.ReactNode }) {
   );
 }
 
-function SectionTitle({ icon: Icon, title, desc }: { icon: React.ComponentType<{ className?: string; strokeWidth?: number }>; title: string; desc?: string }) {
+function SectionTitle({ icon: Icon, title, desc }: { icon: LucideIcon; title: string; desc?: string }) {
   return (
     <div className="flex items-start gap-3">
       <div className="h-9 w-9 rounded-[10px] bg-muted/60 border border-border flex items-center justify-center shrink-0">
