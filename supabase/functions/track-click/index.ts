@@ -99,51 +99,131 @@ interface GeoResult {
   region: string;
 }
 
-// Enhanced geolocation with Cloudflare headers priority
+// Check if IP is private/local — these can't be geolocated
+function isPrivateIp(ip: string): boolean {
+  if (!ip || ip === 'unknown' || ip === '127.0.0.1' || ip === '::1') return true;
+  if (ip.startsWith('192.168.') || ip.startsWith('10.')) return true;
+  if (ip.startsWith('172.')) {
+    const second = parseInt(ip.split('.')[1] || '0', 10);
+    if (second >= 16 && second <= 31) return true;
+  }
+  if (ip.startsWith('fc') || ip.startsWith('fd') || ip.startsWith('fe80')) return true;
+  return false;
+}
+
+// Try a single HTTPS geo provider with timeout
+async function tryGeoProvider(
+  url: string,
+  parser: (data: any) => Partial<GeoResult>,
+  label: string
+): Promise<Partial<GeoResult> | null> {
+  try {
+    const response = await fetch(url, {
+      signal: AbortSignal.timeout(2500),
+      headers: { 'User-Agent': 'SliceURL-Analytics/1.0' },
+    });
+    if (!response.ok) {
+      console.log(`[geo:${label}] HTTP ${response.status}`);
+      return null;
+    }
+    const data = await response.json();
+    const parsed = parser(data);
+    if (parsed.city && parsed.city !== 'Unknown') {
+      console.log(`[geo:${label}] OK -> ${parsed.country}/${parsed.city}`);
+      return parsed;
+    }
+    console.log(`[geo:${label}] no city in response`);
+    return parsed.country ? parsed : null;
+  } catch (e) {
+    console.log(`[geo:${label}] failed: ${e instanceof Error ? e.message : e}`);
+    return null;
+  }
+}
+
+// Enhanced geolocation: edge headers first, then HTTPS IP lookup chain
 async function getGeoLocation(req: Request, ip: string): Promise<GeoResult> {
   const result: GeoResult = { country: 'Unknown', city: 'Unknown', region: 'Unknown' };
 
-  // Priority 1: Cloudflare headers (most accurate, free, no API calls needed)
+  // Priority 1: Cloudflare-style headers (only present if a CF proxy sits in front)
   const cfCountry = req.headers.get('cf-ipcountry');
   const cfCity = req.headers.get('cf-ipcity');
   const cfRegion = req.headers.get('cf-region');
-
-  if (cfCountry && cfCountry !== 'XX') {
-    // Map country codes to full names
+  if (cfCountry && cfCountry !== 'XX' && cfCity) {
     result.country = getCountryName(cfCountry);
-    result.city = cfCity || 'Unknown';
+    result.city = cfCity;
     result.region = cfRegion || 'Unknown';
-    console.log(`Geo from Cloudflare: ${result.country}, ${result.city}`);
+    console.log(`[geo:cf-headers] ${result.country}/${result.city}`);
     return result;
   }
 
   // Priority 2: Vercel headers
   const vercelCountry = req.headers.get('x-vercel-ip-country');
   const vercelCity = req.headers.get('x-vercel-ip-city');
-  
-  if (vercelCountry) {
+  const vercelRegion = req.headers.get('x-vercel-ip-country-region');
+  if (vercelCountry && vercelCity) {
     result.country = getCountryName(vercelCountry);
-    result.city = vercelCity || 'Unknown';
-    console.log(`Geo from Vercel: ${result.country}, ${result.city}`);
+    result.city = decodeURIComponent(vercelCity);
+    result.region = vercelRegion ? decodeURIComponent(vercelRegion) : 'Unknown';
+    console.log(`[geo:vercel-headers] ${result.country}/${result.city}`);
     return result;
   }
 
-  // Priority 3: Fallback to ip-api.com (free tier)
-  if (ip !== 'unknown' && ip !== '127.0.0.1' && !ip.startsWith('192.168.') && !ip.startsWith('10.')) {
-    try {
-      const response = await fetch(`http://ip-api.com/json/${ip}?fields=country,city,regionName`, {
-        signal: AbortSignal.timeout(2000) // 2 second timeout
-      });
-      if (response.ok) {
-        const data = await response.json();
-        result.country = data.country || 'Unknown';
-        result.city = data.city || 'Unknown';
-        result.region = data.regionName || 'Unknown';
-        console.log(`Geo from ip-api: ${result.country}, ${result.city}`);
-      }
-    } catch (e) {
-      console.error('Geo lookup failed:', e);
+  // Priority 3: HTTPS IP-based geolocation (Supabase Edge runtime has no edge headers)
+  if (isPrivateIp(ip)) {
+    console.log(`[geo] skipping lookup, private/unknown ip: ${ip}`);
+    // Still keep country if cf gave it
+    if (cfCountry && cfCountry !== 'XX') result.country = getCountryName(cfCountry);
+    return result;
+  }
+
+  // Provider chain — first one that returns a city wins
+  const providers: Array<() => Promise<Partial<GeoResult> | null>> = [
+    () => tryGeoProvider(
+      `https://ipapi.co/${ip}/json/`,
+      (d) => ({
+        country: d.country_name || (d.country ? getCountryName(d.country) : undefined),
+        city: d.city || undefined,
+        region: d.region || undefined,
+      }),
+      'ipapi.co'
+    ),
+    () => tryGeoProvider(
+      `https://ipwho.is/${ip}?fields=success,country,city,region`,
+      (d) => d.success === false ? {} : ({
+        country: d.country,
+        city: d.city,
+        region: d.region,
+      }),
+      'ipwho.is'
+    ),
+    () => tryGeoProvider(
+      `https://get.geojs.io/v1/ip/geo/${ip}.json`,
+      (d) => ({
+        country: d.country,
+        city: d.city,
+        region: d.region,
+      }),
+      'geojs.io'
+    ),
+  ];
+
+  for (const provider of providers) {
+    const data = await provider();
+    if (data?.city && data.city !== 'Unknown') {
+      result.country = data.country || result.country;
+      result.city = data.city;
+      result.region = data.region || result.region;
+      return result;
     }
+    if (data?.country && result.country === 'Unknown') {
+      result.country = data.country;
+      result.region = data.region || result.region;
+    }
+  }
+
+  // Final fallback: keep CF country if present
+  if (result.country === 'Unknown' && cfCountry && cfCountry !== 'XX') {
+    result.country = getCountryName(cfCountry);
   }
 
   return result;
