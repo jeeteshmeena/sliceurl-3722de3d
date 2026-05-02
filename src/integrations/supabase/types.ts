@@ -385,6 +385,81 @@ export type Database = {
         }
         Relationships: []
       }
+      geo_backfill_allowlist: {
+        Row: {
+          applied_at: string | null
+          approved_at: string
+          approved_by: string
+          city: string
+          country: string | null
+          id: string
+          ip_address: string
+          notes: string | null
+          region: string | null
+          rows_updated: number | null
+          source: string
+        }
+        Insert: {
+          applied_at?: string | null
+          approved_at?: string
+          approved_by: string
+          city: string
+          country?: string | null
+          id?: string
+          ip_address: string
+          notes?: string | null
+          region?: string | null
+          rows_updated?: number | null
+          source?: string
+        }
+        Update: {
+          applied_at?: string | null
+          approved_at?: string
+          approved_by?: string
+          city?: string
+          country?: string | null
+          id?: string
+          ip_address?: string
+          notes?: string | null
+          region?: string | null
+          rows_updated?: number | null
+          source?: string
+        }
+        Relationships: []
+      }
+      geo_backfill_audit: {
+        Row: {
+          city: string
+          country: string | null
+          id: string
+          ip_address: string
+          performed_at: string
+          performed_by: string
+          region: string | null
+          rows_updated: number
+        }
+        Insert: {
+          city: string
+          country?: string | null
+          id?: string
+          ip_address: string
+          performed_at?: string
+          performed_by: string
+          region?: string | null
+          rows_updated: number
+        }
+        Update: {
+          city?: string
+          country?: string | null
+          id?: string
+          ip_address?: string
+          performed_at?: string
+          performed_by?: string
+          region?: string | null
+          rows_updated?: number
+        }
+        Relationships: []
+      }
       global_counters: {
         Row: {
           id: string
@@ -1229,6 +1304,15 @@ export type Database = {
       }
     }
     Functions: {
+      apply_geo_backfill: {
+        Args: { _ip_address: string }
+        Returns: {
+          city: string
+          country: string
+          region: string
+          rows_updated: number
+        }[]
+      }
       bump_api_key_usage: { Args: { _key_id: string }; Returns: undefined }
       generate_app_shortcode: {
         Args: { target_length?: number }
