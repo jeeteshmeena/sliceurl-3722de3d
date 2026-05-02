@@ -39,20 +39,53 @@ function parseUserAgent(ua: string): UAResult {
   return result;
 }
 
-async function getGeoLocation(ip: string): Promise<{ country: string; city: string }> {
-  try {
-    const response = await fetch(`http://ip-api.com/json/${ip}?fields=country,city`);
-    if (response.ok) {
-      const data = await response.json();
-      return {
-        country: data.country || 'Unknown',
-        city: data.city || 'Unknown'
-      };
-    }
-  } catch (e) {
-    console.error('Geo lookup failed:', e);
+function isPrivateIp(ip: string): boolean {
+  if (!ip || ip === 'unknown' || ip === '127.0.0.1' || ip === '::1') return true;
+  if (ip.startsWith('192.168.') || ip.startsWith('10.')) return true;
+  if (ip.startsWith('172.')) {
+    const second = parseInt(ip.split('.')[1] || '0', 10);
+    if (second >= 16 && second <= 31) return true;
   }
-  return { country: 'Unknown', city: 'Unknown' };
+  if (ip.startsWith('fc') || ip.startsWith('fd') || ip.startsWith('fe80')) return true;
+  return false;
+}
+
+async function fetchGeo(url: string, parser: (d: any) => { country?: string; city?: string }, label: string) {
+  try {
+    const res = await fetch(url, {
+      signal: AbortSignal.timeout(2500),
+      headers: { 'User-Agent': 'SliceURL-Analytics/1.0' },
+    });
+    if (!res.ok) return null;
+    const data = await res.json();
+    const parsed = parser(data);
+    if (parsed.city) {
+      console.log(`[geo:${label}] ${parsed.country}/${parsed.city}`);
+      return { country: parsed.country || 'Unknown', city: parsed.city };
+    }
+    return parsed.country ? { country: parsed.country, city: 'Unknown' } : null;
+  } catch (e) {
+    console.log(`[geo:${label}] failed: ${e instanceof Error ? e.message : e}`);
+    return null;
+  }
+}
+
+async function getGeoLocation(ip: string): Promise<{ country: string; city: string }> {
+  if (isPrivateIp(ip)) return { country: 'Unknown', city: 'Unknown' };
+
+  const providers = [
+    () => fetchGeo(`https://ipapi.co/${ip}/json/`, (d) => ({ country: d.country_name, city: d.city }), 'ipapi.co'),
+    () => fetchGeo(`https://ipwho.is/${ip}?fields=success,country,city`, (d) => d.success === false ? {} : ({ country: d.country, city: d.city }), 'ipwho.is'),
+    () => fetchGeo(`https://get.geojs.io/v1/ip/geo/${ip}.json`, (d) => ({ country: d.country, city: d.city }), 'geojs.io'),
+  ];
+
+  let fallback: { country: string; city: string } = { country: 'Unknown', city: 'Unknown' };
+  for (const p of providers) {
+    const r = await p();
+    if (r?.city && r.city !== 'Unknown') return r;
+    if (r?.country && fallback.country === 'Unknown') fallback = r;
+  }
+  return fallback;
 }
 
 async function getRedirectUrl(supabase: any, link: any): Promise<string> {
