@@ -50,7 +50,7 @@ function isPrivateIp(ip: string): boolean {
   return false;
 }
 
-async function fetchGeo(url: string, parser: (d: any) => { country?: string; city?: string; region?: string }, label: string) {
+async function fetchGeo(url: string, parser: (d: any) => { country?: string; city?: string }, label: string) {
   try {
     const res = await fetch(url, {
       signal: AbortSignal.timeout(2500),
@@ -70,63 +70,22 @@ async function fetchGeo(url: string, parser: (d: any) => { country?: string; cit
   }
 }
 
-function normCity(s: string): string {
-  return (s || '')
-    .trim()
-    .toLowerCase()
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .replace(/\s+/g, ' ');
-}
-
-function isKnownGeoValue(value?: string): value is string {
-  const normalized = normCity(value || '');
-  return Boolean(normalized && normalized !== 'unknown' && normalized !== 'null' && normalized !== 'undefined');
-}
-
-// Multi-provider consensus geolocation. Queries 5 providers in parallel and picks
-// the city that the majority agree on. This avoids single-provider errors that
-// commonly happen with mobile carrier IPs (which report the carrier's hub city).
 async function getGeoLocation(ip: string): Promise<{ country: string; city: string }> {
   if (isPrivateIp(ip)) return { country: 'Unknown', city: 'Unknown' };
 
-  const providers: Array<Promise<{ country: string; city: string } | null>> = [
-    fetchGeo(`https://ipwho.is/${ip}?fields=success,country,city`, (d: any) => d.success === false ? {} : ({ country: d.country, city: d.city }), 'ipwho.is'),
-    fetchGeo(`https://ipapi.co/${ip}/json/`, (d) => ({ country: d.country_name, city: d.city }), 'ipapi.co'),
-    fetchGeo(`https://freeipapi.com/api/json/${ip}`, (d) => ({ country: d.countryName, city: d.cityName }), 'freeipapi.com'),
-    fetchGeo(`https://get.geojs.io/v1/ip/geo/${ip}.json`, (d) => ({ country: d.country, city: d.city }), 'geojs.io'),
-    fetchGeo(`https://api.iplocation.net/?ip=${ip}`, (d) => ({ country: d.country_name }), 'iplocation.net'),
+  const providers = [
+    () => fetchGeo(`https://ipapi.co/${ip}/json/`, (d) => ({ country: d.country_name, city: d.city }), 'ipapi.co'),
+    () => fetchGeo(`https://ipwho.is/${ip}?fields=success,country,city`, (d) => d.success === false ? {} : ({ country: d.country, city: d.city }), 'ipwho.is'),
+    () => fetchGeo(`https://get.geojs.io/v1/ip/geo/${ip}.json`, (d) => ({ country: d.country, city: d.city }), 'geojs.io'),
   ];
 
-  const results = (await Promise.all(providers)).filter(Boolean) as { country: string; city: string }[];
-  if (results.length === 0) return { country: 'Unknown', city: 'Unknown' };
-
-  // Vote on city. Indian mobile carrier IPs often jump between network hubs
-  // (Hyderabad/Mumbai/Delhi/etc.), so only save a city when providers clearly agree.
-  const cityVotes = new Map<string, { count: number; original: string; country: string }>();
-  let cityResponseCount = 0;
-
-  for (const r of results) {
-    if (!isKnownGeoValue(r.city)) continue;
-    cityResponseCount += 1;
-    const key = normCity(r.city);
-    const ex = cityVotes.get(key);
-    if (ex) ex.count += 1;
-    else cityVotes.set(key, { count: 1, original: r.city, country: r.country });
+  let fallback: { country: string; city: string } = { country: 'Unknown', city: 'Unknown' };
+  for (const p of providers) {
+    const r = await p();
+    if (r?.city && r.city !== 'Unknown') return r;
+    if (r?.country && fallback.country === 'Unknown') fallback = r;
   }
-
-  let best: { count: number; original: string; country: string } | null = null;
-  for (const v of cityVotes.values()) if (!best || v.count > best.count) best = v;
-
-  const hasCityMajority = Boolean(
-    best && best.count >= 2 && best.count / Math.max(cityResponseCount, 1) >= 0.6
-  );
-  const country = (hasCityMajority ? best?.country : undefined)
-    || results.find(r => isKnownGeoValue(r.country))?.country
-    || 'Unknown';
-  console.log(`[geo:consensus] votes=${JSON.stringify(Array.from(cityVotes.entries()).map(([k,v]) => [k, v.count]))} → ${hasCityMajority ? best?.original : 'Unknown'}`);
-
-  return { country, city: hasCityMajority ? best!.original : 'Unknown' };
+  return fallback;
 }
 
 async function getRedirectUrl(supabase: any, link: any): Promise<string> {
