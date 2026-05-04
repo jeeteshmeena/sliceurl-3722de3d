@@ -129,7 +129,7 @@ async function tryGeoProvider(
     const data = await response.json();
     const parsed = parser(data);
     if (parsed.city && parsed.city !== 'Unknown') {
-      console.log(`[geo:${label}] OK -> ${parsed.country}/${parsed.city}`);
+      console.log(`[geo:${label}] OK -> ${parsed.country}/${parsed.city}/${parsed.region || '-'}`);
       return parsed;
     }
     console.log(`[geo:${label}] no city in response`);
@@ -138,6 +138,85 @@ async function tryGeoProvider(
     console.log(`[geo:${label}] failed: ${e instanceof Error ? e.message : e}`);
     return null;
   }
+}
+
+// Normalize a city string for consensus comparison
+function normCity(s: string): string {
+  return (s || '').trim().toLowerCase().replace(/\s+/g, ' ');
+}
+
+// Query multiple geo providers in parallel and pick the consensus (majority) city.
+// This dramatically improves accuracy for mobile carrier IPs where a single provider
+// often returns the carrier's hub city instead of the user's actual location.
+async function consensusGeo(ip: string): Promise<Partial<GeoResult> | null> {
+  const providers: Array<Promise<Partial<GeoResult> | null>> = [
+    tryGeoProvider(
+      `https://ipwho.is/${ip}?fields=success,country,city,region`,
+      (d) => d.success === false ? {} : ({ country: d.country, city: d.city, region: d.region }),
+      'ipwho.is'
+    ),
+    tryGeoProvider(
+      `https://ipapi.co/${ip}/json/`,
+      (d) => ({
+        country: d.country_name || (d.country ? getCountryName(d.country) : undefined),
+        city: d.city,
+        region: d.region,
+      }),
+      'ipapi.co'
+    ),
+    tryGeoProvider(
+      `https://freeipapi.com/api/json/${ip}`,
+      (d) => ({ country: d.countryName, city: d.cityName, region: d.regionName }),
+      'freeipapi.com'
+    ),
+    tryGeoProvider(
+      `https://api.iplocation.net/?ip=${ip}`,
+      (d) => ({ country: d.country_name }),
+      'iplocation.net'
+    ),
+    tryGeoProvider(
+      `https://get.geojs.io/v1/ip/geo/${ip}.json`,
+      (d) => ({ country: d.country, city: d.city, region: d.region }),
+      'geojs.io'
+    ),
+  ];
+
+  const results = (await Promise.all(providers)).filter(Boolean) as Partial<GeoResult>[];
+  if (results.length === 0) return null;
+
+  // Tally cities by normalized name; keep original casing of first occurrence
+  const cityVotes = new Map<string, { count: number; original: string; region?: string; country?: string }>();
+  for (const r of results) {
+    if (!r.city) continue;
+    const key = normCity(r.city);
+    if (key === '' || key === 'unknown') continue;
+    const existing = cityVotes.get(key);
+    if (existing) {
+      existing.count += 1;
+      if (!existing.region && r.region) existing.region = r.region;
+      if (!existing.country && r.country) existing.country = r.country;
+    } else {
+      cityVotes.set(key, { count: 1, original: r.city, region: r.region, country: r.country });
+    }
+  }
+
+  // Pick the city with the most votes (ties broken by first inserted, which is fastest provider)
+  let best: { count: number; original: string; region?: string; country?: string } | null = null;
+  for (const v of cityVotes.values()) {
+    if (!best || v.count > best.count) best = v;
+  }
+
+  // Fallback: no city consensus, just take first known country
+  const country = best?.country || results.find(r => r.country)?.country;
+  const region = best?.region || results.find(r => r.region)?.region;
+
+  console.log(`[geo:consensus] votes=${JSON.stringify(Array.from(cityVotes.entries()).map(([k,v]) => [k, v.count]))} → ${best?.original || 'none'}`);
+
+  return {
+    country: country || 'Unknown',
+    city: best?.original || 'Unknown',
+    region: region || 'Unknown',
+  };
 }
 
 // Enhanced geolocation: edge headers first, then HTTPS IP lookup chain
