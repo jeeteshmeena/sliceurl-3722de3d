@@ -255,49 +255,13 @@ async function getGeoLocation(req: Request, ip: string): Promise<GeoResult> {
     return result;
   }
 
-  // Provider chain — first one that returns a city wins
-  const providers: Array<() => Promise<Partial<GeoResult> | null>> = [
-    () => tryGeoProvider(
-      `https://ipapi.co/${ip}/json/`,
-      (d) => ({
-        country: d.country_name || (d.country ? getCountryName(d.country) : undefined),
-        city: d.city || undefined,
-        region: d.region || undefined,
-      }),
-      'ipapi.co'
-    ),
-    () => tryGeoProvider(
-      `https://ipwho.is/${ip}?fields=success,country,city,region`,
-      (d) => d.success === false ? {} : ({
-        country: d.country,
-        city: d.city,
-        region: d.region,
-      }),
-      'ipwho.is'
-    ),
-    () => tryGeoProvider(
-      `https://get.geojs.io/v1/ip/geo/${ip}.json`,
-      (d) => ({
-        country: d.country,
-        city: d.city,
-        region: d.region,
-      }),
-      'geojs.io'
-    ),
-  ];
-
-  for (const provider of providers) {
-    const data = await provider();
-    if (data?.city && data.city !== 'Unknown') {
-      result.country = data.country || result.country;
-      result.city = data.city;
-      result.region = data.region || result.region;
-      return result;
-    }
-    if (data?.country && result.country === 'Unknown') {
-      result.country = data.country;
-      result.region = data.region || result.region;
-    }
+  // Multi-provider consensus voting — much more accurate than single-provider chain,
+  // especially for mobile carrier IPs where one provider may report the carrier hub.
+  const consensus = await consensusGeo(ip);
+  if (consensus) {
+    if (consensus.city && consensus.city !== 'Unknown') result.city = consensus.city;
+    if (consensus.country && consensus.country !== 'Unknown') result.country = consensus.country;
+    if (consensus.region && consensus.region !== 'Unknown') result.region = consensus.region;
   }
 
   // Final fallback: keep CF country if present
