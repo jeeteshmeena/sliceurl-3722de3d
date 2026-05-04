@@ -50,7 +50,7 @@ function isPrivateIp(ip: string): boolean {
   return false;
 }
 
-async function fetchGeo(url: string, parser: (d: any) => { country?: string; city?: string }, label: string) {
+async function fetchGeo(url: string, parser: (d: any) => { country?: string; city?: string; region?: string }, label: string) {
   try {
     const res = await fetch(url, {
       signal: AbortSignal.timeout(2500),
@@ -70,22 +70,44 @@ async function fetchGeo(url: string, parser: (d: any) => { country?: string; cit
   }
 }
 
+function normCity(s: string): string {
+  return (s || '').trim().toLowerCase().replace(/\s+/g, ' ');
+}
+
+// Multi-provider consensus geolocation. Queries 5 providers in parallel and picks
+// the city that the majority agree on. This avoids single-provider errors that
+// commonly happen with mobile carrier IPs (which report the carrier's hub city).
 async function getGeoLocation(ip: string): Promise<{ country: string; city: string }> {
   if (isPrivateIp(ip)) return { country: 'Unknown', city: 'Unknown' };
 
-  const providers = [
-    () => fetchGeo(`https://ipapi.co/${ip}/json/`, (d) => ({ country: d.country_name, city: d.city }), 'ipapi.co'),
-    () => fetchGeo(`https://ipwho.is/${ip}?fields=success,country,city`, (d) => d.success === false ? {} : ({ country: d.country, city: d.city }), 'ipwho.is'),
-    () => fetchGeo(`https://get.geojs.io/v1/ip/geo/${ip}.json`, (d) => ({ country: d.country, city: d.city }), 'geojs.io'),
+  const providers: Array<Promise<{ country: string; city: string } | null>> = [
+    fetchGeo(`https://ipwho.is/${ip}?fields=success,country,city`, (d: any) => d.success === false ? {} : ({ country: d.country, city: d.city }), 'ipwho.is'),
+    fetchGeo(`https://ipapi.co/${ip}/json/`, (d) => ({ country: d.country_name, city: d.city }), 'ipapi.co'),
+    fetchGeo(`https://freeipapi.com/api/json/${ip}`, (d) => ({ country: d.countryName, city: d.cityName }), 'freeipapi.com'),
+    fetchGeo(`https://get.geojs.io/v1/ip/geo/${ip}.json`, (d) => ({ country: d.country, city: d.city }), 'geojs.io'),
+    fetchGeo(`https://api.iplocation.net/?ip=${ip}`, (d) => ({ country: d.country_name }), 'iplocation.net'),
   ];
 
-  let fallback: { country: string; city: string } = { country: 'Unknown', city: 'Unknown' };
-  for (const p of providers) {
-    const r = await p();
-    if (r?.city && r.city !== 'Unknown') return r;
-    if (r?.country && fallback.country === 'Unknown') fallback = r;
+  const results = (await Promise.all(providers)).filter(Boolean) as { country: string; city: string }[];
+  if (results.length === 0) return { country: 'Unknown', city: 'Unknown' };
+
+  // Vote on city
+  const cityVotes = new Map<string, { count: number; original: string; country: string }>();
+  for (const r of results) {
+    const key = normCity(r.city);
+    if (!key || key === 'unknown') continue;
+    const ex = cityVotes.get(key);
+    if (ex) ex.count += 1;
+    else cityVotes.set(key, { count: 1, original: r.city, country: r.country });
   }
-  return fallback;
+
+  let best: { count: number; original: string; country: string } | null = null;
+  for (const v of cityVotes.values()) if (!best || v.count > best.count) best = v;
+
+  const country = best?.country || results.find(r => r.country && r.country !== 'Unknown')?.country || 'Unknown';
+  console.log(`[geo:consensus] votes=${JSON.stringify(Array.from(cityVotes.entries()).map(([k,v]) => [k, v.count]))} → ${best?.original || 'none'}`);
+
+  return { country, city: best?.original || 'Unknown' };
 }
 
 async function getRedirectUrl(supabase: any, link: any): Promise<string> {
