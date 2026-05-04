@@ -142,7 +142,17 @@ async function tryGeoProvider(
 
 // Normalize a city string for consensus comparison
 function normCity(s: string): string {
-  return (s || '').trim().toLowerCase().replace(/\s+/g, ' ');
+  return (s || '')
+    .trim()
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/\s+/g, ' ');
+}
+
+function isKnownGeoValue(value?: string): value is string {
+  const normalized = normCity(value || '');
+  return Boolean(normalized && normalized !== 'unknown' && normalized !== 'null' && normalized !== 'undefined');
 }
 
 // Query multiple geo providers in parallel and pick the consensus (majority) city.
@@ -184,37 +194,69 @@ async function consensusGeo(ip: string): Promise<Partial<GeoResult> | null> {
   const results = (await Promise.all(providers)).filter(Boolean) as Partial<GeoResult>[];
   if (results.length === 0) return null;
 
-  // Tally cities by normalized name; keep original casing of first occurrence
+  // Tally cities by normalized name; keep original casing of first occurrence.
+  // For Indian mobile carrier IPs, providers often disagree between routing hubs
+  // (Hyderabad/Mumbai/Delhi/etc.) and the user's real state. Never save a city
+  // unless it has a clear majority; a wrong city is worse than "Unknown".
   const cityVotes = new Map<string, { count: number; original: string; region?: string; country?: string }>();
+  const regionVotes = new Map<string, { count: number; original: string; country?: string }>();
+  let cityResponseCount = 0;
+  let regionResponseCount = 0;
+
   for (const r of results) {
-    if (!r.city) continue;
-    const key = normCity(r.city);
-    if (key === '' || key === 'unknown') continue;
-    const existing = cityVotes.get(key);
-    if (existing) {
-      existing.count += 1;
-      if (!existing.region && r.region) existing.region = r.region;
-      if (!existing.country && r.country) existing.country = r.country;
-    } else {
-      cityVotes.set(key, { count: 1, original: r.city, region: r.region, country: r.country });
+    if (isKnownGeoValue(r.city)) {
+      cityResponseCount += 1;
+      const key = normCity(r.city);
+      const existing = cityVotes.get(key);
+      if (existing) {
+        existing.count += 1;
+        if (!existing.region && r.region) existing.region = r.region;
+        if (!existing.country && r.country) existing.country = r.country;
+      } else {
+        cityVotes.set(key, { count: 1, original: r.city, region: r.region, country: r.country });
+      }
+    }
+
+    if (isKnownGeoValue(r.region)) {
+      regionResponseCount += 1;
+      const key = normCity(r.region);
+      const existing = regionVotes.get(key);
+      if (existing) existing.count += 1;
+      else regionVotes.set(key, { count: 1, original: r.region!, country: r.country });
     }
   }
 
-  // Pick the city with the most votes (ties broken by first inserted, which is fastest provider)
   let best: { count: number; original: string; region?: string; country?: string } | null = null;
   for (const v of cityVotes.values()) {
     if (!best || v.count > best.count) best = v;
   }
 
-  // Fallback: no city consensus, just take first known country
-  const country = best?.country || results.find(r => r.country)?.country;
-  const region = best?.region || results.find(r => r.region)?.region;
+  let bestRegion: { count: number; original: string; country?: string } | null = null;
+  for (const v of regionVotes.values()) {
+    if (!bestRegion || v.count > bestRegion.count) bestRegion = v;
+  }
 
-  console.log(`[geo:consensus] votes=${JSON.stringify(Array.from(cityVotes.entries()).map(([k,v]) => [k, v.count]))} → ${best?.original || 'none'}`);
+  const hasCityMajority = Boolean(
+    best && best.count >= 2 && best.count / Math.max(cityResponseCount, 1) >= 0.6
+  );
+  const hasRegionMajority = Boolean(
+    bestRegion && bestRegion.count >= 2 && bestRegion.count / Math.max(regionResponseCount, 1) >= 0.6
+  );
+
+  const country = (hasCityMajority ? best?.country : undefined)
+    || (hasRegionMajority ? bestRegion?.country : undefined)
+    || results.find(r => isKnownGeoValue(r.country))?.country;
+  const region = hasCityMajority
+    ? best?.region
+    : hasRegionMajority
+      ? bestRegion?.original
+      : undefined;
+
+  console.log(`[geo:consensus] cityVotes=${JSON.stringify(Array.from(cityVotes.entries()).map(([k,v]) => [k, v.count]))} regionVotes=${JSON.stringify(Array.from(regionVotes.entries()).map(([k,v]) => [k, v.count]))} → ${hasCityMajority ? best?.original : 'Unknown'}`);
 
   return {
     country: country || 'Unknown',
-    city: best?.original || 'Unknown',
+    city: hasCityMajority ? best!.original : 'Unknown',
     region: region || 'Unknown',
   };
 }

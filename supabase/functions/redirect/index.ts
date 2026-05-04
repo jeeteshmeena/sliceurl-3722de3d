@@ -71,7 +71,17 @@ async function fetchGeo(url: string, parser: (d: any) => { country?: string; cit
 }
 
 function normCity(s: string): string {
-  return (s || '').trim().toLowerCase().replace(/\s+/g, ' ');
+  return (s || '')
+    .trim()
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/\s+/g, ' ');
+}
+
+function isKnownGeoValue(value?: string): value is string {
+  const normalized = normCity(value || '');
+  return Boolean(normalized && normalized !== 'unknown' && normalized !== 'null' && normalized !== 'undefined');
 }
 
 // Multi-provider consensus geolocation. Queries 5 providers in parallel and picks
@@ -91,11 +101,15 @@ async function getGeoLocation(ip: string): Promise<{ country: string; city: stri
   const results = (await Promise.all(providers)).filter(Boolean) as { country: string; city: string }[];
   if (results.length === 0) return { country: 'Unknown', city: 'Unknown' };
 
-  // Vote on city
+  // Vote on city. Indian mobile carrier IPs often jump between network hubs
+  // (Hyderabad/Mumbai/Delhi/etc.), so only save a city when providers clearly agree.
   const cityVotes = new Map<string, { count: number; original: string; country: string }>();
+  let cityResponseCount = 0;
+
   for (const r of results) {
+    if (!isKnownGeoValue(r.city)) continue;
+    cityResponseCount += 1;
     const key = normCity(r.city);
-    if (!key || key === 'unknown') continue;
     const ex = cityVotes.get(key);
     if (ex) ex.count += 1;
     else cityVotes.set(key, { count: 1, original: r.city, country: r.country });
@@ -104,10 +118,15 @@ async function getGeoLocation(ip: string): Promise<{ country: string; city: stri
   let best: { count: number; original: string; country: string } | null = null;
   for (const v of cityVotes.values()) if (!best || v.count > best.count) best = v;
 
-  const country = best?.country || results.find(r => r.country && r.country !== 'Unknown')?.country || 'Unknown';
-  console.log(`[geo:consensus] votes=${JSON.stringify(Array.from(cityVotes.entries()).map(([k,v]) => [k, v.count]))} → ${best?.original || 'none'}`);
+  const hasCityMajority = Boolean(
+    best && best.count >= 2 && best.count / Math.max(cityResponseCount, 1) >= 0.6
+  );
+  const country = (hasCityMajority ? best?.country : undefined)
+    || results.find(r => isKnownGeoValue(r.country))?.country
+    || 'Unknown';
+  console.log(`[geo:consensus] votes=${JSON.stringify(Array.from(cityVotes.entries()).map(([k,v]) => [k, v.count]))} → ${hasCityMajority ? best?.original : 'Unknown'}`);
 
-  return { country, city: best?.original || 'Unknown' };
+  return { country, city: hasCityMajority ? best!.original : 'Unknown' };
 }
 
 async function getRedirectUrl(supabase: any, link: any): Promise<string> {
