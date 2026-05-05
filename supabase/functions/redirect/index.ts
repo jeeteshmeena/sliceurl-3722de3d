@@ -74,8 +74,9 @@ async function getGeoLocation(ip: string): Promise<{ country: string; city: stri
   if (isPrivateIp(ip)) return { country: 'Unknown', city: 'Unknown' };
 
   const providers = [
-    () => fetchGeo(`https://ipapi.co/${ip}/json/`, (d) => ({ country: d.country_name, city: d.city }), 'ipapi.co'),
+    () => fetchGeo(`http://ip-api.com/json/${ip}?fields=status,country,city`, (d) => d.status === 'fail' ? {} : ({ country: d.country, city: d.city }), 'ip-api.com'),
     () => fetchGeo(`https://ipwho.is/${ip}?fields=success,country,city`, (d) => d.success === false ? {} : ({ country: d.country, city: d.city }), 'ipwho.is'),
+    () => fetchGeo(`https://ipapi.co/${ip}/json/`, (d) => ({ country: d.country_name, city: d.city }), 'ipapi.co'),
     () => fetchGeo(`https://get.geojs.io/v1/ip/geo/${ip}.json`, (d) => ({ country: d.country, city: d.city }), 'geojs.io'),
   ];
 
