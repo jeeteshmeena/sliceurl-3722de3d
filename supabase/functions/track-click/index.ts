@@ -176,16 +176,16 @@ async function getGeoLocation(req: Request, ip: string): Promise<GeoResult> {
     return result;
   }
 
-  // Provider chain — first one that returns a city wins
+  // Provider chain — ip-api.com first (matches original behavior, accurate for IN mobile carriers)
   const providers: Array<() => Promise<Partial<GeoResult> | null>> = [
     () => tryGeoProvider(
-      `https://ipapi.co/${ip}/json/`,
+      `https://pro.ip-api.com/json/${ip}?fields=country,city,regionName&key=`,
       (d) => ({
-        country: d.country_name || (d.country ? getCountryName(d.country) : undefined),
-        city: d.city || undefined,
-        region: d.region || undefined,
+        country: d.country,
+        city: d.city,
+        region: d.regionName,
       }),
-      'ipapi.co'
+      'ip-api.com'
     ),
     () => tryGeoProvider(
       `https://ipwho.is/${ip}?fields=success,country,city,region`,
@@ -195,6 +195,15 @@ async function getGeoLocation(req: Request, ip: string): Promise<GeoResult> {
         region: d.region,
       }),
       'ipwho.is'
+    ),
+    () => tryGeoProvider(
+      `https://ipapi.co/${ip}/json/`,
+      (d) => ({
+        country: d.country_name || (d.country ? getCountryName(d.country) : undefined),
+        city: d.city || undefined,
+        region: d.region || undefined,
+      }),
+      'ipapi.co'
     ),
     () => tryGeoProvider(
       `https://get.geojs.io/v1/ip/geo/${ip}.json`,
