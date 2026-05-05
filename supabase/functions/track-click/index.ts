@@ -179,8 +179,8 @@ async function getGeoLocation(req: Request, ip: string): Promise<GeoResult> {
   // Provider chain — ip-api.com first (matches original behavior, accurate for IN mobile carriers)
   const providers: Array<() => Promise<Partial<GeoResult> | null>> = [
     () => tryGeoProvider(
-      `https://pro.ip-api.com/json/${ip}?fields=country,city,regionName&key=`,
-      (d) => ({
+      `http://ip-api.com/json/${ip}?fields=status,country,city,regionName`,
+      (d) => d.status === 'fail' ? {} : ({
         country: d.country,
         city: d.city,
         region: d.regionName,
