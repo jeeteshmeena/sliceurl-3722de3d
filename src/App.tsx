@@ -15,6 +15,7 @@ import NotFound from "@/pages/NotFound";
 import Auth from "@/pages/Auth";
 import Preview from "@/pages/Preview";
 import { AuthGuard } from "@/components/AuthGuard";
+import { RouteHead } from "@/components/RouteHead";
 
 // Lazy load dashboard and analytics pages for performance
 const Dashboard = lazy(() => import("@/pages/Dashboard"));
@@ -65,6 +66,7 @@ const App = () => (
                 <LanguageSuggestion />
                 <PWAInstallPrompt />
                 <BrowserRouter>
+                <RouteHead />
                 <Routes>
                   {/* Public routes */}
                   <Route path="/" element={<Index />} />
