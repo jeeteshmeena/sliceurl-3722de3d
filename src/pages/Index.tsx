@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
@@ -57,6 +57,37 @@ const Index = () => {
   const { user } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const faqs = [
+      ["What analytics and tracking data do you provide?", "Track clicks, locations, devices, browsers, referrers, and time-based graphs in real-time."],
+      ["Can I create custom slugs for my links?", "Yes, create branded short URLs like sliceurl.com/my-product instead of random characters."],
+      ["How does bulk link shortening work?", "Paste multiple URLs or upload a CSV to shorten hundreds of links at once."],
+      ["Can I edit or delete my links?", "Yes, edit destinations, slugs, or delete any link from your dashboard anytime."],
+      ["What QR code features are available?", "Customize colors, shapes, add your logo, and download in PNG or SVG format."],
+      ["How does link preview work?", "Shows users the destination URL before redirecting for added transparency."],
+      ["Can I make links private?", "Yes, add password protection or set expiration dates for private access."],
+      ["Is SliceURL secure?", "All links are scanned for malware and your data is encrypted end-to-end."],
+      ["What is SliceBox?", "File hosting service to share files up to 200MB with a single shareable link."],
+      ["What is LittleSlice?", "Temporary file sharing for larger files up to 2GB with custom expiration times."],
+    ];
+    const ld = {
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      mainEntity: faqs.map(([q, a]) => ({
+        "@type": "Question",
+        name: q,
+        acceptedAnswer: { "@type": "Answer", text: a },
+      })),
+    };
+    const script = document.createElement("script");
+    script.type = "application/ld+json";
+    script.id = "faq-jsonld";
+    script.text = JSON.stringify(ld);
+    document.head.querySelector("#faq-jsonld")?.remove();
+    document.head.appendChild(script);
+    return () => { script.remove(); };
+  }, []);
 
   const handleShorten = async (e: React.FormEvent) => {
     e.preventDefault();

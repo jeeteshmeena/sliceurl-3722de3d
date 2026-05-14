@@ -18,11 +18,31 @@ export default function Contact() {
 
   useEffect(() => {
     document.title = "Contact Us – SliceURL";
-    const noindex = document.createElement("meta");
-    noindex.name = "robots";
-    noindex.content = "noindex, nofollow";
-    document.head.appendChild(noindex);
-    return () => { document.head.removeChild(noindex); };
+    const ld = {
+      "@context": "https://schema.org",
+      "@type": "LocalBusiness",
+      name: "SliceURL",
+      legalName: "Jeetesh Meena",
+      email: "Sliceurl@Gmail.com",
+      telephone: "+91-9691520194",
+      url: "https://sliceurl.app/",
+      image: "https://sliceurl.app/sliceurl-icon.png",
+      address: {
+        "@type": "PostalAddress",
+        streetAddress: "Bamori",
+        addressLocality: "Guna",
+        addressRegion: "Madhya Pradesh",
+        postalCode: "473001",
+        addressCountry: "IN",
+      },
+    };
+    const script = document.createElement("script");
+    script.type = "application/ld+json";
+    script.id = "contact-jsonld";
+    script.text = JSON.stringify(ld);
+    document.head.querySelector("#contact-jsonld")?.remove();
+    document.head.appendChild(script);
+    return () => { script.remove(); };
   }, []);
 
   return (
