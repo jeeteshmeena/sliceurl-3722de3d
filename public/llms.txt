@@ -1,0 +1,21 @@
+# SliceURL
+
+> SliceURL is a fast, secure link shortener with branded QR codes, real-time click analytics, password-protected links, and bulk shortening — built for creators, marketers, and developers.
+
+## Pages
+
+- [Home](/): Shorten URLs and explore SliceURL features.
+- [About](/about): What SliceURL is and who builds it.
+- [Pricing](/pricing): Free, Pro, and Business plans.
+- [Contact](/contact): Reach the SliceURL team.
+- [Developers](/developers): REST API documentation and API keys.
+- [UTM Builder](/utm-builder): Build trackable campaign URLs.
+- [SliceBox](/slicebox): Share files up to 200 MB with a short link.
+- [LittleSlice](/littleslice): Temporary file sharing up to 2 GB with expiry.
+- [CreepyURL](/creepyurl): Disguised short links for fun.
+
+## Optional
+
+- [Privacy Policy](/privacy)
+- [Terms of Service](/terms)
+- [Refund Policy](/refund-policy)
