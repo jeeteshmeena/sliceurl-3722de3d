@@ -255,6 +255,23 @@ async function getGeoLocation(req: Request, ip: string, supabase?: any): Promise
     result.country = getCountryName(cfCountry);
   }
 
+  // Persist to cache when we got something useful
+  if (supabase && !isPrivateIp(ip) && (result.country !== 'Unknown' || result.city !== 'Unknown')) {
+    try {
+      await supabase.from('ip_geo_cache').upsert({
+        ip_address: ip,
+        country: result.country,
+        city: result.city,
+        region: result.region,
+        provider: 'chain',
+        cached_at: new Date().toISOString(),
+        expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+      }, { onConflict: 'ip_address' });
+    } catch (e) {
+      console.log(`[geo:cache-write-failed] ${e instanceof Error ? e.message : e}`);
+    }
+  }
+
   return result;
 }
 
