@@ -141,7 +141,7 @@ async function tryGeoProvider(
 }
 
 // Enhanced geolocation: edge headers first, then HTTPS IP lookup chain
-async function getGeoLocation(req: Request, ip: string): Promise<GeoResult> {
+async function getGeoLocation(req: Request, ip: string, supabase?: any): Promise<GeoResult> {
   const result: GeoResult = { country: 'Unknown', city: 'Unknown', region: 'Unknown' };
 
   // Priority 1: Cloudflare-style headers (only present if a CF proxy sits in front)
