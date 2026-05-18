@@ -141,7 +141,7 @@ async function tryGeoProvider(
 }
 
 // Enhanced geolocation: edge headers first, then HTTPS IP lookup chain
-async function getGeoLocation(req: Request, ip: string): Promise<GeoResult> {
+async function getGeoLocation(req: Request, ip: string, supabase?: any): Promise<GeoResult> {
   const result: GeoResult = { country: 'Unknown', city: 'Unknown', region: 'Unknown' };
 
   // Priority 1: Cloudflare-style headers (only present if a CF proxy sits in front)
@@ -174,6 +174,26 @@ async function getGeoLocation(req: Request, ip: string): Promise<GeoResult> {
     // Still keep country if cf gave it
     if (cfCountry && cfCountry !== 'XX') result.country = getCountryName(cfCountry);
     return result;
+  }
+
+  // Priority 3a: cache lookup (7-day TTL) before hitting external providers
+  if (supabase) {
+    try {
+      const { data: cached } = await supabase
+        .from('ip_geo_cache')
+        .select('country, city, region, expires_at')
+        .eq('ip_address', ip)
+        .maybeSingle();
+      if (cached && new Date(cached.expires_at) > new Date()) {
+        console.log(`[geo:cache-hit] ${ip} -> ${cached.country}/${cached.city}`);
+        result.country = cached.country || result.country;
+        result.city = cached.city || result.city;
+        result.region = cached.region || result.region;
+        return result;
+      }
+    } catch (e) {
+      console.log(`[geo:cache-read-failed] ${e instanceof Error ? e.message : e}`);
+    }
   }
 
   // Provider chain — ip-api.com first (matches original behavior, accurate for IN mobile carriers)
@@ -233,6 +253,23 @@ async function getGeoLocation(req: Request, ip: string): Promise<GeoResult> {
   // Final fallback: keep CF country if present
   if (result.country === 'Unknown' && cfCountry && cfCountry !== 'XX') {
     result.country = getCountryName(cfCountry);
+  }
+
+  // Persist to cache when we got something useful
+  if (supabase && !isPrivateIp(ip) && (result.country !== 'Unknown' || result.city !== 'Unknown')) {
+    try {
+      await supabase.from('ip_geo_cache').upsert({
+        ip_address: ip,
+        country: result.country,
+        city: result.city,
+        region: result.region,
+        provider: 'chain',
+        cached_at: new Date().toISOString(),
+        expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+      }, { onConflict: 'ip_address' });
+    } catch (e) {
+      console.log(`[geo:cache-write-failed] ${e instanceof Error ? e.message : e}`);
+    }
   }
 
   return result;
@@ -311,7 +348,7 @@ serve(async (req) => {
     const referrerSource = parseReferrerSource(referrer, userAgent);
 
     // Get geolocation with enhanced detection
-    const geo = await getGeoLocation(req, ip);
+    const geo = await getGeoLocation(req, ip, supabase);
 
     // Check if this IP has clicked this link before (for uniqueness)
     const { data: existingClick } = await supabase

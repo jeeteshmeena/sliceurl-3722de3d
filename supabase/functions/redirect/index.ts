@@ -70,23 +70,67 @@ async function fetchGeo(url: string, parser: (d: any) => { country?: string; cit
   }
 }
 
-async function getGeoLocation(ip: string): Promise<{ country: string; city: string }> {
+async function getGeoLocation(ip: string, supabase?: any): Promise<{ country: string; city: string }> {
   if (isPrivateIp(ip)) return { country: 'Unknown', city: 'Unknown' };
 
+  // 1. Try cache first (7-day TTL)
+  if (supabase) {
+    try {
+      const { data: cached } = await supabase
+        .from('ip_geo_cache')
+        .select('country, city, expires_at')
+        .eq('ip_address', ip)
+        .maybeSingle();
+      if (cached && new Date(cached.expires_at) > new Date()) {
+        console.log(`[geo:cache-hit] ${ip} -> ${cached.country}/${cached.city}`);
+        return { country: cached.country || 'Unknown', city: cached.city || 'Unknown' };
+      }
+    } catch (e) {
+      console.log(`[geo:cache-read-failed] ${e instanceof Error ? e.message : e}`);
+    }
+  }
+
   const providers = [
-    () => fetchGeo(`http://ip-api.com/json/${ip}?fields=status,country,city`, (d) => d.status === 'fail' ? {} : ({ country: d.country, city: d.city }), 'ip-api.com'),
-    () => fetchGeo(`https://ipwho.is/${ip}?fields=success,country,city`, (d) => d.success === false ? {} : ({ country: d.country, city: d.city }), 'ipwho.is'),
-    () => fetchGeo(`https://ipapi.co/${ip}/json/`, (d) => ({ country: d.country_name, city: d.city }), 'ipapi.co'),
-    () => fetchGeo(`https://get.geojs.io/v1/ip/geo/${ip}.json`, (d) => ({ country: d.country, city: d.city }), 'geojs.io'),
+    { label: 'ip-api.com', fn: () => fetchGeo(`http://ip-api.com/json/${ip}?fields=status,country,city`, (d) => d.status === 'fail' ? {} : ({ country: d.country, city: d.city }), 'ip-api.com') },
+    { label: 'ipwho.is', fn: () => fetchGeo(`https://ipwho.is/${ip}?fields=success,country,city`, (d) => d.success === false ? {} : ({ country: d.country, city: d.city }), 'ipwho.is') },
+    { label: 'ipapi.co', fn: () => fetchGeo(`https://ipapi.co/${ip}/json/`, (d) => ({ country: d.country_name, city: d.city }), 'ipapi.co') },
+    { label: 'geojs.io', fn: () => fetchGeo(`https://get.geojs.io/v1/ip/geo/${ip}.json`, (d) => ({ country: d.country, city: d.city }), 'geojs.io') },
   ];
 
   let fallback: { country: string; city: string } = { country: 'Unknown', city: 'Unknown' };
+  let usedProvider = 'none';
+  let result = fallback;
   for (const p of providers) {
-    const r = await p();
-    if (r?.city && r.city !== 'Unknown') return r;
-    if (r?.country && fallback.country === 'Unknown') fallback = r;
+    const r = await p.fn();
+    if (r?.city && r.city !== 'Unknown') {
+      result = r;
+      usedProvider = p.label;
+      break;
+    }
+    if (r?.country && fallback.country === 'Unknown') {
+      fallback = r;
+      usedProvider = p.label;
+    }
   }
-  return fallback;
+  if (result.city === 'Unknown') result = fallback;
+
+  // 2. Persist to cache (only when we got something useful)
+  if (supabase && (result.country !== 'Unknown' || result.city !== 'Unknown')) {
+    try {
+      await supabase.from('ip_geo_cache').upsert({
+        ip_address: ip,
+        country: result.country,
+        city: result.city,
+        provider: usedProvider,
+        cached_at: new Date().toISOString(),
+        expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+      }, { onConflict: 'ip_address' });
+    } catch (e) {
+      console.log(`[geo:cache-write-failed] ${e instanceof Error ? e.message : e}`);
+    }
+  }
+
+  return result;
 }
 
 async function getRedirectUrl(supabase: any, link: any): Promise<string> {
@@ -176,7 +220,7 @@ serve(async (req) => {
 
       let geo = { country: 'Unknown', city: 'Unknown' };
       if (ip !== 'unknown' && ip !== '127.0.0.1' && !ip.startsWith('192.168.') && !ip.startsWith('10.')) {
-        geo = await getGeoLocation(ip);
+        geo = await getGeoLocation(ip, supabase);
       }
 
       const { data: existingClick } = await supabase
@@ -265,7 +309,7 @@ serve(async (req) => {
 
       let geo = { country: 'Unknown', city: 'Unknown' };
       if (ip !== 'unknown' && ip !== '127.0.0.1' && !ip.startsWith('192.168.') && !ip.startsWith('10.')) {
-        geo = await getGeoLocation(ip);
+        geo = await getGeoLocation(ip, supabase);
       }
 
       const { data: existingClick } = await supabase
@@ -343,7 +387,7 @@ serve(async (req) => {
 
     let geo = { country: 'Unknown', city: 'Unknown' };
     if (ip !== 'unknown' && ip !== '127.0.0.1' && !ip.startsWith('192.168.') && !ip.startsWith('10.')) {
-      geo = await getGeoLocation(ip);
+      geo = await getGeoLocation(ip, supabase);
     }
 
     const { data: existingClick } = await supabase
