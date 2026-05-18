@@ -348,7 +348,7 @@ serve(async (req) => {
     const referrerSource = parseReferrerSource(referrer, userAgent);
 
     // Get geolocation with enhanced detection
-    const geo = await getGeoLocation(req, ip);
+    const geo = await getGeoLocation(req, ip, supabase);
 
     // Check if this IP has clicked this link before (for uniqueness)
     const { data: existingClick } = await supabase
