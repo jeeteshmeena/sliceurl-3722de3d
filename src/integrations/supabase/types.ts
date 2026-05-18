@@ -484,6 +484,36 @@ export type Database = {
         }
         Relationships: []
       }
+      ip_geo_cache: {
+        Row: {
+          cached_at: string
+          city: string | null
+          country: string | null
+          expires_at: string
+          ip_address: string
+          provider: string | null
+          region: string | null
+        }
+        Insert: {
+          cached_at?: string
+          city?: string | null
+          country?: string | null
+          expires_at?: string
+          ip_address: string
+          provider?: string | null
+          region?: string | null
+        }
+        Update: {
+          cached_at?: string
+          city?: string | null
+          country?: string | null
+          expires_at?: string
+          ip_address?: string
+          provider?: string | null
+          region?: string | null
+        }
+        Relationships: []
+      }
       links: {
         Row: {
           api_key_id: string | null
