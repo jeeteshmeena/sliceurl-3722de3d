@@ -176,6 +176,26 @@ async function getGeoLocation(req: Request, ip: string, supabase?: any): Promise
     return result;
   }
 
+  // Priority 3a: cache lookup (7-day TTL) before hitting external providers
+  if (supabase) {
+    try {
+      const { data: cached } = await supabase
+        .from('ip_geo_cache')
+        .select('country, city, region, expires_at')
+        .eq('ip_address', ip)
+        .maybeSingle();
+      if (cached && new Date(cached.expires_at) > new Date()) {
+        console.log(`[geo:cache-hit] ${ip} -> ${cached.country}/${cached.city}`);
+        result.country = cached.country || result.country;
+        result.city = cached.city || result.city;
+        result.region = cached.region || result.region;
+        return result;
+      }
+    } catch (e) {
+      console.log(`[geo:cache-read-failed] ${e instanceof Error ? e.message : e}`);
+    }
+  }
+
   // Provider chain — ip-api.com first (matches original behavior, accurate for IN mobile carriers)
   const providers: Array<() => Promise<Partial<GeoResult> | null>> = [
     () => tryGeoProvider(
