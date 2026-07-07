@@ -115,7 +115,8 @@ export function Header() {
   return (
     <header className="fixed top-0 left-0 right-0 z-[100] bg-background border-b border-border/40 safe-top max-w-[100vw] overflow-x-hidden" style={{ height: '64px' }}>
       <SliceLine />
-      <div className="max-w-[1280px] mx-auto h-full flex items-center justify-between flex-nowrap">
+      <div className="max-w-[1280px] mx-auto h-full flex items-center justify-between flex-nowrap relative">
+
         {/* Left Section - Brand */}
         <div className="flex items-center gap-3 shrink-0 ml-2 sm:ml-4">
           <Link to="/" className="shrink-0 hover:opacity-80 transition-opacity">
@@ -134,6 +135,20 @@ export function Header() {
             </div>
           </Link>
         </div>
+
+        {/* Center Nav (desktop) */}
+        <nav className="hidden md:flex items-center gap-1 absolute left-1/2 -translate-x-1/2">
+          <Link
+            to="/pricing"
+            className={`px-3 h-9 flex items-center text-sm font-medium rounded-lg transition-colors ${
+              location.pathname === "/pricing"
+                ? "text-foreground bg-muted/60"
+                : "text-muted-foreground hover:text-foreground hover:bg-muted/40"
+            }`}
+          >
+            {t("pricing") || "Pricing"}
+          </Link>
+        </nav>
 
         {/* Right Section - Clean icon layout with consistent spacing */}
         <div className="flex items-center gap-3 shrink-0 mr-2 sm:mr-4 flex-nowrap">
