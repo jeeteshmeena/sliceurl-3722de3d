@@ -682,6 +682,101 @@ export type Database = {
           },
         ]
       }
+      orders: {
+        Row: {
+          amount: number
+          billing_cycle: Database["public"]["Enums"]["billing_cycle"]
+          created_at: string
+          currency: string
+          id: string
+          order_number: string
+          plan_id: string
+          status: Database["public"]["Enums"]["payment_status"]
+          tax: number
+          total: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          billing_cycle: Database["public"]["Enums"]["billing_cycle"]
+          created_at?: string
+          currency?: string
+          id?: string
+          order_number?: string
+          plan_id: string
+          status?: Database["public"]["Enums"]["payment_status"]
+          tax?: number
+          total: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          billing_cycle?: Database["public"]["Enums"]["billing_cycle"]
+          created_at?: string
+          currency?: string
+          id?: string
+          order_number?: string
+          plan_id?: string
+          status?: Database["public"]["Enums"]["payment_status"]
+          tax?: number
+          total?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      payments: {
+        Row: {
+          amount: number
+          created_at: string
+          id: string
+          order_id: string
+          provider: string
+          provider_order_id: string | null
+          provider_txn_id: string | null
+          raw_response: Json | null
+          status: Database["public"]["Enums"]["payment_status"]
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          id?: string
+          order_id: string
+          provider?: string
+          provider_order_id?: string | null
+          provider_txn_id?: string | null
+          raw_response?: Json | null
+          status?: Database["public"]["Enums"]["payment_status"]
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          id?: string
+          order_id?: string
+          provider?: string
+          provider_order_id?: string | null
+          provider_txn_id?: string | null
+          raw_response?: Json | null
+          status?: Database["public"]["Enums"]["payment_status"]
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payments_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           auto_copy_enabled: boolean | null
@@ -934,6 +1029,45 @@ export type Database = {
           short_code?: string | null
           storage_path?: string
           user_id?: string | null
+        }
+        Relationships: []
+      }
+      subscriptions: {
+        Row: {
+          billing_cycle: Database["public"]["Enums"]["billing_cycle"]
+          cancel_at_period_end: boolean
+          created_at: string
+          current_period_end: string | null
+          current_period_start: string | null
+          id: string
+          plan_id: string
+          status: Database["public"]["Enums"]["subscription_status"]
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          billing_cycle: Database["public"]["Enums"]["billing_cycle"]
+          cancel_at_period_end?: boolean
+          created_at?: string
+          current_period_end?: string | null
+          current_period_start?: string | null
+          id?: string
+          plan_id: string
+          status?: Database["public"]["Enums"]["subscription_status"]
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          billing_cycle?: Database["public"]["Enums"]["billing_cycle"]
+          cancel_at_period_end?: boolean
+          created_at?: string
+          current_period_end?: string | null
+          current_period_start?: string | null
+          id?: string
+          plan_id?: string
+          status?: Database["public"]["Enums"]["subscription_status"]
+          updated_at?: string
+          user_id?: string
         }
         Relationships: []
       }
@@ -1368,7 +1502,15 @@ export type Database = {
     Enums: {
       api_key_status: "active" | "revoked"
       app_role: "admin" | "moderator" | "user"
+      billing_cycle: "monthly" | "yearly"
       link_health_status: "active" | "low_activity" | "inactive" | "broken"
+      payment_status: "created" | "pending" | "success" | "failed" | "refunded"
+      subscription_status:
+        | "active"
+        | "expired"
+        | "cancelled"
+        | "pending"
+        | "failed"
       user_persona: "influencer" | "marketer" | "agency" | "casual"
     }
     CompositeTypes: {
@@ -1499,7 +1641,16 @@ export const Constants = {
     Enums: {
       api_key_status: ["active", "revoked"],
       app_role: ["admin", "moderator", "user"],
+      billing_cycle: ["monthly", "yearly"],
       link_health_status: ["active", "low_activity", "inactive", "broken"],
+      payment_status: ["created", "pending", "success", "failed", "refunded"],
+      subscription_status: [
+        "active",
+        "expired",
+        "cancelled",
+        "pending",
+        "failed",
+      ],
       user_persona: ["influencer", "marketer", "agency", "casual"],
     },
   },

@@ -26,7 +26,8 @@ export function AuthGuard({ children, requireAuth = false }: AuthGuardProps) {
     // If auth is required but user is not logged in
     if (requireAuth && !user) {
       hasRedirectedRef.current = true;
-      navigate("/login", { replace: true });
+      const target = `${location.pathname}${location.search}`;
+      navigate(`/login?redirect=${encodeURIComponent(target)}`, { replace: true });
       return;
     }
 

@@ -25,6 +25,7 @@ import { LinkCardSkeleton } from "@/components/Skeleton";
 import { SliceBuddy } from "@/components/SliceBuddy";
 import { SliceQR } from "@/components/SliceQR";
 import { BulkActionsToolbar } from "@/components/BulkActionsToolbar";
+import { SubscriptionCard } from "@/components/SubscriptionCard";
 import { SearchFilters } from "@/components/SearchFilters";
 import { AnnouncementBar } from "@/components/AnnouncementBar";
 import { UtmBadge } from "@/components/utm/UtmBadge";
@@ -198,6 +199,11 @@ const Dashboard = () => {
             {displayName ? t("welcome_back_name").replace("{{name}}", displayName) : t("welcome_back_default")}
           </h2>
         </motion.div>
+
+        <div className="mb-6">
+          <SubscriptionCard />
+        </div>
+
 
         {/* Empty State - Show when no links at all */}
         {!loading && links.length === 0 ? (

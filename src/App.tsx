@@ -30,6 +30,7 @@ const Privacy = lazy(() => import("@/pages/Privacy"));
 const Terms = lazy(() => import("@/pages/Terms"));
 const About = lazy(() => import("@/pages/About"));
 const Pricing = lazy(() => import("@/pages/Pricing"));
+const Checkout = lazy(() => import("@/pages/Checkout"));
 const Contact = lazy(() => import("@/pages/Contact"));
 const RefundPolicy = lazy(() => import("@/pages/RefundPolicy"));
 const CreepyURL = lazy(() => import("@/pages/CreepyURL"));
@@ -149,6 +150,13 @@ const App = () => (
                     <Suspense fallback={<PageLoader />}>
                       <Pricing />
                     </Suspense>
+                  } />
+                  <Route path="/checkout" element={
+                    <AuthGuard requireAuth>
+                      <Suspense fallback={<PageLoader />}>
+                        <Checkout />
+                      </Suspense>
+                    </AuthGuard>
                   } />
                   <Route path="/contact" element={
                     <Suspense fallback={<PageLoader />}>

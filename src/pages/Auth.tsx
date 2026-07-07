@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { AnimatePresence, motion } from "framer-motion";
 import { ArrowLeft, Loader2, Eye, EyeOff, AlertCircle, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -149,6 +149,11 @@ const Auth = ({ mode: initialMode = "login" }: AuthProps) => {
 
   const { user, loading, signIn, signUp, signInWithGoogle, resetPassword } = useAuth();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const redirectParam = searchParams.get("redirect");
+  const isSafeRedirect = (p: string | null): p is string =>
+    !!p && p.startsWith("/") && !p.startsWith("//");
+  const redirectTo = isSafeRedirect(redirectParam) ? redirectParam : "/dashboard";
 
   useEffect(() => {
     setMode(initialMode);
@@ -330,7 +335,7 @@ const Auth = ({ mode: initialMode = "login" }: AuthProps) => {
   };
 
   if (showSuccess) {
-    return <AuthSuccess message={successMessage} redirectTo="/dashboard" redirectDelay={800} />;
+    return <AuthSuccess message={successMessage} redirectTo={redirectTo} redirectDelay={800} />;
   }
 
   if (loading) {
