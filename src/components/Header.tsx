@@ -372,6 +372,13 @@ export function Header() {
               className="bg-background border border-border rounded-2xl p-4 shadow-lg flex flex-col gap-3"
             >
               <Button
+                variant="ghost"
+                onClick={() => { navigate("/pricing"); setMobileMenuOpen(false); }}
+                className="w-full h-12 text-base font-medium justify-center rounded-xl"
+              >
+                {t("pricing") || "Pricing"}
+              </Button>
+              <Button
                 variant="outline"
                 onClick={() => {
                   navigate("/login");
