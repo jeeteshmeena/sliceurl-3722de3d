@@ -152,7 +152,7 @@ const App = () => (
                     </Suspense>
                   } />
                   <Route path="/checkout" element={
-                    <AuthGuard>
+                    <AuthGuard requireAuth>
                       <Suspense fallback={<PageLoader />}>
                         <Checkout />
                       </Suspense>
