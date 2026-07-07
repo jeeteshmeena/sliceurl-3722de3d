@@ -284,6 +284,13 @@ export function Header() {
                     </DropdownMenuItem>
                   )}
                   <DropdownMenuItem
+                    onClick={() => navigate("/pricing")}
+                    className="cursor-pointer h-11 rounded-lg"
+                  >
+                    <Link2 className="h-4 w-4 mr-2.5" />
+                    {t("pricing") || "Pricing"}
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
                     onClick={() => navigate("/settings")}
                     className="cursor-pointer h-11 rounded-lg"
                   >
