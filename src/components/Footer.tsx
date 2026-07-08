@@ -73,7 +73,7 @@ export function Footer() {
             <Link to="/feedback" className="text-xs text-muted-foreground hover:text-foreground transition-colors">Feedback</Link>
             <Link to="/pricing" className="text-xs text-muted-foreground hover:text-foreground transition-colors">Pricing</Link>
             <Link to="/contact" className="text-xs text-muted-foreground hover:text-foreground transition-colors">Contact Us</Link>
-            <Link to="/refund-policy" className="text-xs text-muted-foreground hover:text-foreground transition-colors">Refund Policy</Link>
+            <Link to="/refund-policy" className="text-xs text-muted-foreground hover:text-foreground transition-colors">Refund and Cancellation Policy</Link>
             <Link to="/creepyurl" className="text-red-500/80 hover:text-red-500 transition-colors" title="CreepyURL">
               <Skull className="h-3.5 w-3.5" />
             </Link>
