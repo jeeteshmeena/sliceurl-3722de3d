@@ -105,6 +105,27 @@ Deno.serve(async (req) => {
       filename += getMimeTypeExtension(mimeType);
     }
 
+    // Reject dangerous executable extensions
+    const BLOCKED_EXTENSIONS = new Set([
+      "exe", "bat", "cmd", "sh", "scr", "vbs", "msi", "dll",
+      "jar", "ps1", "com", "pif", "gadget", "hta", "cpl",
+      "msc", "reg", "wsf", "wsh",
+    ]);
+    const rawExt = (filename.split(".").pop() || "").toLowerCase();
+    if (BLOCKED_EXTENSIONS.has(rawExt)) {
+      console.error("[slicebox-upload-url] Blocked extension:", rawExt);
+      return new Response(
+        JSON.stringify({ success: false, error: "This file type is not allowed" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // Sanitize filename: anonymous uploads get an opaque name so device
+    // fingerprints / PII in original names never leak via the metadata table.
+    const safeExt = rawExt ? `.${rawExt.replace(/[^a-z0-9]/gi, "").slice(0, 8)}` : "";
+    const sanitizedFilename = `file-${Date.now()}${safeExt}`;
+    filename = sanitizedFilename;
+
     console.log("[slicebox-upload-url] Filename:", filename, "MimeType:", mimeType);
 
     // Get file buffer
@@ -118,6 +139,7 @@ Deno.serve(async (req) => {
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
+
 
     // Generate IDs
     const fileId = crypto.randomUUID().split("-")[0] + Date.now().toString(36);
