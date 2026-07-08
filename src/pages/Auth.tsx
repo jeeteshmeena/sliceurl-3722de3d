@@ -323,7 +323,7 @@ const Auth = ({ mode: initialMode = "login" }: AuthProps) => {
     setIsGoogleLoading(true);
     setFormAlert(null);
     try {
-      const { error } = await signInWithGoogle();
+      const { error } = await signInWithGoogle(redirectTo);
       if (error) {
         setFormAlert({ type: "error", message: "Google sign-in failed. Please try again." });
       }
