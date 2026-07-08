@@ -57,8 +57,8 @@ const ROUTE_META: Record<string, { title: string; description: string }> = {
     description: "Read the SliceURL Terms of Service.",
   },
   "/refund-policy": {
-    title: "Refund Policy – SliceURL",
-    description: "SliceURL refund policy, eligibility, and how to request a refund.",
+    title: "Refund and Cancellation Policy – SliceURL",
+    description: "SliceURL refund and cancellation policy, eligibility, processing timelines, and how to request support.",
   },
 };
 
