@@ -36,8 +36,9 @@ export function Footer() {
         Contact Us
       </Link>
       <Link to="/refund-policy" className="text-xs text-muted-foreground hover:text-foreground transition-colors">
-        Refund Policy
+        Refund and Cancellation Policy
       </Link>
+
       <Link to="/creepyurl" className="text-red-500/80 hover:text-red-500 transition-colors" title="CreepyURL">
         <Skull className="h-3.5 w-3.5" />
       </Link>
