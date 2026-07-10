@@ -163,6 +163,52 @@ export default function Checkout() {
         <h1 className="text-2xl sm:text-3xl font-bold tracking-tight mb-1">Checkout</h1>
         <p className="text-muted-foreground text-sm mb-6">Review your order and complete your purchase.</p>
 
+        {statusParam && (
+          <div
+            className={`mb-5 rounded-[14px] border p-4 flex items-start gap-3 ${
+              statusParam === "success"
+                ? "border-emerald-500/40 bg-emerald-500/5"
+                : statusParam === "pending"
+                ? "border-amber-500/40 bg-amber-500/5"
+                : "border-destructive/40 bg-destructive/5"
+            }`}
+          >
+            {statusParam === "success" ? (
+              <CheckCircle2 className="h-5 w-5 text-emerald-500 mt-0.5 shrink-0" />
+            ) : statusParam === "pending" ? (
+              <Clock className="h-5 w-5 text-amber-500 mt-0.5 shrink-0" />
+            ) : (
+              <XCircle className="h-5 w-5 text-destructive mt-0.5 shrink-0" />
+            )}
+            <div className="text-sm">
+              <div className="font-semibold mb-0.5">
+                {statusParam === "success"
+                  ? "Payment successful"
+                  : statusParam === "pending"
+                  ? "Payment pending"
+                  : "Payment did not complete"}
+              </div>
+              <div className="text-muted-foreground">
+                {statusParam === "success"
+                  ? "Your subscription is now active. You can head to your dashboard."
+                  : statusParam === "pending"
+                  ? "We're waiting for confirmation from Paytm. This usually takes a minute."
+                  : "No amount was charged. You can try again below."}
+                {orderParam && <span className="ml-1">Order #{orderParam}</span>}
+              </div>
+              {statusParam === "success" && (
+                <button
+                  onClick={() => navigate("/dashboard")}
+                  className="mt-2 text-sm font-medium underline underline-offset-2"
+                >
+                  Go to dashboard
+                </button>
+              )}
+            </div>
+          </div>
+        )}
+
+
         <div className="grid grid-cols-1 lg:grid-cols-5 gap-5">
           {/* Order Summary */}
           <section className="lg:col-span-3 rounded-[14px] border border-border bg-card p-5">
