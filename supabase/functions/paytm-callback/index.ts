@@ -77,8 +77,16 @@ function mapStatus(paytmStatus: string): "success" | "failed" | "pending" | "can
   }
 }
 
+const APP_URL_DEFAULT = "https://s1liceurl.lovable.app";
+
+function redirectTo(url: string) {
+  return new Response(null, { status: 303, headers: { Location: url } });
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
+
+  const appUrl = Deno.env.get("APP_URL") ?? APP_URL_DEFAULT;
 
   try {
     const admin = createClient(
