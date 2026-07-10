@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
-import { ArrowLeft, Check, ShieldCheck, Loader2 } from "lucide-react";
+import { ArrowLeft, Check, ShieldCheck, Loader2, CheckCircle2, XCircle, Clock } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -37,6 +37,9 @@ export default function Checkout() {
   const [submitting, setSubmitting] = useState(false);
   const [comingSoonOpen, setComingSoonOpen] = useState(false);
 
+  const statusParam = params.get("status");
+  const orderParam = params.get("order");
+
   useEffect(() => {
     document.title = `Checkout · ${plan.name} – SliceURL`;
   }, [plan.name]);
@@ -44,6 +47,56 @@ export default function Checkout() {
   useEffect(() => {
     if (profile?.display_name && !name) setName(profile.display_name);
   }, [profile, name]);
+
+  const loadPaytmScript = (host: string, mid: string, orderId: string) =>
+    new Promise<void>((resolve, reject) => {
+      const src = `${host}/merchantpgpui/checkoutjs/merchants/${mid}.js`;
+      // Remove any prior script so orderId gets rebound
+      document.querySelectorAll('script[data-paytm="1"]').forEach((s) => s.remove());
+      const script = document.createElement("script");
+      script.src = src;
+      script.type = "application/javascript";
+      script.crossOrigin = "anonymous";
+      script.dataset.paytm = "1";
+      script.dataset.orderId = orderId;
+      script.onload = () => resolve();
+      script.onerror = () => reject(new Error("Failed to load Paytm Checkout JS"));
+      document.body.appendChild(script);
+    });
+
+  const launchPaytm = async (payRes: {
+    mid: string;
+    orderId: string;
+    txnToken: string;
+    amount: string;
+    host: string;
+  }) => {
+    await loadPaytmScript(payRes.host, payRes.mid, payRes.orderId);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const w = window as any;
+    if (!w.Paytm?.CheckoutJS) throw new Error("Paytm SDK not available");
+    await new Promise<void>((resolve) => w.Paytm.CheckoutJS.onLoad(() => resolve()));
+
+    const config = {
+      root: "",
+      flow: "DEFAULT",
+      data: {
+        orderId: payRes.orderId,
+        token: payRes.txnToken,
+        tokenType: "TXN_TOKEN",
+        amount: payRes.amount,
+      },
+      handler: {
+        notifyMerchant: (eventName: string) => {
+          if (eventName === "APP_CLOSED" || eventName === "SESSION_EXPIRED") {
+            setSubmitting(false);
+          }
+        },
+      },
+    };
+    await w.Paytm.CheckoutJS.init(config);
+    w.Paytm.CheckoutJS.invoke();
+  };
 
   const handlePay = async () => {
     if (!user) {
@@ -74,18 +127,21 @@ export default function Checkout() {
       }
       if (payRes?.status === "coming_soon") {
         setComingSoonOpen(true);
-      } else if (payRes?.txnToken) {
-        // Future: launch Paytm checkout JS with txnToken/orderId
-        toast.info("Redirecting to Paytm...");
+        setSubmitting(false);
+      } else if (payRes?.txnToken && payRes?.mid && payRes?.orderId && payRes?.host) {
+        await launchPaytm(payRes);
+        // Keep submitting=true; SDK takes over the page.
       } else {
-        setComingSoonOpen(true);
+        toast.error(payRes?.message ?? "Unable to start payment.");
+        setSubmitting(false);
       }
-    } catch {
+    } catch (e) {
+      console.error(e);
       toast.error("Something went wrong. Please try again.");
-    } finally {
       setSubmitting(false);
     }
   };
+
 
   return (
     <div className="min-h-dvh bg-background flex flex-col safe-bottom">
@@ -106,6 +162,52 @@ export default function Checkout() {
       <main className="flex-1 container max-w-4xl mx-auto py-8 px-4">
         <h1 className="text-2xl sm:text-3xl font-bold tracking-tight mb-1">Checkout</h1>
         <p className="text-muted-foreground text-sm mb-6">Review your order and complete your purchase.</p>
+
+        {statusParam && (
+          <div
+            className={`mb-5 rounded-[14px] border p-4 flex items-start gap-3 ${
+              statusParam === "success"
+                ? "border-emerald-500/40 bg-emerald-500/5"
+                : statusParam === "pending"
+                ? "border-amber-500/40 bg-amber-500/5"
+                : "border-destructive/40 bg-destructive/5"
+            }`}
+          >
+            {statusParam === "success" ? (
+              <CheckCircle2 className="h-5 w-5 text-emerald-500 mt-0.5 shrink-0" />
+            ) : statusParam === "pending" ? (
+              <Clock className="h-5 w-5 text-amber-500 mt-0.5 shrink-0" />
+            ) : (
+              <XCircle className="h-5 w-5 text-destructive mt-0.5 shrink-0" />
+            )}
+            <div className="text-sm">
+              <div className="font-semibold mb-0.5">
+                {statusParam === "success"
+                  ? "Payment successful"
+                  : statusParam === "pending"
+                  ? "Payment pending"
+                  : "Payment did not complete"}
+              </div>
+              <div className="text-muted-foreground">
+                {statusParam === "success"
+                  ? "Your subscription is now active. You can head to your dashboard."
+                  : statusParam === "pending"
+                  ? "We're waiting for confirmation from Paytm. This usually takes a minute."
+                  : "No amount was charged. You can try again below."}
+                {orderParam && <span className="ml-1">Order #{orderParam}</span>}
+              </div>
+              {statusParam === "success" && (
+                <button
+                  onClick={() => navigate("/dashboard")}
+                  className="mt-2 text-sm font-medium underline underline-offset-2"
+                >
+                  Go to dashboard
+                </button>
+              )}
+            </div>
+          </div>
+        )}
+
 
         <div className="grid grid-cols-1 lg:grid-cols-5 gap-5">
           {/* Order Summary */}

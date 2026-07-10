@@ -77,8 +77,16 @@ function mapStatus(paytmStatus: string): "success" | "failed" | "pending" | "can
   }
 }
 
+const APP_URL_DEFAULT = "https://s1liceurl.lovable.app";
+
+function redirectTo(url: string) {
+  return new Response(null, { status: 303, headers: { Location: url } });
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
+
+  const appUrl = Deno.env.get("APP_URL") ?? APP_URL_DEFAULT;
 
   try {
     const admin = createClient(
@@ -98,10 +106,7 @@ Deno.serve(async (req) => {
     const paytmKey = Deno.env.get("PAYTM_MERCHANT_KEY");
     if (!paytmKey) {
       console.log("paytm-callback: credentials not configured, skipping");
-      return new Response(JSON.stringify({ status: "skipped" }), {
-        status: 200,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      return redirectTo(`${appUrl}/checkout?status=pending`);
     }
 
     const orderId = payload.ORDERID;
@@ -110,19 +115,13 @@ Deno.serve(async (req) => {
     const checksum = payload.CHECKSUMHASH ?? "";
 
     if (!orderId) {
-      return new Response(JSON.stringify({ error: "ORDERID missing" }), {
-        status: 400,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      return redirectTo(`${appUrl}/checkout?status=failed&reason=missing_order`);
     }
 
     // Signature check — reject tampered payloads before touching the DB.
     if (!checksum || !(await verifyChecksum(payload, checksum, paytmKey))) {
       console.warn("paytm-callback: checksum mismatch for", orderId);
-      return new Response(JSON.stringify({ error: "Invalid checksum" }), {
-        status: 400,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      return redirectTo(`${appUrl}/checkout?status=failed&reason=invalid_checksum&order=${encodeURIComponent(orderId)}`);
     }
 
     const mapped = mapStatus(status);
@@ -134,13 +133,11 @@ Deno.serve(async (req) => {
       .maybeSingle();
 
     if (!order) {
-      return new Response(JSON.stringify({ error: "Order not found" }), {
-        status: 404,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      return redirectTo(`${appUrl}/checkout?status=failed&reason=order_not_found`);
     }
 
-    // Idempotency: if we've already recorded this txn in a terminal state, ack and exit.
+    // Idempotency
+    let alreadyProcessed = false;
     if (txnId) {
       const { data: existingPayment } = await admin
         .from("payments")
@@ -148,67 +145,55 @@ Deno.serve(async (req) => {
         .eq("provider_txn_id", txnId)
         .maybeSingle();
       if (existingPayment && ["success", "failed", "cancelled"].includes(existingPayment.status)) {
-        return new Response(
-          JSON.stringify({ status: existingPayment.status, duplicate: true }),
-          { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } },
-        );
+        alreadyProcessed = true;
       }
     }
-    if (["success", "cancelled"].includes(order.status)) {
-      return new Response(
-        JSON.stringify({ status: order.status, duplicate: true }),
-        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } },
-      );
-    }
+    if (["success", "cancelled"].includes(order.status)) alreadyProcessed = true;
 
-    await admin.from("orders").update({ status: mapped }).eq("id", order.id);
-    await admin
-      .from("payments")
-      .update({
-        status: mapped,
-        provider_txn_id: txnId,
-        provider_order_id: orderId,
-        raw_response: payload,
-      })
-      .eq("order_id", order.id);
+    if (!alreadyProcessed) {
+      await admin.from("orders").update({ status: mapped }).eq("id", order.id);
+      await admin
+        .from("payments")
+        .update({
+          status: mapped,
+          provider_txn_id: txnId,
+          provider_order_id: orderId,
+          raw_response: payload,
+        })
+        .eq("order_id", order.id);
 
-    if (mapped === "success") {
-      // Avoid creating a second active subscription for the same order.
-      const { data: existingSub } = await admin
-        .from("subscriptions")
-        .select("id")
-        .eq("user_id", order.user_id)
-        .eq("plan_id", order.plan_id)
-        .eq("status", "active")
-        .gte("current_period_end", new Date().toISOString())
-        .maybeSingle();
+      if (mapped === "success") {
+        const { data: existingSub } = await admin
+          .from("subscriptions")
+          .select("id")
+          .eq("user_id", order.user_id)
+          .eq("plan_id", order.plan_id)
+          .eq("status", "active")
+          .gte("current_period_end", new Date().toISOString())
+          .maybeSingle();
 
-      if (!existingSub) {
-        const now = new Date();
-        const end = new Date(now);
-        if (order.billing_cycle === "yearly") end.setFullYear(end.getFullYear() + 1);
-        else end.setMonth(end.getMonth() + 1);
+        if (!existingSub) {
+          const now = new Date();
+          const end = new Date(now);
+          if (order.billing_cycle === "yearly") end.setFullYear(end.getFullYear() + 1);
+          else end.setMonth(end.getMonth() + 1);
 
-        await admin.from("subscriptions").insert({
-          user_id: order.user_id,
-          plan_id: order.plan_id,
-          billing_cycle: order.billing_cycle,
-          status: "active",
-          current_period_start: now.toISOString(),
-          current_period_end: end.toISOString(),
-        });
+          await admin.from("subscriptions").insert({
+            user_id: order.user_id,
+            plan_id: order.plan_id,
+            billing_cycle: order.billing_cycle,
+            status: "active",
+            current_period_start: now.toISOString(),
+            current_period_end: end.toISOString(),
+          });
+        }
       }
     }
 
-    return new Response(JSON.stringify({ status: mapped }), {
-      status: 200,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
+    return redirectTo(`${appUrl}/checkout?status=${mapped}&order=${encodeURIComponent(orderId)}`);
   } catch (e) {
     console.error("paytm-callback error", e);
-    return new Response(JSON.stringify({ error: "Internal error" }), {
-      status: 500,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
+    return redirectTo(`${appUrl}/checkout?status=failed&reason=internal_error`);
   }
 });
+
