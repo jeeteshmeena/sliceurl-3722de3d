@@ -37,6 +37,9 @@ export default function Checkout() {
   const [submitting, setSubmitting] = useState(false);
   const [comingSoonOpen, setComingSoonOpen] = useState(false);
 
+  const statusParam = params.get("status");
+  const orderParam = params.get("order");
+
   useEffect(() => {
     document.title = `Checkout · ${plan.name} – SliceURL`;
   }, [plan.name]);
@@ -44,6 +47,56 @@ export default function Checkout() {
   useEffect(() => {
     if (profile?.display_name && !name) setName(profile.display_name);
   }, [profile, name]);
+
+  const loadPaytmScript = (host: string, mid: string, orderId: string) =>
+    new Promise<void>((resolve, reject) => {
+      const src = `${host}/merchantpgpui/checkoutjs/merchants/${mid}.js`;
+      // Remove any prior script so orderId gets rebound
+      document.querySelectorAll('script[data-paytm="1"]').forEach((s) => s.remove());
+      const script = document.createElement("script");
+      script.src = src;
+      script.type = "application/javascript";
+      script.crossOrigin = "anonymous";
+      script.dataset.paytm = "1";
+      script.dataset.orderId = orderId;
+      script.onload = () => resolve();
+      script.onerror = () => reject(new Error("Failed to load Paytm Checkout JS"));
+      document.body.appendChild(script);
+    });
+
+  const launchPaytm = async (payRes: {
+    mid: string;
+    orderId: string;
+    txnToken: string;
+    amount: string;
+    host: string;
+  }) => {
+    await loadPaytmScript(payRes.host, payRes.mid, payRes.orderId);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const w = window as any;
+    if (!w.Paytm?.CheckoutJS) throw new Error("Paytm SDK not available");
+    await new Promise<void>((resolve) => w.Paytm.CheckoutJS.onLoad(() => resolve()));
+
+    const config = {
+      root: "",
+      flow: "DEFAULT",
+      data: {
+        orderId: payRes.orderId,
+        token: payRes.txnToken,
+        tokenType: "TXN_TOKEN",
+        amount: payRes.amount,
+      },
+      handler: {
+        notifyMerchant: (eventName: string) => {
+          if (eventName === "APP_CLOSED" || eventName === "SESSION_EXPIRED") {
+            setSubmitting(false);
+          }
+        },
+      },
+    };
+    await w.Paytm.CheckoutJS.init(config);
+    w.Paytm.CheckoutJS.invoke();
+  };
 
   const handlePay = async () => {
     if (!user) {
@@ -74,18 +127,21 @@ export default function Checkout() {
       }
       if (payRes?.status === "coming_soon") {
         setComingSoonOpen(true);
-      } else if (payRes?.txnToken) {
-        // Future: launch Paytm checkout JS with txnToken/orderId
-        toast.info("Redirecting to Paytm...");
+        setSubmitting(false);
+      } else if (payRes?.txnToken && payRes?.mid && payRes?.orderId && payRes?.host) {
+        await launchPaytm(payRes);
+        // Keep submitting=true; SDK takes over the page.
       } else {
-        setComingSoonOpen(true);
+        toast.error(payRes?.message ?? "Unable to start payment.");
+        setSubmitting(false);
       }
-    } catch {
+    } catch (e) {
+      console.error(e);
       toast.error("Something went wrong. Please try again.");
-    } finally {
       setSubmitting(false);
     }
   };
+
 
   return (
     <div className="min-h-dvh bg-background flex flex-col safe-bottom">
