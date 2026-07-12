@@ -158,7 +158,7 @@ export default function Pricing() {
         </div>
 
         <p className="text-center text-xs text-muted-foreground mt-8">
-          Prices in INR. GST (18%) will be added at checkout where applicable.
+          Prices in INR. No hidden taxes — the price you see is what you pay.
         </p>
       </main>
 
