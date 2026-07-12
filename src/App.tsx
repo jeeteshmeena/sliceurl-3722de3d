@@ -245,7 +245,15 @@ const App = () => (
                       </Suspense>
                     </AdminGuard>
                   } />
-                  
+
+                  <Route path="/admin/paytm" element={
+                    <AdminGuard>
+                      <Suspense fallback={<PageLoader />}>
+                        <AdminPaytm />
+                      </Suspense>
+                    </AdminGuard>
+                  } />
+
                   <Route path="*" element={<NotFound />} />
                 </Routes>
                 </BrowserRouter>
