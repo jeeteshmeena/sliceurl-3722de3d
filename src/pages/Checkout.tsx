@@ -121,7 +121,15 @@ export default function Checkout() {
         body: { order_id: orderRes.order_id },
       });
       if (payErr) {
-        toast.error("Payment initiation failed.");
+        const raw = (payErr as { context?: { body?: string; error?: string }; message?: string })
+          ?.context?.body || payErr?.message || "Payment initiation failed.";
+        let msg = "Payment initiation failed.";
+        try {
+          const parsed = typeof raw === "string" ? JSON.parse(raw) : raw;
+          if (parsed?.message) msg = `Paytm: ${parsed.message}`;
+          else if (parsed?.error) msg = parsed.error;
+        } catch { /* keep default */ }
+        toast.error(msg);
         setSubmitting(false);
         return;
       }
