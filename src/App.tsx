@@ -44,6 +44,7 @@ const AppPage = lazy(() => import("@/pages/AppPage"));
 const Feedback = lazy(() => import("@/pages/Feedback"));
 const FeedbackAdmin = lazy(() => import("@/pages/FeedbackAdmin"));
 const AdminInbox = lazy(() => import("@/pages/AdminInbox"));
+const AdminPaytm = lazy(() => import("@/pages/AdminPaytm"));
 import { AdminGuard } from "@/components/AdminGuard";
 
 const queryClient = new QueryClient();
