@@ -87,13 +87,20 @@ Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
 
   const appUrl = Deno.env.get("APP_URL") ?? APP_URL_DEFAULT;
+  const admin = createClient(
+    Deno.env.get("SUPABASE_URL")!,
+    Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
+  );
+
+  const logEvent = async (row: Record<string, unknown>) => {
+    try { await admin.from("paytm_callback_logs").insert({ event_type: "callback", ...row }); }
+    catch (e) { console.error("callback log insert failed", e); }
+  };
+
+  const headersObj: Record<string, string> = {};
+  req.headers.forEach((v, k) => { headersObj[k] = v; });
 
   try {
-    const admin = createClient(
-      Deno.env.get("SUPABASE_URL")!,
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
-    );
-
     const contentType = req.headers.get("content-type") ?? "";
     let payload: Record<string, string> = {};
     if (contentType.includes("application/json")) {
@@ -103,9 +110,18 @@ Deno.serve(async (req) => {
       form.forEach((v, k) => (payload[k] = String(v)));
     }
 
-    const paytmKey = Deno.env.get("PAYTM_MERCHANT_KEY");
+    // Prefer DB-configured merchant key, fallback to env
+    const { data: settings } = await admin
+      .from("paytm_settings")
+      .select("merchant_key")
+      .eq("is_active", true)
+      .order("updated_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    const paytmKey = settings?.merchant_key || Deno.env.get("PAYTM_MERCHANT_KEY");
+
     if (!paytmKey) {
-      console.log("paytm-callback: credentials not configured, skipping");
+      await logEvent({ status: "error", verification_error: "credentials_missing", raw_payload: payload, raw_headers: headersObj });
       return redirectTo(`${appUrl}/checkout?status=pending`);
     }
 
@@ -115,12 +131,21 @@ Deno.serve(async (req) => {
     const checksum = payload.CHECKSUMHASH ?? "";
 
     if (!orderId) {
+      await logEvent({ status: "error", verification_error: "missing_order_id", raw_payload: payload, raw_headers: headersObj });
       return redirectTo(`${appUrl}/checkout?status=failed&reason=missing_order`);
     }
 
-    // Signature check — reject tampered payloads before touching the DB.
-    if (!checksum || !(await verifyChecksum(payload, checksum, paytmKey))) {
+    const checksumOk = checksum ? await verifyChecksum(payload, checksum, paytmKey) : false;
+    if (!checksumOk) {
       console.warn("paytm-callback: checksum mismatch for", orderId);
+      await logEvent({
+        paytm_order_id: orderId,
+        paytm_txn_id: txnId,
+        status: "invalid_checksum",
+        verification_error: "checksum_mismatch",
+        raw_payload: payload,
+        raw_headers: headersObj,
+      });
       return redirectTo(`${appUrl}/checkout?status=failed&reason=invalid_checksum&order=${encodeURIComponent(orderId)}`);
     }
 
@@ -133,6 +158,14 @@ Deno.serve(async (req) => {
       .maybeSingle();
 
     if (!order) {
+      await logEvent({
+        paytm_order_id: orderId,
+        paytm_txn_id: txnId,
+        status: "error",
+        verification_error: "order_not_found",
+        payment_status: mapped,
+        raw_payload: payload,
+      });
       return redirectTo(`${appUrl}/checkout?status=failed&reason=order_not_found`);
     }
 
@@ -190,10 +223,21 @@ Deno.serve(async (req) => {
       }
     }
 
+    await logEvent({
+      paytm_order_id: orderId,
+      paytm_txn_id: txnId,
+      status: alreadyProcessed ? "duplicate" : "verified",
+      payment_status: mapped,
+      raw_payload: payload,
+      raw_headers: headersObj,
+    });
+
     return redirectTo(`${appUrl}/checkout?status=${mapped}&order=${encodeURIComponent(orderId)}`);
   } catch (e) {
     console.error("paytm-callback error", e);
+    await logEvent({ status: "error", verification_error: String(e), raw_headers: headersObj });
     return redirectTo(`${appUrl}/checkout?status=failed&reason=internal_error`);
   }
 });
+
 
