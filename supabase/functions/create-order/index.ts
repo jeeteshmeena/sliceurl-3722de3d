@@ -2,7 +2,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
 
 // Keep plan config in sync with src/config/plans.ts
-const GST_RATE = 0.18;
+const GST_RATE = 0; // No GST
 const PLAN_PRICES: Record<string, { monthly: number; yearly: number }> = {
   pro: { monthly: 199, yearly: 1990 },
   business: { monthly: 499, yearly: 4990 },

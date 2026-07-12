@@ -121,7 +121,15 @@ export default function Checkout() {
         body: { order_id: orderRes.order_id },
       });
       if (payErr) {
-        toast.error("Payment initiation failed.");
+        const raw = (payErr as { context?: { body?: string; error?: string }; message?: string })
+          ?.context?.body || payErr?.message || "Payment initiation failed.";
+        let msg = "Payment initiation failed.";
+        try {
+          const parsed = typeof raw === "string" ? JSON.parse(raw) : raw;
+          if (parsed?.message) msg = `Paytm: ${parsed.message}`;
+          else if (parsed?.error) msg = parsed.error;
+        } catch { /* keep default */ }
+        toast.error(msg);
         setSubmitting(false);
         return;
       }
@@ -251,10 +259,6 @@ export default function Checkout() {
               <div className="flex items-center justify-between">
                 <span className="text-muted-foreground">Subtotal</span>
                 <span>{formatINR(totals.amount)}</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-muted-foreground">GST (18%)</span>
-                <span>{formatINR(totals.tax)}</span>
               </div>
               <div className="flex items-center justify-between pt-2 border-t border-border/60 text-base font-semibold">
                 <span>Total</span>
