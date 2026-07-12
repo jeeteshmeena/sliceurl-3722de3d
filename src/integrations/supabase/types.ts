@@ -777,6 +777,84 @@ export type Database = {
           },
         ]
       }
+      paytm_callback_logs: {
+        Row: {
+          created_at: string
+          event_type: string
+          http_status: number | null
+          id: string
+          payment_status: string | null
+          paytm_order_id: string | null
+          paytm_txn_id: string | null
+          raw_headers: Json | null
+          raw_payload: Json | null
+          status: string | null
+          verification_error: string | null
+        }
+        Insert: {
+          created_at?: string
+          event_type: string
+          http_status?: number | null
+          id?: string
+          payment_status?: string | null
+          paytm_order_id?: string | null
+          paytm_txn_id?: string | null
+          raw_headers?: Json | null
+          raw_payload?: Json | null
+          status?: string | null
+          verification_error?: string | null
+        }
+        Update: {
+          created_at?: string
+          event_type?: string
+          http_status?: number | null
+          id?: string
+          payment_status?: string | null
+          paytm_order_id?: string | null
+          paytm_txn_id?: string | null
+          raw_headers?: Json | null
+          raw_payload?: Json | null
+          status?: string | null
+          verification_error?: string | null
+        }
+        Relationships: []
+      }
+      paytm_settings: {
+        Row: {
+          created_at: string
+          env: string
+          id: string
+          is_active: boolean
+          merchant_id: string | null
+          merchant_key: string | null
+          updated_at: string
+          updated_by: string | null
+          website: string
+        }
+        Insert: {
+          created_at?: string
+          env?: string
+          id?: string
+          is_active?: boolean
+          merchant_id?: string | null
+          merchant_key?: string | null
+          updated_at?: string
+          updated_by?: string | null
+          website?: string
+        }
+        Update: {
+          created_at?: string
+          env?: string
+          id?: string
+          is_active?: boolean
+          merchant_id?: string | null
+          merchant_key?: string | null
+          updated_at?: string
+          updated_by?: string | null
+          website?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           auto_copy_enabled: boolean | null
