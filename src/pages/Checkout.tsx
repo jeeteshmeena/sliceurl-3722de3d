@@ -252,10 +252,6 @@ export default function Checkout() {
                 <span className="text-muted-foreground">Subtotal</span>
                 <span>{formatINR(totals.amount)}</span>
               </div>
-              <div className="flex items-center justify-between">
-                <span className="text-muted-foreground">GST (18%)</span>
-                <span>{formatINR(totals.tax)}</span>
-              </div>
               <div className="flex items-center justify-between pt-2 border-t border-border/60 text-base font-semibold">
                 <span>Total</span>
                 <span>{formatINR(totals.total)}</span>
