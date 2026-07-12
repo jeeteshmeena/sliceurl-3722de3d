@@ -19,7 +19,7 @@ export interface Plan {
   features: string[];
 }
 
-export const GST_RATE = 0.18; // 18% GST on subscription
+export const GST_RATE = 0; // No GST applied
 
 export const PLANS: Record<PlanId, Plan> = {
   free: {
