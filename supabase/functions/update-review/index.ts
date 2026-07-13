@@ -11,7 +11,7 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const { reviewId, rating, reviewText, browserFingerprint } = await req.json();
+    const { reviewId, rating, reviewText } = await req.json();
 
     if (!reviewId) {
       return new Response(
@@ -27,33 +27,32 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Get client IP from headers
-    const forwarded = req.headers.get("x-forwarded-for");
-    const realIp = req.headers.get("x-real-ip");
-    const cfConnectingIp = req.headers.get("cf-connecting-ip");
-    const ipAddress = cfConnectingIp || (forwarded ? forwarded.split(",")[0].trim() : null) || realIp || "unknown";
-
     // Create Supabase client with service role
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    // Get user from auth header if present
+    // Require sign-in — spoofable IP/fingerprint identity is no longer accepted.
     const authHeader = req.headers.get("Authorization");
-    let userId: string | null = null;
-    
-    if (authHeader) {
-      const token = authHeader.replace("Bearer ", "");
-      const { data: { user } } = await supabase.auth.getUser(token);
-      if (user) {
-        userId = user.id;
-      }
+    if (!authHeader) {
+      return new Response(
+        JSON.stringify({ success: false, error: "You must be signed in to edit a review" }),
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+    const token = authHeader.replace("Bearer ", "");
+    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
+    if (authError || !user) {
+      return new Response(
+        JSON.stringify({ success: false, error: "Invalid authentication" }),
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
     }
 
-    // Fetch the existing review
+    // Fetch existing review and enforce ownership by authenticated user id
     const { data: existingReview, error: fetchError } = await supabase
       .from("app_reviews")
-      .select("*")
+      .select("id, user_id")
       .eq("id", reviewId)
       .single();
 
@@ -64,13 +63,7 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Check ownership: user owns it OR IP matches (for guest reviews)
-    const canEdit = 
-      (userId && existingReview.user_id === userId) ||
-      (existingReview.ip_address === ipAddress && 
-       (!browserFingerprint || existingReview.browser_fingerprint === browserFingerprint));
-
-    if (!canEdit) {
+    if (existingReview.user_id !== user.id) {
       return new Response(
         JSON.stringify({ success: false, error: "You cannot edit this review" }),
         { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }

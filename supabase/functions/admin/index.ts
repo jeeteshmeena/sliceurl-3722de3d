@@ -94,7 +94,22 @@ serve(async (req) => {
           );
         }
 
-        // First delete associated clicks
+        // Verify ownership BEFORE deleting clicks
+        const { data: ownedLink, error: ownErr } = await supabase
+          .from('links')
+          .select('id')
+          .eq('id', linkId)
+          .eq('user_id', user.id)
+          .maybeSingle();
+
+        if (ownErr || !ownedLink) {
+          return new Response(
+            JSON.stringify({ error: 'Link not found' }),
+            { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          );
+        }
+
+        // Now safe to delete clicks and the link
         await supabase.from('clicks').delete().eq('link_id', linkId);
 
         // Then delete the link
