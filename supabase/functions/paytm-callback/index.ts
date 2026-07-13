@@ -158,6 +158,62 @@ Deno.serve(async (req) => {
       .maybeSingle();
 
     if (!order) {
+      // Try merchant order (external site flow)
+      const { data: mOrder } = await admin
+        .from("merchant_orders")
+        .select("id, callback_url, return_url, status, amount, currency, external_order_id, api_key_id")
+        .eq("order_number", orderId)
+        .maybeSingle();
+
+      if (mOrder) {
+        const already = ["success", "failed", "cancelled"].includes(mOrder.status);
+        if (!already) {
+          await admin
+            .from("merchant_orders")
+            .update({
+              status: mapped,
+              paytm_txn_id: txnId,
+              raw_response: payload,
+              verified_at: mapped === "success" ? new Date().toISOString() : null,
+            })
+            .eq("id", mOrder.id);
+
+          // Fire-and-forget webhook to client site
+          if (mOrder.callback_url) {
+            try {
+              await fetch(mOrder.callback_url, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  event: "payment.updated",
+                  order_id: mOrder.id,
+                  external_order_id: mOrder.external_order_id,
+                  order_number: orderId,
+                  status: mapped,
+                  paytm_txn_id: txnId,
+                  amount: mOrder.amount,
+                  currency: mOrder.currency,
+                }),
+              });
+            } catch (e) { console.error("client webhook failed", e); }
+          }
+        }
+
+        await logEvent({
+          paytm_order_id: orderId,
+          paytm_txn_id: txnId,
+          status: already ? "duplicate" : "verified",
+          payment_status: mapped,
+          raw_payload: payload,
+          raw_headers: headersObj,
+        });
+
+        const dest = mOrder.return_url
+          ? `${mOrder.return_url}${mOrder.return_url.includes("?") ? "&" : "?"}status=${mapped}&order=${encodeURIComponent(orderId)}`
+          : `${appUrl}/pay/${mOrder.id}?status=${mapped}`;
+        return redirectTo(dest);
+      }
+
       await logEvent({
         paytm_order_id: orderId,
         paytm_txn_id: txnId,
@@ -168,6 +224,7 @@ Deno.serve(async (req) => {
       });
       return redirectTo(`${appUrl}/checkout?status=failed&reason=order_not_found`);
     }
+
 
     // Idempotency
     let alreadyProcessed = false;
