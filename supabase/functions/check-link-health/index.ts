@@ -54,6 +54,24 @@ serve(async (req) => {
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
+    // Require authentication
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader) {
+      return new Response(
+        JSON.stringify({ error: 'Authorization required' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+    const { data: { user }, error: authError } = await supabase.auth.getUser(
+      authHeader.replace('Bearer ', '')
+    );
+    if (authError || !user) {
+      return new Response(
+        JSON.stringify({ error: 'Invalid authentication' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
     const { link_id, check_url = false } = await req.json();
 
     if (!link_id) {
@@ -63,12 +81,13 @@ serve(async (req) => {
       );
     }
 
-    // Get link data
+    // Ownership check
     const { data: link, error: linkError } = await supabase
       .from('links')
       .select('original_url, last_clicked_at, is_broken, notify_on_broken')
       .eq('id', link_id)
-      .single();
+      .eq('user_id', user.id)
+      .maybeSingle();
 
     if (linkError || !link) {
       return new Response(

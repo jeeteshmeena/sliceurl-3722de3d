@@ -16,14 +16,46 @@ serve(async (req) => {
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
+    // Require authentication
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader) {
+      return new Response(
+        JSON.stringify({ error: 'Authorization required' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+    const { data: { user }, error: authError } = await supabase.auth.getUser(
+      authHeader.replace('Bearer ', '')
+    );
+    if (authError || !user) {
+      return new Response(
+        JSON.stringify({ error: 'Invalid authentication' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
     const url = new URL(req.url);
     const linkId = url.searchParams.get('link_id');
-    const type = url.searchParams.get('type') || 'hourly'; // 'hourly' or 'daily'
+    const type = url.searchParams.get('type') || 'hourly';
 
     if (!linkId) {
       return new Response(
         JSON.stringify({ error: 'link_id is required' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Ownership check: caller must own the link
+    const { data: ownedLink, error: ownErr } = await supabase
+      .from('links')
+      .select('id')
+      .eq('id', linkId)
+      .eq('user_id', user.id)
+      .maybeSingle();
+    if (ownErr || !ownedLink) {
+      return new Response(
+        JSON.stringify({ error: 'Link not found' }),
+        { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 

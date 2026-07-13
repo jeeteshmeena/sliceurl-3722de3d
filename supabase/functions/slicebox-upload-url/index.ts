@@ -49,12 +49,54 @@ Deno.serve(async (req) => {
       );
     }
 
+    // SSRF protection: only http(s), and block private/internal/metadata addresses
+    if (parsedUrl.protocol !== "http:" && parsedUrl.protocol !== "https:") {
+      return new Response(
+        JSON.stringify({ success: false, error: "Only http(s) URLs are allowed" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+    const isPrivateAddress = (host: string): boolean => {
+      const h = host.toLowerCase();
+      if (h === "localhost" || h.endsWith(".localhost") || h.endsWith(".local") || h.endsWith(".internal")) return true;
+      // IPv6 loopback / link-local / unique-local
+      if (h === "::1" || h.startsWith("fe80:") || h.startsWith("fc") || h.startsWith("fd")) return true;
+      // IPv4 dotted-quad checks
+      const m = h.match(/^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$/);
+      if (m) {
+        const [a, b] = [parseInt(m[1]), parseInt(m[2])];
+        if (a === 10) return true;
+        if (a === 127) return true;
+        if (a === 0) return true;
+        if (a === 169 && b === 254) return true; // link-local / AWS/GCP metadata
+        if (a === 172 && b >= 16 && b <= 31) return true;
+        if (a === 192 && b === 168) return true;
+        if (a === 100 && b >= 64 && b <= 127) return true; // CGNAT
+        if (a >= 224) return true; // multicast/reserved
+      }
+      return false;
+    };
+    let resolvedHosts: string[] = [parsedUrl.hostname];
+    try {
+      const records = await Deno.resolveDns(parsedUrl.hostname, "A").catch(() => [] as string[]);
+      const records6 = await Deno.resolveDns(parsedUrl.hostname, "AAAA").catch(() => [] as string[]);
+      resolvedHosts = [parsedUrl.hostname, ...records, ...records6];
+    } catch { /* ignore */ }
+    if (resolvedHosts.some(isPrivateAddress)) {
+      console.error("[slicebox-upload-url] Blocked private/internal host:", parsedUrl.hostname);
+      return new Response(
+        JSON.stringify({ success: false, error: "URL host is not allowed" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
     // Fetch the file
     console.log("[slicebox-upload-url] Fetching file...");
     const response = await fetch(url, {
       headers: {
         "User-Agent": "SliceBox/1.0 (https://sliceurl.app)",
       },
+      redirect: "error",
     });
 
     if (!response.ok) {
