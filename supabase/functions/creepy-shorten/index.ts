@@ -82,12 +82,18 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Validate URL
+    // Validate URL — only http(s) accepted for creepy links; block javascript:/data:/etc.
     try {
-      new URL(url);
+      if (typeof url !== "string" || /^\s*(javascript|data|vbscript|file|blob|about):/i.test(url)) {
+        throw new Error("scheme-not-allowed");
+      }
+      const parsed = new URL(url);
+      if (parsed.protocol !== "http:" && parsed.protocol !== "https:") {
+        throw new Error("scheme-not-allowed");
+      }
     } catch {
       return new Response(
-        JSON.stringify({ error: "Invalid URL format" }),
+        JSON.stringify({ error: "Invalid URL. Only http:// and https:// URLs are allowed." }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }

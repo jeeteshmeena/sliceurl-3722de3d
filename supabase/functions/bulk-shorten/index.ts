@@ -16,12 +16,11 @@ function generateShortCode(length = 6): string {
 }
 
 function isValidUrl(url: string): boolean {
-  if (typeof url !== 'string' || !url.startsWith('http')) {
-    return false;
-  }
+  if (typeof url !== 'string' || !url.trim()) return false;
+  if (/^\s*(javascript|data|vbscript|file|blob|about):/i.test(url)) return false;
   try {
-    new URL(url);
-    return true;
+    const parsed = new URL(url);
+    return parsed.protocol === 'http:' || parsed.protocol === 'https:';
   } catch {
     return false;
   }

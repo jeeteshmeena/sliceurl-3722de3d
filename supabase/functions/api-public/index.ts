@@ -40,6 +40,8 @@ function errorRes(error: string, status: number) {
 }
 
 function isValidHttpUrl(url: string): boolean {
+  if (typeof url !== 'string' || !url.trim()) return false;
+  if (/^\s*(javascript|data|vbscript|file|blob|about):/i.test(url)) return false;
   try {
     const parsed = new URL(url);
     return parsed.protocol === 'http:' || parsed.protocol === 'https:';

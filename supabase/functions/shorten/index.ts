@@ -36,7 +36,12 @@ function generateShortCode(length = 6): string {
   return result;
 }
 
+const ALLOWED_SCHEMES = new Set(['http:', 'https:', 'tel:', 'mailto:', 'sms:']);
+const DANGEROUS_SCHEMES = /^\s*(javascript|data|vbscript|file|blob|about):/i;
+
 function isValidUrl(url: string): boolean {
+  if (typeof url !== 'string' || !url.trim()) return false;
+  if (DANGEROUS_SCHEMES.test(url)) return false;
   // Allow UPI payment deep links
   if (/^upi:\/\/pay\?/i.test(url)) {
     const qIndex = url.indexOf('?');
@@ -48,9 +53,7 @@ function isValidUrl(url: string): boolean {
   }
   try {
     const parsed = new URL(url);
-    const isStandardProtocol = ['http:', 'https:', 'tel:', 'mailto:', 'sms:'].includes(parsed.protocol);
-    const isDeepLink = /^[a-zA-Z][a-zA-Z0-9+.-]*:\/\//.test(url);
-    return isStandardProtocol || isDeepLink;
+    return ALLOWED_SCHEMES.has(parsed.protocol.toLowerCase());
   } catch {
     return false;
   }
