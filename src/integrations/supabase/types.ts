@@ -682,6 +682,122 @@ export type Database = {
           },
         ]
       }
+      merchant_api_keys: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          id: string
+          is_active: boolean
+          key_hash: string
+          key_prefix: string
+          last_used_at: string | null
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          is_active?: boolean
+          key_hash: string
+          key_prefix: string
+          last_used_at?: string | null
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          is_active?: boolean
+          key_hash?: string
+          key_prefix?: string
+          last_used_at?: string | null
+          name?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      merchant_orders: {
+        Row: {
+          amount: number
+          api_key_id: string | null
+          callback_url: string | null
+          created_at: string
+          currency: string
+          customer_email: string | null
+          customer_name: string | null
+          customer_phone: string | null
+          description: string | null
+          external_order_id: string | null
+          id: string
+          metadata: Json | null
+          order_number: string
+          paytm_order_id: string | null
+          paytm_txn_id: string | null
+          raw_response: Json | null
+          return_url: string | null
+          status: string
+          txn_token: string | null
+          updated_at: string
+          verified_at: string | null
+        }
+        Insert: {
+          amount: number
+          api_key_id?: string | null
+          callback_url?: string | null
+          created_at?: string
+          currency?: string
+          customer_email?: string | null
+          customer_name?: string | null
+          customer_phone?: string | null
+          description?: string | null
+          external_order_id?: string | null
+          id?: string
+          metadata?: Json | null
+          order_number: string
+          paytm_order_id?: string | null
+          paytm_txn_id?: string | null
+          raw_response?: Json | null
+          return_url?: string | null
+          status?: string
+          txn_token?: string | null
+          updated_at?: string
+          verified_at?: string | null
+        }
+        Update: {
+          amount?: number
+          api_key_id?: string | null
+          callback_url?: string | null
+          created_at?: string
+          currency?: string
+          customer_email?: string | null
+          customer_name?: string | null
+          customer_phone?: string | null
+          description?: string | null
+          external_order_id?: string | null
+          id?: string
+          metadata?: Json | null
+          order_number?: string
+          paytm_order_id?: string | null
+          paytm_txn_id?: string | null
+          raw_response?: Json | null
+          return_url?: string | null
+          status?: string
+          txn_token?: string | null
+          updated_at?: string
+          verified_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "merchant_orders_api_key_id_fkey"
+            columns: ["api_key_id"]
+            isOneToOne: false
+            referencedRelation: "merchant_api_keys"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       orders: {
         Row: {
           amount: number
@@ -1614,6 +1730,7 @@ export type Database = {
         Args: { counter_name: string; increment_by?: number }
         Returns: undefined
       }
+      touch_merchant_api_key: { Args: { _key_id: string }; Returns: undefined }
     }
     Enums: {
       api_key_status: "active" | "revoked"
