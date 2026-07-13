@@ -45,6 +45,7 @@ const Feedback = lazy(() => import("@/pages/Feedback"));
 const FeedbackAdmin = lazy(() => import("@/pages/FeedbackAdmin"));
 const AdminInbox = lazy(() => import("@/pages/AdminInbox"));
 const AdminPaytm = lazy(() => import("@/pages/AdminPaytm"));
+const HostedCheckout = lazy(() => import("@/pages/HostedCheckout"));
 import { AdminGuard } from "@/components/AdminGuard";
 
 const queryClient = new QueryClient();
@@ -254,7 +255,14 @@ const App = () => (
                     </AdminGuard>
                   } />
 
+                  <Route path="/pay/:id" element={
+                    <Suspense fallback={<PageLoader />}>
+                      <HostedCheckout />
+                    </Suspense>
+                  } />
+
                   <Route path="*" element={<NotFound />} />
+
                 </Routes>
                 </BrowserRouter>
               </TooltipProvider>
