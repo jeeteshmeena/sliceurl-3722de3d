@@ -1,7 +1,7 @@
 {
   "rewrites": [
-    { "source": "/AryaPremium", "destination": "https://aryapremium.store/aryaPremium" },
-    { "source": "/AryaPremium/:path*", "destination": "https://aryapremium.store/aryaPremium/:path*" },
+    { "source": "/AryaPremium", "destination": "https://aryapremium.store/AryaPremium" },
+    { "source": "/AryaPremium/:path*", "destination": "https://aryapremium.store/AryaPremium/:path*" },
     { "source": "/aryaPremium", "destination": "https://aryapremium.store/aryaPremium" },
     { "source": "/aryaPremium/:path*", "destination": "https://aryapremium.store/aryaPremium/:path*" },
     { "source": "/admin", "destination": "https://aryapremium.store/admin" },
