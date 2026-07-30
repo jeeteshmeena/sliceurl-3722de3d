@@ -1,8 +1,11 @@
 {
   "rewrites": [
-    { "source": "/AryaPremium", "destination": "https://aryapremium.store/" },
-    { "source": "/AryaPremium/:path*", "destination": "https://aryapremium.store/" },
-    { "source": "/admin/:path*", "destination": "https://aryapremium.store/admin" },
+    { "source": "/AryaPremium", "destination": "https://aryapremium.store/aryaPremium" },
+    { "source": "/AryaPremium/:path*", "destination": "https://aryapremium.store/aryaPremium/:path*" },
+    { "source": "/aryaPremium", "destination": "https://aryapremium.store/aryaPremium" },
+    { "source": "/aryaPremium/:path*", "destination": "https://aryapremium.store/aryaPremium/:path*" },
+    { "source": "/admin", "destination": "https://aryapremium.store/admin" },
+    { "source": "/admin/:path*", "destination": "https://aryapremium.store/admin/:path*" },
     { "source": "/app/:path*", "destination": "/index.html" },
     { "source": "/slicebox/:path*", "destination": "/index.html" },
     { "source": "/littleslice/:path*", "destination": "/index.html" },
@@ -10,5 +13,20 @@
     { "source": "/ls/:path*", "destination": "/index.html" },
     { "source": "/sb/:path*", "destination": "/index.html" },
     { "source": "/(.*)", "destination": "/index.html" }
+  ],
+  "headers": [
+    {
+      "source": "/AryaPremium/(.*)",
+      "headers": [
+        { "key": "X-Content-Type-Options", "value": "nosniff" }
+      ]
+    },
+    {
+      "source": "/((?!AryaPremium).*)",
+      "headers": [
+        { "key": "X-Content-Type-Options", "value": "nosniff" },
+        { "key": "X-Frame-Options", "value": "DENY" }
+      ]
+    }
   ]
 }
