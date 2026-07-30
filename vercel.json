@@ -1,5 +1,8 @@
 {
   "rewrites": [
+    { "source": "/AryaPremium", "destination": "https://aryapremium.store" },
+    { "source": "/AryaPremium/:path*", "destination": "https://aryapremium.store/:path*" },
+    { "source": "/admin/:path*", "destination": "https://aryapremium.store/admin/:path*" },
     { "source": "/app/:path*", "destination": "/index.html" },
     { "source": "/slicebox/:path*", "destination": "/index.html" },
     { "source": "/littleslice/:path*", "destination": "/index.html" },
@@ -10,7 +13,16 @@
   ],
   "headers": [
     {
-      "source": "/(.*)",
+      "source": "/AryaPremium/(.*)",
+      "headers": [
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        }
+      ]
+    },
+    {
+      "source": "/((?!AryaPremium).*)",
       "headers": [
         {
           "key": "X-Content-Type-Options",
