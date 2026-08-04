@@ -292,6 +292,90 @@ export type Database = {
           },
         ]
       }
+      dodo_settings: {
+        Row: {
+          api_key: string | null
+          created_at: string
+          env: string
+          id: string
+          is_active: boolean
+          product_business_monthly: string | null
+          product_business_yearly: string | null
+          product_pro_monthly: string | null
+          product_pro_yearly: string | null
+          updated_at: string
+          updated_by: string | null
+          webhook_secret: string | null
+        }
+        Insert: {
+          api_key?: string | null
+          created_at?: string
+          env?: string
+          id?: string
+          is_active?: boolean
+          product_business_monthly?: string | null
+          product_business_yearly?: string | null
+          product_pro_monthly?: string | null
+          product_pro_yearly?: string | null
+          updated_at?: string
+          updated_by?: string | null
+          webhook_secret?: string | null
+        }
+        Update: {
+          api_key?: string | null
+          created_at?: string
+          env?: string
+          id?: string
+          is_active?: boolean
+          product_business_monthly?: string | null
+          product_business_yearly?: string | null
+          product_pro_monthly?: string | null
+          product_pro_yearly?: string | null
+          updated_at?: string
+          updated_by?: string | null
+          webhook_secret?: string | null
+        }
+        Relationships: []
+      }
+      dodo_webhook_logs: {
+        Row: {
+          created_at: string
+          dodo_payment_id: string | null
+          dodo_subscription_id: string | null
+          event_type: string
+          http_status: number | null
+          id: string
+          order_id: string | null
+          raw_payload: Json | null
+          status: string | null
+          verification_error: string | null
+        }
+        Insert: {
+          created_at?: string
+          dodo_payment_id?: string | null
+          dodo_subscription_id?: string | null
+          event_type: string
+          http_status?: number | null
+          id?: string
+          order_id?: string | null
+          raw_payload?: Json | null
+          status?: string | null
+          verification_error?: string | null
+        }
+        Update: {
+          created_at?: string
+          dodo_payment_id?: string | null
+          dodo_subscription_id?: string | null
+          event_type?: string
+          http_status?: number | null
+          id?: string
+          order_id?: string | null
+          raw_payload?: Json | null
+          status?: string | null
+          verification_error?: string | null
+        }
+        Relationships: []
+      }
       feedback_requests: {
         Row: {
           admin_notes: string | null
@@ -804,6 +888,8 @@ export type Database = {
           billing_cycle: Database["public"]["Enums"]["billing_cycle"]
           created_at: string
           currency: string
+          dodo_payment_id: string | null
+          dodo_session_id: string | null
           id: string
           order_number: string
           plan_id: string
@@ -818,6 +904,8 @@ export type Database = {
           billing_cycle: Database["public"]["Enums"]["billing_cycle"]
           created_at?: string
           currency?: string
+          dodo_payment_id?: string | null
+          dodo_session_id?: string | null
           id?: string
           order_number?: string
           plan_id: string
@@ -832,6 +920,8 @@ export type Database = {
           billing_cycle?: Database["public"]["Enums"]["billing_cycle"]
           created_at?: string
           currency?: string
+          dodo_payment_id?: string | null
+          dodo_session_id?: string | null
           id?: string
           order_number?: string
           plan_id?: string
@@ -1233,6 +1323,7 @@ export type Database = {
           created_at: string
           current_period_end: string | null
           current_period_start: string | null
+          dodo_subscription_id: string | null
           id: string
           plan_id: string
           status: Database["public"]["Enums"]["subscription_status"]
@@ -1245,6 +1336,7 @@ export type Database = {
           created_at?: string
           current_period_end?: string | null
           current_period_start?: string | null
+          dodo_subscription_id?: string | null
           id?: string
           plan_id: string
           status?: Database["public"]["Enums"]["subscription_status"]
@@ -1257,6 +1349,7 @@ export type Database = {
           created_at?: string
           current_period_end?: string | null
           current_period_start?: string | null
+          dodo_subscription_id?: string | null
           id?: string
           plan_id?: string
           status?: Database["public"]["Enums"]["subscription_status"]
