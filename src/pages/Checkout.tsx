@@ -157,7 +157,7 @@ export default function Checkout() {
                 {statusParam === "success"
                   ? "Your subscription is now active. You can head to your dashboard."
                   : statusParam === "pending"
-                  ? "We're waiting for confirmation from Paytm. This usually takes a minute."
+                  ? "We're waiting for confirmation from Dodo Payments. This usually takes a minute."
                   : "No amount was charged. You can try again below."}
                 {orderParam && <span className="ml-1">Order #{orderParam}</span>}
               </div>
@@ -249,7 +249,7 @@ export default function Checkout() {
               <h2 className="text-base font-semibold mb-3">Secure payment</h2>
               <div className="flex items-start gap-2 text-xs text-muted-foreground mb-4">
                 <ShieldCheck className="h-4 w-4 mt-0.5 shrink-0" />
-                Payments are processed securely by Paytm. Your card details never touch our servers.
+                Payments are processed securely by Dodo Payments. Your card details never touch our servers.
               </div>
 
               <label className="flex items-start gap-2 mb-4 cursor-pointer select-none">
