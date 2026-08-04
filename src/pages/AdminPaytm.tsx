@@ -18,6 +18,30 @@ type Settings = {
   is_active: boolean;
 };
 
+type DodoSettings = {
+  id?: string;
+  api_key: string;
+  webhook_secret: string;
+  env: "test" | "live";
+  product_pro_monthly: string;
+  product_pro_yearly: string;
+  product_business_monthly: string;
+  product_business_yearly: string;
+  is_active: boolean;
+};
+
+type DodoLog = {
+  id: string;
+  event_type: string;
+  dodo_payment_id: string | null;
+  dodo_subscription_id: string | null;
+  status: string | null;
+  verification_error: string | null;
+  http_status: number | null;
+  created_at: string;
+  raw_payload: any;
+};
+
 type LogRow = {
   id: string;
   event_type: string;
@@ -85,19 +109,36 @@ export default function AdminPaytm() {
   const [expanded, setExpanded] = useState<string | null>(null);
   const [newKeyName, setNewKeyName] = useState("");
   const [freshKey, setFreshKey] = useState<string | null>(null);
+  const [dodo, setDodo] = useState<DodoSettings>({
+    api_key: "",
+    webhook_secret: "",
+    env: "test",
+    product_pro_monthly: "",
+    product_pro_yearly: "",
+    product_business_monthly: "",
+    product_business_yearly: "",
+    is_active: true,
+  });
+  const [dodoLogs, setDodoLogs] = useState<DodoLog[]>([]);
+  const [savingDodo, setSavingDodo] = useState(false);
+  const [showDodoKey, setShowDodoKey] = useState(false);
 
   const load = async () => {
     setLoading(true);
-    const [{ data: s }, { data: l }, { data: k }, { data: o }] = await Promise.all([
+    const [{ data: s }, { data: l }, { data: k }, { data: o }, { data: d }, { data: dl }] = await Promise.all([
       supabase.from("paytm_settings" as any).select("*").eq("is_active", true).order("updated_at", { ascending: false }).limit(1).maybeSingle(),
       supabase.from("paytm_callback_logs" as any).select("*").order("created_at", { ascending: false }).limit(50),
       supabase.from("merchant_api_keys" as any).select("id, name, key_prefix, is_active, last_used_at, created_at").order("created_at", { ascending: false }),
       supabase.from("merchant_orders" as any).select("id, order_number, external_order_id, amount, currency, customer_email, description, status, paytm_txn_id, verified_at, created_at").order("created_at", { ascending: false }).limit(50),
+      supabase.from("dodo_settings" as any).select("*").eq("is_active", true).order("updated_at", { ascending: false }).limit(1).maybeSingle(),
+      supabase.from("dodo_webhook_logs" as any).select("*").order("created_at", { ascending: false }).limit(50),
     ]);
     if (s) setSettings(s as any);
     if (l) setLogs(l as any);
     if (k) setKeys(k as any);
     if (o) setOrders(o as any);
+    if (d) setDodo({ ...dodo, ...(d as any) });
+    if (dl) setDodoLogs(dl as any);
     setLoading(false);
   };
 
@@ -114,6 +155,19 @@ export default function AdminPaytm() {
     setSaving(false);
     if (error) toast.error(error.message);
     else { toast.success("Paytm settings saved"); load(); }
+  };
+
+  const saveDodo = async () => {
+    setSavingDodo(true);
+    const { data: userRes } = await supabase.auth.getUser();
+    const payload = { ...dodo, updated_by: userRes.user?.id };
+    const q = dodo.id
+      ? supabase.from("dodo_settings" as any).update(payload).eq("id", dodo.id)
+      : supabase.from("dodo_settings" as any).insert(payload);
+    const { error } = await q;
+    setSavingDodo(false);
+    if (error) toast.error(error.message);
+    else { toast.success("Dodo Payments settings saved"); load(); }
   };
 
   const createKey = async () => {
@@ -149,8 +203,8 @@ export default function AdminPaytm() {
 
   const statusColor = (s: string | null) => {
     if (!s) return "text-muted-foreground";
-    if (["verified", "success"].includes(s)) return "text-green-600";
-    if (["pending", "duplicate", "initiate", "created"].includes(s)) return "text-amber-600";
+    if (["verified", "success", "processed"].includes(s)) return "text-green-600";
+    if (["pending", "duplicate", "initiate", "created", "ignored"].includes(s)) return "text-amber-600";
     return "text-red-600";
   };
 
@@ -161,17 +215,87 @@ export default function AdminPaytm() {
       <Header />
       <main className="flex-1 max-w-4xl w-full mx-auto px-4 py-8 space-y-6">
         <div>
-          <h1 className="text-2xl font-semibold">Paytm Admin</h1>
-          <p className="text-sm text-muted-foreground mt-1">Credentials, API keys for external sites, and payment logs.</p>
+          <h1 className="text-2xl font-semibold">Payments Admin</h1>
+          <p className="text-sm text-muted-foreground mt-1">Dodo Payments (default), Paytm credentials, API keys for external sites, and payment logs.</p>
         </div>
 
-        <Tabs defaultValue="creds" className="w-full">
-          <TabsList className="rounded-xl">
-            <TabsTrigger value="creds" className="rounded-lg">Credentials</TabsTrigger>
+        <Tabs defaultValue="dodo" className="w-full">
+          <TabsList className="rounded-xl flex-wrap h-auto">
+            <TabsTrigger value="dodo" className="rounded-lg">Dodo Payments</TabsTrigger>
+            <TabsTrigger value="creds" className="rounded-lg">Paytm</TabsTrigger>
             <TabsTrigger value="keys" className="rounded-lg">API Keys</TabsTrigger>
             <TabsTrigger value="orders" className="rounded-lg">Merchant Orders</TabsTrigger>
-            <TabsTrigger value="logs" className="rounded-lg">Callback Logs</TabsTrigger>
+            <TabsTrigger value="logs" className="rounded-lg">Paytm Logs</TabsTrigger>
+            <TabsTrigger value="dodologs" className="rounded-lg">Dodo Logs</TabsTrigger>
           </TabsList>
+
+          {/* DODO PAYMENTS */}
+          <TabsContent value="dodo" className="mt-4 space-y-4">
+            <Card className="p-6 space-y-4 rounded-[14px]">
+              <div>
+                <h2 className="text-lg font-medium">Dodo Payments Credentials</h2>
+                <p className="text-xs text-muted-foreground mt-1">Default gateway for the checkout page. Keys are stored securely and only readable by admins.</p>
+              </div>
+              {loading ? <p className="text-sm text-muted-foreground">Loading…</p> : (
+                <>
+                  <div className="grid gap-2">
+                    <Label>API Key</Label>
+                    <div className="flex gap-2">
+                      <Input type={showDodoKey ? "text" : "password"} value={dodo.api_key ?? ""} onChange={(e) => setDodo({ ...dodo, api_key: e.target.value })} placeholder="dodo_live_... / dodo_test_..." />
+                      <Button type="button" variant="outline" onClick={() => setShowDodoKey(!showDodoKey)}>{showDodoKey ? "Hide" : "Show"}</Button>
+                    </div>
+                  </div>
+                  <div className="grid gap-2">
+                    <Label>Webhook Secret</Label>
+                    <Input type="password" value={dodo.webhook_secret ?? ""} onChange={(e) => setDodo({ ...dodo, webhook_secret: e.target.value })} placeholder="whsec_..." />
+                  </div>
+                  <div className="grid gap-2 max-w-xs">
+                    <Label>Environment</Label>
+                    <select
+                      className="h-10 rounded-md border border-input bg-background px-3 text-sm"
+                      value={dodo.env}
+                      onChange={(e) => setDodo({ ...dodo, env: e.target.value as "test" | "live" })}
+                    >
+                      <option value="test">Test</option>
+                      <option value="live">Live</option>
+                    </select>
+                  </div>
+
+                  <div className="pt-2">
+                    <h3 className="text-sm font-medium mb-2">Product IDs (from your Dodo dashboard)</h3>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div className="grid gap-2">
+                        <Label>Pro · Monthly (₹199)</Label>
+                        <Input value={dodo.product_pro_monthly ?? ""} onChange={(e) => setDodo({ ...dodo, product_pro_monthly: e.target.value })} placeholder="pdt_..." />
+                      </div>
+                      <div className="grid gap-2">
+                        <Label>Pro · Yearly (₹1,990)</Label>
+                        <Input value={dodo.product_pro_yearly ?? ""} onChange={(e) => setDodo({ ...dodo, product_pro_yearly: e.target.value })} placeholder="pdt_..." />
+                      </div>
+                      <div className="grid gap-2">
+                        <Label>Business · Monthly (₹499)</Label>
+                        <Input value={dodo.product_business_monthly ?? ""} onChange={(e) => setDodo({ ...dodo, product_business_monthly: e.target.value })} placeholder="pdt_..." />
+                      </div>
+                      <div className="grid gap-2">
+                        <Label>Business · Yearly (₹4,990)</Label>
+                        <Input value={dodo.product_business_yearly ?? ""} onChange={(e) => setDodo({ ...dodo, product_business_yearly: e.target.value })} placeholder="pdt_..." />
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex justify-end pt-2">
+                    <Button onClick={saveDodo} disabled={savingDodo} className="rounded-xl">{savingDodo ? "Saving…" : "Save Dodo Settings"}</Button>
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    Webhook URL to paste in Dodo: <code className="text-[11px] break-all">{SUPABASE_URL}/functions/v1/dodo-webhook</code>
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    Subscribe to events: <code className="text-[11px]">payment.succeeded</code>, <code className="text-[11px]">payment.failed</code>, <code className="text-[11px]">subscription.active</code>, <code className="text-[11px]">subscription.renewed</code>, <code className="text-[11px]">subscription.cancelled</code>.
+                  </p>
+                </>
+              )}
+            </Card>
+          </TabsContent>
 
           {/* CREDENTIALS */}
           <TabsContent value="creds" className="mt-4">
@@ -345,6 +469,51 @@ export default function AdminPaytm() {
                       </div>
                       {log.verification_error && (
                         <div className="mt-1 text-xs text-red-600">Error: {log.verification_error}</div>
+                      )}
+                      <button
+                        className="mt-2 text-xs underline text-muted-foreground"
+                        onClick={() => setExpanded(expanded === log.id ? null : log.id)}
+                      >
+                        {expanded === log.id ? "Hide" : "Show"} raw payload
+                      </button>
+                      {expanded === log.id && (
+                        <pre className="mt-2 text-[11px] bg-muted rounded-lg p-2 overflow-auto max-h-64">
+                          {JSON.stringify(log.raw_payload, null, 2)}
+                        </pre>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </Card>
+          </TabsContent>
+          {/* DODO LOGS */}
+          <TabsContent value="dodologs" className="mt-4">
+            <Card className="p-6 space-y-3 rounded-[14px]">
+              <div className="flex items-center justify-between">
+                <h2 className="text-lg font-medium">Dodo Webhook Events</h2>
+                <Button variant="outline" size="sm" onClick={load} className="rounded-xl">Refresh</Button>
+              </div>
+              {dodoLogs.length === 0 ? (
+                <p className="text-sm text-muted-foreground">No Dodo events yet.</p>
+              ) : (
+                <div className="space-y-2">
+                  {dodoLogs.map((log) => (
+                    <div key={log.id} className="border border-border rounded-xl p-3 text-sm">
+                      <div className="flex items-center justify-between gap-2 flex-wrap">
+                        <div className="flex items-center gap-3">
+                          <span className="text-xs uppercase text-muted-foreground">{log.event_type}</span>
+                          <span className={`font-medium ${statusColor(log.status)}`}>{log.status ?? "—"}</span>
+                          {log.http_status && <span className="text-xs text-muted-foreground">HTTP {log.http_status}</span>}
+                        </div>
+                        <span className="text-xs text-muted-foreground">{new Date(log.created_at).toLocaleString()}</span>
+                      </div>
+                      <div className="mt-1 text-xs text-muted-foreground flex flex-wrap gap-x-4">
+                        {log.dodo_payment_id && <span>Payment: {log.dodo_payment_id}</span>}
+                        {log.dodo_subscription_id && <span>Subscription: {log.dodo_subscription_id}</span>}
+                      </div>
+                      {log.verification_error && (
+                        <div className="mt-1 text-xs text-red-600 break-all">Error: {log.verification_error}</div>
                       )}
                       <button
                         className="mt-2 text-xs underline text-muted-foreground"

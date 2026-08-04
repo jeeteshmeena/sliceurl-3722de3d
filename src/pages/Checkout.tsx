@@ -48,56 +48,6 @@ export default function Checkout() {
     if (profile?.display_name && !name) setName(profile.display_name);
   }, [profile, name]);
 
-  const loadPaytmScript = (host: string, mid: string, orderId: string) =>
-    new Promise<void>((resolve, reject) => {
-      const src = `${host}/merchantpgpui/checkoutjs/merchants/${mid}.js`;
-      // Remove any prior script so orderId gets rebound
-      document.querySelectorAll('script[data-paytm="1"]').forEach((s) => s.remove());
-      const script = document.createElement("script");
-      script.src = src;
-      script.type = "application/javascript";
-      script.crossOrigin = "anonymous";
-      script.dataset.paytm = "1";
-      script.dataset.orderId = orderId;
-      script.onload = () => resolve();
-      script.onerror = () => reject(new Error("Failed to load Paytm Checkout JS"));
-      document.body.appendChild(script);
-    });
-
-  const launchPaytm = async (payRes: {
-    mid: string;
-    orderId: string;
-    txnToken: string;
-    amount: string;
-    host: string;
-  }) => {
-    await loadPaytmScript(payRes.host, payRes.mid, payRes.orderId);
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const w = window as any;
-    if (!w.Paytm?.CheckoutJS) throw new Error("Paytm SDK not available");
-    await new Promise<void>((resolve) => w.Paytm.CheckoutJS.onLoad(() => resolve()));
-
-    const config = {
-      root: "",
-      flow: "DEFAULT",
-      data: {
-        orderId: payRes.orderId,
-        token: payRes.txnToken,
-        tokenType: "TXN_TOKEN",
-        amount: payRes.amount,
-      },
-      handler: {
-        notifyMerchant: (eventName: string) => {
-          if (eventName === "APP_CLOSED" || eventName === "SESSION_EXPIRED") {
-            setSubmitting(false);
-          }
-        },
-      },
-    };
-    await w.Paytm.CheckoutJS.init(config);
-    w.Paytm.CheckoutJS.invoke();
-  };
-
   const handlePay = async () => {
     if (!user) {
       navigate(`/login?redirect=${encodeURIComponent(`/checkout?plan=${plan.id}&cycle=${cycle}`)}`);
@@ -117,38 +67,45 @@ export default function Checkout() {
         setSubmitting(false);
         return;
       }
-      const { data: payRes, error: payErr } = await supabase.functions.invoke("paytm-initiate", {
-        body: { order_id: orderRes.order_id },
+
+      const { data: payRes, error: payErr } = await supabase.functions.invoke("dodo-initiate", {
+        body: { order_id: orderRes.order_id, customer_name: name },
       });
+
       if (payErr) {
-        const raw = (payErr as { context?: { body?: string; error?: string }; message?: string })
-          ?.context?.body || payErr?.message || "Payment initiation failed.";
+        const raw = (payErr as { context?: { body?: string }; message?: string })?.context?.body
+          || payErr?.message
+          || "Payment initiation failed.";
         let msg = "Payment initiation failed.";
         try {
           const parsed = typeof raw === "string" ? JSON.parse(raw) : raw;
-          if (parsed?.message) msg = `Paytm: ${parsed.message}`;
-          else if (parsed?.error) msg = parsed.error;
+          if (parsed?.error) msg = parsed.error;
         } catch { /* keep default */ }
         toast.error(msg);
         setSubmitting(false);
         return;
       }
+
       if (payRes?.status === "coming_soon") {
         setComingSoonOpen(true);
         setSubmitting(false);
-      } else if (payRes?.txnToken && payRes?.mid && payRes?.orderId && payRes?.host) {
-        await launchPaytm(payRes);
-        // Keep submitting=true; SDK takes over the page.
-      } else {
-        toast.error(payRes?.message ?? "Unable to start payment.");
-        setSubmitting(false);
+        return;
       }
+
+      if (payRes?.checkout_url) {
+        window.location.href = payRes.checkout_url as string;
+        return; // Dodo hosted checkout takes over
+      }
+
+      toast.error(payRes?.message ?? "Unable to start payment.");
+      setSubmitting(false);
     } catch (e) {
       console.error(e);
       toast.error("Something went wrong. Please try again.");
       setSubmitting(false);
     }
   };
+
 
 
   return (
@@ -200,7 +157,7 @@ export default function Checkout() {
                 {statusParam === "success"
                   ? "Your subscription is now active. You can head to your dashboard."
                   : statusParam === "pending"
-                  ? "We're waiting for confirmation from Paytm. This usually takes a minute."
+                  ? "We're waiting for confirmation from Dodo Payments. This usually takes a minute."
                   : "No amount was charged. You can try again below."}
                 {orderParam && <span className="ml-1">Order #{orderParam}</span>}
               </div>
@@ -292,7 +249,7 @@ export default function Checkout() {
               <h2 className="text-base font-semibold mb-3">Secure payment</h2>
               <div className="flex items-start gap-2 text-xs text-muted-foreground mb-4">
                 <ShieldCheck className="h-4 w-4 mt-0.5 shrink-0" />
-                Payments are processed securely by Paytm. Your card details never touch our servers.
+                Payments are processed securely by Dodo Payments. Your card details never touch our servers.
               </div>
 
               <label className="flex items-start gap-2 mb-4 cursor-pointer select-none">
