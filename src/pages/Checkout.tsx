@@ -48,56 +48,6 @@ export default function Checkout() {
     if (profile?.display_name && !name) setName(profile.display_name);
   }, [profile, name]);
 
-  const loadPaytmScript = (host: string, mid: string, orderId: string) =>
-    new Promise<void>((resolve, reject) => {
-      const src = `${host}/merchantpgpui/checkoutjs/merchants/${mid}.js`;
-      // Remove any prior script so orderId gets rebound
-      document.querySelectorAll('script[data-paytm="1"]').forEach((s) => s.remove());
-      const script = document.createElement("script");
-      script.src = src;
-      script.type = "application/javascript";
-      script.crossOrigin = "anonymous";
-      script.dataset.paytm = "1";
-      script.dataset.orderId = orderId;
-      script.onload = () => resolve();
-      script.onerror = () => reject(new Error("Failed to load Paytm Checkout JS"));
-      document.body.appendChild(script);
-    });
-
-  const launchPaytm = async (payRes: {
-    mid: string;
-    orderId: string;
-    txnToken: string;
-    amount: string;
-    host: string;
-  }) => {
-    await loadPaytmScript(payRes.host, payRes.mid, payRes.orderId);
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const w = window as any;
-    if (!w.Paytm?.CheckoutJS) throw new Error("Paytm SDK not available");
-    await new Promise<void>((resolve) => w.Paytm.CheckoutJS.onLoad(() => resolve()));
-
-    const config = {
-      root: "",
-      flow: "DEFAULT",
-      data: {
-        orderId: payRes.orderId,
-        token: payRes.txnToken,
-        tokenType: "TXN_TOKEN",
-        amount: payRes.amount,
-      },
-      handler: {
-        notifyMerchant: (eventName: string) => {
-          if (eventName === "APP_CLOSED" || eventName === "SESSION_EXPIRED") {
-            setSubmitting(false);
-          }
-        },
-      },
-    };
-    await w.Paytm.CheckoutJS.init(config);
-    w.Paytm.CheckoutJS.invoke();
-  };
-
   const handlePay = async () => {
     if (!user) {
       navigate(`/login?redirect=${encodeURIComponent(`/checkout?plan=${plan.id}&cycle=${cycle}`)}`);
@@ -117,38 +67,45 @@ export default function Checkout() {
         setSubmitting(false);
         return;
       }
-      const { data: payRes, error: payErr } = await supabase.functions.invoke("paytm-initiate", {
-        body: { order_id: orderRes.order_id },
+
+      const { data: payRes, error: payErr } = await supabase.functions.invoke("dodo-initiate", {
+        body: { order_id: orderRes.order_id, customer_name: name },
       });
+
       if (payErr) {
-        const raw = (payErr as { context?: { body?: string; error?: string }; message?: string })
-          ?.context?.body || payErr?.message || "Payment initiation failed.";
+        const raw = (payErr as { context?: { body?: string }; message?: string })?.context?.body
+          || payErr?.message
+          || "Payment initiation failed.";
         let msg = "Payment initiation failed.";
         try {
           const parsed = typeof raw === "string" ? JSON.parse(raw) : raw;
-          if (parsed?.message) msg = `Paytm: ${parsed.message}`;
-          else if (parsed?.error) msg = parsed.error;
+          if (parsed?.error) msg = parsed.error;
         } catch { /* keep default */ }
         toast.error(msg);
         setSubmitting(false);
         return;
       }
+
       if (payRes?.status === "coming_soon") {
         setComingSoonOpen(true);
         setSubmitting(false);
-      } else if (payRes?.txnToken && payRes?.mid && payRes?.orderId && payRes?.host) {
-        await launchPaytm(payRes);
-        // Keep submitting=true; SDK takes over the page.
-      } else {
-        toast.error(payRes?.message ?? "Unable to start payment.");
-        setSubmitting(false);
+        return;
       }
+
+      if (payRes?.checkout_url) {
+        window.location.href = payRes.checkout_url as string;
+        return; // Dodo hosted checkout takes over
+      }
+
+      toast.error(payRes?.message ?? "Unable to start payment.");
+      setSubmitting(false);
     } catch (e) {
       console.error(e);
       toast.error("Something went wrong. Please try again.");
       setSubmitting(false);
     }
   };
+
 
 
   return (
