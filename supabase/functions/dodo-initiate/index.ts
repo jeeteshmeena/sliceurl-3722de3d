@@ -137,17 +137,27 @@ Deno.serve(async (req) => {
       .update({ status: "pending", dodo_session_id: sessionId ?? null })
       .eq("id", order.id);
 
-    await admin.from("payments").upsert(
-      {
+    const { data: existingPayment } = await admin
+      .from("payments")
+      .select("id")
+      .eq("order_id", order.id)
+      .maybeSingle();
+
+    if (existingPayment) {
+      await admin
+        .from("payments")
+        .update({ provider: "dodo", provider_order_id: sessionId ?? null, status: "pending" })
+        .eq("id", existingPayment.id);
+    } else {
+      await admin.from("payments").insert({
         order_id: order.id,
         user_id: order.user_id,
         provider: "dodo",
         provider_order_id: sessionId ?? null,
         amount: order.total,
         status: "pending",
-      },
-      { onConflict: "order_id" },
-    );
+      });
+    }
 
     await admin.from("dodo_webhook_logs").insert({
       event_type: "checkout.created",
