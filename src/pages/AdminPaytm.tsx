@@ -203,8 +203,8 @@ export default function AdminPaytm() {
 
   const statusColor = (s: string | null) => {
     if (!s) return "text-muted-foreground";
-    if (["verified", "success"].includes(s)) return "text-green-600";
-    if (["pending", "duplicate", "initiate", "created"].includes(s)) return "text-amber-600";
+    if (["verified", "success", "processed"].includes(s)) return "text-green-600";
+    if (["pending", "duplicate", "initiate", "created", "ignored"].includes(s)) return "text-amber-600";
     return "text-red-600";
   };
 
