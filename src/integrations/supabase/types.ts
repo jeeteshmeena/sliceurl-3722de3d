@@ -303,6 +303,7 @@ export type Database = {
           product_business_yearly: string | null
           product_pro_monthly: string | null
           product_pro_yearly: string | null
+          reconciliation_token: string
           updated_at: string
           updated_by: string | null
           webhook_secret: string | null
@@ -317,6 +318,7 @@ export type Database = {
           product_business_yearly?: string | null
           product_pro_monthly?: string | null
           product_pro_yearly?: string | null
+          reconciliation_token?: string
           updated_at?: string
           updated_by?: string | null
           webhook_secret?: string | null
@@ -331,6 +333,7 @@ export type Database = {
           product_business_yearly?: string | null
           product_pro_monthly?: string | null
           product_pro_yearly?: string | null
+          reconciliation_token?: string
           updated_at?: string
           updated_by?: string | null
           webhook_secret?: string | null
@@ -345,10 +348,14 @@ export type Database = {
           event_type: string
           http_status: number | null
           id: string
+          last_replayed_at: string | null
           order_id: string | null
+          processed_at: string | null
           raw_payload: Json | null
+          replay_count: number
           status: string | null
           verification_error: string | null
+          webhook_id: string | null
         }
         Insert: {
           created_at?: string
@@ -357,10 +364,14 @@ export type Database = {
           event_type: string
           http_status?: number | null
           id?: string
+          last_replayed_at?: string | null
           order_id?: string | null
+          processed_at?: string | null
           raw_payload?: Json | null
+          replay_count?: number
           status?: string | null
           verification_error?: string | null
+          webhook_id?: string | null
         }
         Update: {
           created_at?: string
@@ -369,10 +380,14 @@ export type Database = {
           event_type?: string
           http_status?: number | null
           id?: string
+          last_replayed_at?: string | null
           order_id?: string | null
+          processed_at?: string | null
           raw_payload?: Json | null
+          replay_count?: number
           status?: string | null
           verification_error?: string | null
+          webhook_id?: string | null
         }
         Relationships: []
       }
@@ -1830,7 +1845,13 @@ export type Database = {
       app_role: "admin" | "moderator" | "user"
       billing_cycle: "monthly" | "yearly"
       link_health_status: "active" | "low_activity" | "inactive" | "broken"
-      payment_status: "created" | "pending" | "success" | "failed" | "refunded"
+      payment_status:
+        | "created"
+        | "pending"
+        | "success"
+        | "failed"
+        | "refunded"
+        | "cancelled"
       subscription_status:
         | "active"
         | "expired"
@@ -1969,7 +1990,14 @@ export const Constants = {
       app_role: ["admin", "moderator", "user"],
       billing_cycle: ["monthly", "yearly"],
       link_health_status: ["active", "low_activity", "inactive", "broken"],
-      payment_status: ["created", "pending", "success", "failed", "refunded"],
+      payment_status: [
+        "created",
+        "pending",
+        "success",
+        "failed",
+        "refunded",
+        "cancelled",
+      ],
       subscription_status: [
         "active",
         "expired",
