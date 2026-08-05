@@ -1,19 +1,10 @@
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
+import { adminClient, dodoBaseUrl, getDodoSettings, productFor, requireUser } from "../_shared/dodo.ts";
 
 // Creates a Dodo Payments checkout session for an existing order.
 // Credentials come from public.dodo_settings (admin managed) with env fallback.
 
 const APP_URL_DEFAULT = "https://s1liceurl.lovable.app";
-
-type Settings = {
-  api_key: string | null;
-  env: string;
-  product_pro_monthly: string | null;
-  product_pro_yearly: string | null;
-  product_business_monthly: string | null;
-  product_business_yearly: string | null;
-};
 
 function json(body: unknown, status = 200) {
   return new Response(JSON.stringify(body), {
@@ -22,28 +13,13 @@ function json(body: unknown, status = 200) {
   });
 }
 
-function productFor(s: Settings, planId: string, cycle: string): string | null {
-  const key = `product_${planId}_${cycle}` as keyof Settings;
-  const value = s[key];
-  return typeof value === "string" && value.trim() ? value.trim() : null;
-}
-
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
 
   try {
-    const authHeader = req.headers.get("Authorization");
-    if (!authHeader) return json({ error: "Missing authorization" }, 401);
-
-    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-    const admin = createClient(supabaseUrl, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
-    const authClient = createClient(supabaseUrl, Deno.env.get("SUPABASE_ANON_KEY")!, {
-      global: { headers: { Authorization: authHeader } },
-    });
-
-    const { data: userRes, error: userErr } = await authClient.auth.getUser();
-    if (userErr || !userRes.user) return json({ error: "Unauthorized" }, 401);
-    const user = userRes.user;
+    const admin = adminClient();
+    const user = await requireUser(req);
+    if (!user) return json({ error: "Please sign in again before paying.", code: "UNAUTHORIZED" }, 401);
 
     const body = await req.json().catch(() => ({}));
     const orderId = String(body.order_id ?? "");
@@ -59,29 +35,27 @@ Deno.serve(async (req) => {
     if (!order || order.user_id !== user.id) return json({ error: "Order not found" }, 404);
     if (order.status === "success") return json({ error: "Order already paid" }, 409);
 
-    const { data: settings } = await admin
-      .from("dodo_settings")
-      .select("api_key, env, product_pro_monthly, product_pro_yearly, product_business_monthly, product_business_yearly")
-      .eq("is_active", true)
-      .order("updated_at", { ascending: false })
-      .limit(1)
-      .maybeSingle();
+    const { data: active } = await admin.from("subscriptions").select("plan_id, status, current_period_end")
+      .eq("user_id", user.id).eq("status", "active").gte("current_period_end", new Date().toISOString())
+      .order("created_at", { ascending: false }).limit(1).maybeSingle();
+    if (active?.plan_id === order.plan_id) return json({ error: `Your ${order.plan_id} subscription is already active.`, code: "SUBSCRIPTION_ACTIVE" }, 409);
+
+    const settings = await getDodoSettings(admin);
 
     const apiKey = (settings?.api_key ?? Deno.env.get("DODO_PAYMENTS_API_KEY") ?? "").trim();
     if (!settings || !apiKey) {
-      return json({ status: "coming_soon", message: "Dodo Payments is not configured yet." }, 200);
+      return json({ error: "Payments are temporarily unavailable because the gateway is not configured.", code: "GATEWAY_NOT_CONFIGURED" }, 503);
     }
 
-    const productId = productFor(settings as Settings, order.plan_id, order.billing_cycle);
+    const productId = productFor(settings, order.plan_id, order.billing_cycle);
     if (!productId) {
-      return json(
-        { error: `No Dodo product ID configured for ${order.plan_id} / ${order.billing_cycle}.` },
-        400,
-      );
+      const reason = `The Dodo product ID for ${order.plan_id} ${order.billing_cycle} is missing.`;
+      await admin.from("dodo_webhook_logs").insert({ event_type: "checkout.configuration_failed", order_id: order.id, status: "error", verification_error: reason });
+      return json({ error: reason, code: "PRODUCT_NOT_CONFIGURED", action: "Ask an administrator to add this product ID in Payments Admin." }, 422);
     }
 
     const env = (settings.env ?? "test").toLowerCase();
-    const base = env === "live" ? "https://live.dodopayments.com" : "https://test.dodopayments.com";
+    const base = dodoBaseUrl(env);
     const appUrl = Deno.env.get("APP_URL") ?? APP_URL_DEFAULT;
     const returnUrl = `${appUrl}/checkout?plan=${order.plan_id}&cycle=${order.billing_cycle}&order=${encodeURIComponent(order.order_number)}&status=pending`;
 
@@ -91,7 +65,7 @@ Deno.serve(async (req) => {
         email: user.email,
         name: customerName || user.email?.split("@")[0] || "Customer",
       },
-      return_url: returnUrl,
+      return_url: returnUrl.replace("status=pending", "status=verifying"),
       metadata: {
         order_id: order.id,
         order_number: order.order_number,
@@ -106,6 +80,7 @@ Deno.serve(async (req) => {
       headers: {
         Authorization: `Bearer ${apiKey}`,
         "Content-Type": "application/json",
+        "Idempotency-Key": `sliceurl-${order.id}-${Date.now()}`,
       },
       body: JSON.stringify(payload),
     });
@@ -120,16 +95,21 @@ Deno.serve(async (req) => {
         http_status: res.status,
         verification_error: text.slice(0, 2000),
       });
-      return json({ error: "Payment initiation failed", status: res.status, details: text }, res.status);
+      let providerMessage = text.slice(0, 1000);
+      try {
+        const failed = JSON.parse(text);
+        providerMessage = failed.message ?? failed.error ?? providerMessage;
+      } catch { /* retain response text */ }
+      return json({ error: "Dodo could not start this payment.", reason: providerMessage, code: "DODO_CHECKOUT_FAILED", retryable: res.status >= 500 || res.status === 429 }, res.status);
     }
 
     let parsed: Record<string, unknown> = {};
     try { parsed = JSON.parse(text); } catch { /* noop */ }
     const checkoutUrl = (parsed.checkout_url ?? parsed.payment_link ?? parsed.url) as string | undefined;
-    const sessionId = (parsed.session_id ?? parsed.payment_id ?? parsed.subscription_id) as string | undefined;
+    const sessionId = (parsed.session_id ?? parsed.id) as string | undefined;
 
     if (!checkoutUrl) {
-      return json({ error: "Dodo did not return a checkout URL", details: text }, 502);
+      return json({ error: "Dodo returned an incomplete checkout session.", code: "INVALID_DODO_RESPONSE", retryable: true }, 502);
     }
 
     await admin
