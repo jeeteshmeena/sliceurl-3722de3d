@@ -39,8 +39,16 @@ export function useSubscription() {
       setSubscription((data as Subscription | null) ?? null);
       setLoading(false);
     })();
+    const channel = supabase
+      .channel(`subscription-${user.id}`)
+      .on("postgres_changes", { event: "*", schema: "public", table: "subscriptions", filter: `user_id=eq.${user.id}` }, () => {
+        supabase.from("subscriptions").select("*").eq("user_id", user.id).in("status", ["active", "pending"]).order("created_at", { ascending: false }).limit(1).maybeSingle()
+          .then(({ data }) => { if (active) setSubscription((data as Subscription | null) ?? null); });
+      })
+      .subscribe();
     return () => {
       active = false;
+      supabase.removeChannel(channel);
     };
   }, [user]);
 

@@ -6,7 +6,8 @@ Deno.serve(async (req) => {
   const admin = adminClient();
   const user = await requireUser(req);
   if (!user) return json({ error: "Unauthorized" }, 401);
-  const orderNumber = new URL(req.url).searchParams.get("order");
+  const body = req.method === "POST" ? await req.json().catch(() => ({})) : {};
+  const orderNumber = typeof body.order === "string" ? body.order : null;
   if (!orderNumber) return json({ error: "Order is required" }, 400);
   const { data: order } = await admin.from("orders").select("id, order_number, plan_id, billing_cycle, status, updated_at").eq("order_number", orderNumber).eq("user_id", user.id).maybeSingle();
   if (!order) return json({ error: "Order not found" }, 404);
