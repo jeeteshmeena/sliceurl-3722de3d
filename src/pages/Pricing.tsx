@@ -4,6 +4,7 @@ import { ArrowLeft, Check } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 import { useLanguage } from "@/lib/i18n";
 import { useAuth } from "@/hooks/useAuth";
+import { useSubscription } from "@/hooks/useSubscription";
 import { Footer } from "@/components/Footer";
 import { SliceLogo } from "@/components/SliceLogo";
 import { Button } from "@/components/ui/button";
@@ -12,6 +13,7 @@ import { PLANS, PAID_PLAN_IDS, formatINR, type BillingCycle, type PlanId } from 
 export default function Pricing() {
   const { t } = useLanguage();
   const { user } = useAuth();
+  const { subscription } = useSubscription();
   const navigate = useNavigate();
   const location = useLocation();
   const [cycle, setCycle] = useState<BillingCycle>("monthly");
@@ -90,16 +92,17 @@ export default function Pricing() {
             const price = cycle === "monthly" ? plan.monthly : plan.yearly;
             const perLabel = plan.id === "free" ? "forever" : cycle === "monthly" ? "/mo" : "/yr";
             const isPaid = PAID_PLAN_IDS.includes(plan.id);
+            const isCurrent = subscription?.status === "active" && subscription.plan_id === plan.id;
             return (
               <div
                 key={plan.id}
-                className={`relative rounded-[14px] border bg-card p-6 flex flex-col transition-all duration-200 ease-out hover:-translate-y-0.5 hover:shadow-md ${
-                  plan.popular ? "border-foreground/30 shadow-sm" : "border-border"
+                className={`relative rounded-[14px] border bg-card p-6 flex flex-col ${
+                  isCurrent ? "border-primary ring-1 ring-primary" : plan.popular ? "border-foreground/30" : "border-border"
                 }`}
               >
-                {plan.popular && (
+                {(isCurrent || plan.popular) && (
                   <span className="absolute -top-3 left-1/2 -translate-x-1/2 bg-foreground text-background text-[11px] font-semibold px-3 py-1 rounded-full">
-                    Most Popular
+                    {isCurrent ? "Current Plan" : "Most Popular"}
                   </span>
                 )}
                 <div className="text-lg font-semibold">{plan.name}</div>
@@ -147,10 +150,11 @@ export default function Pricing() {
 
                 <Button
                   onClick={() => handleChoose(plan.id)}
+                  disabled={isCurrent}
                   variant={plan.popular ? "default" : "outline"}
                   className="w-full rounded-xl h-11"
                 >
-                  {plan.id === "free" ? "Get Started" : "Choose Plan"}
+                  {isCurrent ? "Active subscription" : plan.id === "free" ? "Get Started" : "Choose Plan"}
                 </Button>
               </div>
             );

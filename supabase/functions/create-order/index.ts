@@ -53,6 +53,22 @@ Deno.serve(async (req) => {
       });
     }
 
+    const { data: activeSubscription } = await admin
+      .from("subscriptions")
+      .select("plan_id, status, current_period_end")
+      .eq("user_id", userId)
+      .eq("status", "active")
+      .gte("current_period_end", new Date().toISOString())
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    if (activeSubscription?.plan_id === planId) {
+      return new Response(JSON.stringify({ error: `Your ${planId} subscription is already active.`, code: "SUBSCRIPTION_ACTIVE" }), {
+        status: 409,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     // Duplicate guard: reject if a pending order for the same plan was created in the last 5 minutes
     const fiveMinAgo = new Date(Date.now() - 5 * 60 * 1000).toISOString();
     const { data: existing } = await admin

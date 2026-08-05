@@ -40,6 +40,7 @@ type DodoLog = {
   http_status: number | null;
   created_at: string;
   raw_payload: any;
+  replay_count?: number;
 };
 
 type LogRow = {
@@ -122,6 +123,7 @@ export default function AdminPaytm() {
   const [dodoLogs, setDodoLogs] = useState<DodoLog[]>([]);
   const [savingDodo, setSavingDodo] = useState(false);
   const [showDodoKey, setShowDodoKey] = useState(false);
+  const [replaying, setReplaying] = useState<string | null>(null);
 
   const load = async () => {
     setLoading(true);
@@ -158,6 +160,12 @@ export default function AdminPaytm() {
   };
 
   const saveDodo = async () => {
+    const missing = [
+      [dodo.api_key, "API Key"], [dodo.webhook_secret, "Webhook Secret"],
+      [dodo.product_pro_monthly, "Pro Monthly Product ID"], [dodo.product_pro_yearly, "Pro Yearly Product ID"],
+      [dodo.product_business_monthly, "Business Monthly Product ID"], [dodo.product_business_yearly, "Business Yearly Product ID"],
+    ].filter(([value]) => !value?.trim()).map(([, label]) => label);
+    if (missing.length) return toast.error(`Complete Dodo setup: ${missing.join(", ")}`);
     setSavingDodo(true);
     const { data: userRes } = await supabase.auth.getUser();
     const payload = { ...dodo, updated_by: userRes.user?.id };
@@ -168,6 +176,19 @@ export default function AdminPaytm() {
     setSavingDodo(false);
     if (error) toast.error(error.message);
     else { toast.success("Dodo Payments settings saved"); load(); }
+  };
+
+  const replayDodo = async (logId: string) => {
+    setReplaying(logId);
+    const { data, error } = await supabase.functions.invoke("dodo-admin", { body: { action: "replay", log_id: logId } });
+    setReplaying(null);
+    if (error || !data?.success) toast.error("Webhook replay could not match and update an order.");
+    else { toast.success("Webhook reprocessed safely"); load(); }
+  };
+
+  const reconcileDodo = async () => {
+    const { data, error } = await supabase.functions.invoke("dodo-reconcile", { body: {} });
+    if (error) toast.error("Reconciliation failed"); else { toast.success(`Checked ${data?.checked ?? 0}; updated ${data?.updated ?? 0}`); load(); }
   };
 
   const createKey = async () => {
@@ -286,6 +307,7 @@ export default function AdminPaytm() {
                   <div className="flex justify-end pt-2">
                     <Button onClick={saveDodo} disabled={savingDodo} className="rounded-xl">{savingDodo ? "Saving…" : "Save Dodo Settings"}</Button>
                   </div>
+                  {!dodo.webhook_secret && <p className="text-xs text-destructive">Webhook secret is required before subscriptions can be activated automatically.</p>}
                   <p className="text-xs text-muted-foreground">
                     Webhook URL to paste in Dodo: <code className="text-[11px] break-all">{SUPABASE_URL}/functions/v1/dodo-webhook</code>
                   </p>
@@ -414,7 +436,7 @@ export default function AdminPaytm() {
             <Card className="p-6 space-y-3 rounded-[14px]">
               <div className="flex items-center justify-between">
                 <h2 className="text-lg font-medium">External Site Orders</h2>
-                <Button variant="outline" size="sm" onClick={load} className="rounded-xl">Refresh</Button>
+                <div className="flex gap-2"><Button variant="outline" size="sm" onClick={reconcileDodo}>Reconcile pending</Button><Button variant="outline" size="sm" onClick={load}>Refresh</Button></div>
               </div>
               {orders.length === 0 ? <p className="text-sm text-muted-foreground">No merchant orders yet.</p> : (
                 <div className="space-y-2">
@@ -469,6 +491,9 @@ export default function AdminPaytm() {
                       </div>
                       {log.verification_error && (
                         <div className="mt-1 text-xs text-red-600">Error: {log.verification_error}</div>
+                      )}
+                      {log.raw_payload && !["processed", "duplicate", "replayed"].includes(log.status ?? "") && (
+                        <Button size="sm" variant="outline" className="mt-2" disabled={replaying === log.id} onClick={() => replayDodo(log.id)}>{replaying === log.id ? "Replaying…" : "Replay event"}</Button>
                       )}
                       <button
                         className="mt-2 text-xs underline text-muted-foreground"
