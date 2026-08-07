@@ -339,6 +339,8 @@ export function Header() {
               {/* Mobile Menu Toggle */}
               <button
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                aria-label={mobileMenuOpen ? "Close navigation menu" : "Open navigation menu"}
+                aria-expanded={mobileMenuOpen}
                 className="h-9 w-9 flex items-center justify-center text-foreground sm:hidden"
               >
                 {mobileMenuOpen ? (

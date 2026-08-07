@@ -600,6 +600,7 @@ export default function SliceBox() {
                           variant="outline"
                           onClick={() => handleShare(file)}
                           colorScheme="slicebox"
+                          aria-label={`Share link for ${file.originalName}`}
                         >
                           <Share2 className="h-4 w-4" />
                         </IsolatedButton>
@@ -609,7 +610,12 @@ export default function SliceBox() {
                           asChild
                           colorScheme="slicebox"
                         >
-                          <a href={file.shareUrl} target="_blank" rel="noopener noreferrer">
+                          <a
+                            href={file.shareUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            aria-label={`Open ${file.originalName} in a new tab`}
+                          >
                             <ExternalLink className="h-4 w-4" />
                           </a>
                         </IsolatedButton>

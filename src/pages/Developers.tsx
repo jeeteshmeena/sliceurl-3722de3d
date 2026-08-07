@@ -34,6 +34,7 @@ function CodeBlock({ code, language = "bash" }: { code: string; language?: strin
         size="icon-sm"
         className="absolute top-2 right-2 h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity"
         onClick={handleCopy}
+        aria-label={copied ? "Code copied to clipboard" : "Copy code example"}
       >
         {copied ? <Check className="h-3.5 w-3.5" strokeWidth={1.7} /> : <Copy className="h-3.5 w-3.5" strokeWidth={1.7} />}
       </Button>
@@ -83,7 +84,7 @@ const Developers = () => {
           {/* Page header */}
           <div className="flex items-start gap-3">
             <Button variant="ghost" size="icon-sm" asChild className="h-9 w-9 mt-0.5">
-              <Link to="/settings"><ArrowLeft className="h-4 w-4" strokeWidth={1.7} /></Link>
+              <Link to="/settings" aria-label="Back to settings"><ArrowLeft className="h-4 w-4" strokeWidth={1.7} /></Link>
             </Button>
             <div className="min-w-0">
               <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight flex items-center gap-2.5">
