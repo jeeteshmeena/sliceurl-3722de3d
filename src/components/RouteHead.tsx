@@ -54,13 +54,45 @@ const ROUTE_META: Record<string, { title: string; description: string }> = {
   },
   "/terms": {
     title: "Terms of Service – SliceURL",
-    description: "Read the SliceURL Terms of Service.",
+    description: "Read the SliceURL Terms of Service: acceptable use of short links, file sharing limits, account rules, billing terms, and liability.",
   },
   "/refund-policy": {
     title: "Refund and Cancellation Policy – SliceURL",
     description: "SliceURL refund and cancellation policy, eligibility, processing timelines, and how to request support.",
   },
+  "/dashboard": {
+    title: "Dashboard – Manage Your SliceURL Links",
+    description: "Manage every short link you've created: edit destinations, view click totals, generate QR codes, and organise your SliceURL library.",
+  },
+  "/analytics": {
+    title: "Link Analytics – Clicks, Devices & Locations",
+    description: "Track real-time click analytics for your SliceURL short links, including devices, referrers, countries and cities over any date range.",
+  },
+  "/slicebox": {
+    title: "SliceBox – Share Files up to 200 MB Instantly",
+    description: "Upload and share files up to 200 MB with a single short link. Fast, secure file sharing by SliceURL.",
+  },
+  "/apps": {
+    title: "SliceAPPs – Discover and Share Mobile Apps",
+    description: "Browse the SliceAPPs marketplace to discover mobile app listings, read reviews, and install apps shared through SliceURL.",
+  },
 };
+
+// Prefix-matched routes for dynamic content pages
+const PREFIX_META: Array<[string, { title: string; description: string }]> = [
+  ["/sb/", {
+    title: "Shared File – SliceBox by SliceURL",
+    description: "A file shared securely through SliceBox. Preview the details and download it directly from this SliceURL share link.",
+  }],
+  ["/ls/", {
+    title: "Temporary File – LittleSlice by SliceURL",
+    description: "A temporary file shared through LittleSlice. Download it before the share link expires, powered by SliceURL.",
+  }],
+  ["/app/", {
+    title: "App Listing – SliceAPPs by SliceURL",
+    description: "View this SliceAPPs listing: app details, version, size, ratings and reviews, plus a direct install link from SliceURL.",
+  }],
+];
 
 function setMeta(selector: string, attr: "content" | "href", value: string) {
   let el = document.head.querySelector<HTMLMetaElement | HTMLLinkElement>(selector);
