@@ -16,7 +16,7 @@ export default defineConfig(({ mode }) => ({
     mode === "development" && componentTagger(),
     VitePWA({
       registerType: "autoUpdate",
-      includeAssets: ["favicon.png", "favicon.ico"],
+      includeAssets: ["favicon.png"],
       manifest: {
         name: "SliceURL",
         short_name: "SliceURL",
