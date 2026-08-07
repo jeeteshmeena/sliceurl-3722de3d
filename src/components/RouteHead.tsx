@@ -116,7 +116,9 @@ export function RouteHead() {
   const { pathname } = useLocation();
 
   useEffect(() => {
-    const meta = ROUTE_META[pathname];
+    const meta =
+      ROUTE_META[pathname] ??
+      PREFIX_META.find(([prefix]) => pathname.startsWith(prefix))?.[1];
     const url = `${SITE_ORIGIN}${pathname}`;
 
     if (meta) {
