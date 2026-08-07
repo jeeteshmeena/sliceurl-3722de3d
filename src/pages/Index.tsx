@@ -172,6 +172,7 @@ const Index = () => {
             >
               <span className="inline-block">Slice</span>
               <span className="text-muted-foreground">URL</span>
+              <span className="sr-only"> — smart link shortener, QR codes and click analytics</span>
             </h1>
             
             {/* Subtitle */}
