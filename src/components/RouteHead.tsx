@@ -68,9 +68,9 @@ const ROUTE_META: Record<string, { title: string; description: string }> = {
     title: "Link Analytics – Clicks, Devices & Locations",
     description: "Track real-time click analytics for your SliceURL short links, including devices, referrers, countries and cities over any date range.",
   },
-  "/slicebox": {
-    title: "SliceBox – Share Files up to 200 MB Instantly",
-    description: "Upload and share files up to 200 MB with a single short link. Fast, secure file sharing by SliceURL.",
+  "/bulk-stats": {
+    title: "Bulk Link Stats – SliceURL",
+    description: "Review performance for links created with the SliceURL bulk shortener, including per-link clicks and export options.",
   },
   "/apps": {
     title: "SliceAPPs – Discover and Share Mobile Apps",
