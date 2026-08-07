@@ -34,6 +34,7 @@ function CodeBlock({ code, language = "bash" }: { code: string; language?: strin
         size="icon-sm"
         className="absolute top-2 right-2 h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity"
         onClick={handleCopy}
+        aria-label={copied ? "Code copied to clipboard" : "Copy code example"}
       >
         {copied ? <Check className="h-3.5 w-3.5" strokeWidth={1.7} /> : <Copy className="h-3.5 w-3.5" strokeWidth={1.7} />}
       </Button>
