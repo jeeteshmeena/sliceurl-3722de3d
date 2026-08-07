@@ -614,7 +614,7 @@ export default function SliceBox() {
                             href={file.shareUrl}
                             target="_blank"
                             rel="noopener noreferrer"
-                            aria-label={`Open shared file link in a new tab`}
+                            aria-label={`Open ${file.originalName} in a new tab`}
                           >
                             <ExternalLink className="h-4 w-4" />
                           </a>
