@@ -600,7 +600,7 @@ export default function SliceBox() {
                           variant="outline"
                           onClick={() => handleShare(file)}
                           colorScheme="slicebox"
-                          aria-label={`Share link for ${file.fileName ?? "this file"}`}
+                          aria-label={`Share link for ${file.originalName}`}
                         >
                           <Share2 className="h-4 w-4" />
                         </IsolatedButton>
