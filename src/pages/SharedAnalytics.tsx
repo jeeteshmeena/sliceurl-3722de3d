@@ -49,13 +49,14 @@ const SharedAnalytics = () => {
     setError(null);
     
     try {
-      const url = new URL(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/shared-analytics`);
+      // base may be empty (same-origin API), so resolve against the page origin
+      const url = new URL(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/shared-analytics`, window.location.origin);
       url.searchParams.set('token', token);
-      if (pwd) {
-        url.searchParams.set('password', pwd);
-      }
 
-      const response = await fetch(url.toString());
+      // password goes in a header so it never ends up in URLs or server logs
+      const response = await fetch(url.toString(), {
+        headers: pwd ? { 'X-Share-Password': pwd } : undefined,
+      });
       const result = await response.json();
 
       if (!response.ok) {

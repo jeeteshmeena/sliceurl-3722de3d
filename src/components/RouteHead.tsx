@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { useLocation } from "react-router-dom";
 
-const SITE_ORIGIN = "https://s1liceurl.lovable.app";
+const SITE_ORIGIN = "https://sliceurl.app";
 
 const ROUTE_META: Record<string, { title: string; description: string }> = {
   "/": {

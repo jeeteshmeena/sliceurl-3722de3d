@@ -13,7 +13,8 @@ import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { useToast } from "@/hooks/use-toast";
 
-const BASE_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/api-public`;
+// API is same-origin on Cloudflare (VITE_SUPABASE_URL is empty), so show the full site URL in the docs
+const BASE_URL = `${import.meta.env.VITE_SUPABASE_URL || (typeof window !== "undefined" ? window.location.origin : "https://sliceurl.app")}/functions/v1/api-public`;
 
 function CodeBlock({ code, language = "bash" }: { code: string; language?: string }) {
   const [copied, setCopied] = useState(false);

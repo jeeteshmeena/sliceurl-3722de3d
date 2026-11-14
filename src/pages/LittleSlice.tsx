@@ -18,6 +18,7 @@ import {
 } from "@/components/ui/select";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { getDirectUploadUrl, safeObjectName } from "@/lib/directUpload";
 import { useAuth } from "@/hooks/useAuth";
 import { triggerHaptic } from "@/lib/haptics";
 import { cn } from "@/lib/utils";
@@ -190,19 +191,19 @@ export default function LittleSlice() {
     filePassword: string | null
   ): Promise<UploadedFile> => {
     const fileId = crypto.randomUUID().split("-")[0] + Date.now().toString(36);
-    const storagePath = `uploads/${fileId}/${file.name}`;
+    const storagePath = `uploads/${fileId}/${safeObjectName(file.name)}`;
     const deleteToken = crypto.randomUUID();
 
     // Hash password if provided
     const passwordHash = filePassword ? await hashPassword(filePassword) : null;
 
-    const { data: session } = await supabase.auth.getSession();
-    const authToken = session?.session?.access_token;
-    const anonKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+
+    const upload = await getDirectUploadUrl("slicebox", storagePath, file);
+
 
     return new Promise((resolve, reject) => {
       const xhr = new XMLHttpRequest();
-      const url = `${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/slicebox/${storagePath}`;
+      const url = upload.url;
 
       let lastLoaded = 0;
       let lastTime = Date.now();
@@ -278,10 +279,8 @@ export default function LittleSlice() {
 
       xhr.onerror = () => reject(new Error("Network error during upload"));
 
-      xhr.open("POST", url);
-      xhr.setRequestHeader("Authorization", `Bearer ${authToken || anonKey}`);
-      xhr.setRequestHeader("apikey", anonKey);
-      xhr.setRequestHeader("x-upsert", "false");
+      xhr.open("PUT", url);
+      xhr.setRequestHeader("Content-Type", upload.contentType);
       xhr.send(file);
     });
   }, [user]);

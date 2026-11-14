@@ -13,4 +13,4 @@ Allow: /
 User-agent: *
 Allow: /
 
-Sitemap: https://s1liceurl.lovable.app/sitemap.xml
+Sitemap: https://sliceurl.app/sitemap.xml
