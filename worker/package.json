@@ -4,11 +4,11 @@
   "version": "0.1.0",
   "type": "module",
   "scripts": {
-    "dev": "wrangler dev --env local",
-    "deploy": "wrangler deploy",
+    "dev": "wrangler dev --config ../wrangler.toml --env local",
+    "deploy": "wrangler deploy --config ../wrangler.toml",
     "typecheck": "tsc --noEmit",
-    "db:migrate:local": "wrangler d1 migrations apply sliceurl-db --local --env local",
-    "db:migrate:remote": "wrangler d1 migrations apply sliceurl-db --remote"
+    "db:migrate:local": "wrangler d1 migrations apply sliceurl-db --local --env local --config ../wrangler.toml",
+    "db:migrate:remote": "wrangler d1 migrations apply sliceurl-db --remote --config ../wrangler.toml"
   },
   "dependencies": {
     "aws4fetch": "^1.0.20",

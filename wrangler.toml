@@ -1,7 +1,9 @@
 # SliceURL on Cloudflare: one Worker serves the React SPA (static assets)
 # and the whole backend (auth, data API, functions, file storage).
+# Lives at the repo root so Cloudflare Workers Builds works with its default
+# settings (root dir "/", build "npm run build", deploy "npx wrangler deploy").
 name = "sliceurl"
-main = "src/index.ts"
+main = "worker/src/index.ts"
 compatibility_date = "2025-09-01"
 compatibility_flags = ["nodejs_compat"]
 
@@ -12,9 +14,9 @@ routes = [
   { pattern = "www.sliceurl.app/*", zone_name = "sliceurl.app" },
 ]
 
-# Built frontend (run `npm run build` in the repo root first -> ../dist)
+# Built frontend (`npm run build` -> ./dist)
 [assets]
-directory = "../dist"
+directory = "./dist"
 binding = "ASSETS"
 not_found_handling = "single-page-application"
 # Worker runs first on every request: www -> apex redirect and security headers
@@ -26,7 +28,7 @@ run_worker_first = true
 binding = "DB"
 database_name = "sliceurl-db"
 database_id = "8c68fd0f-65a7-410d-a6a7-ca0ad7a91abf"
-migrations_dir = "migrations"
+migrations_dir = "worker/migrations"
 
 # `wrangler r2 bucket create sliceurl-files`
 [[r2_buckets]]
@@ -59,7 +61,7 @@ R2_BUCKET_NAME = "sliceurl-files"
 binding = "DB"
 database_name = "sliceurl-db"
 database_id = "8c68fd0f-65a7-410d-a6a7-ca0ad7a91abf"
-migrations_dir = "migrations"
+migrations_dir = "worker/migrations"
 
 [[env.local.r2_buckets]]
 binding = "FILES"
