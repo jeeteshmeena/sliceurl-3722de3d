@@ -136,10 +136,11 @@ export function getCorrectMimeType(fileName: string, originalMimeType: string): 
 /**
  * Generate a streaming download URL
  */
-export function getStreamingDownloadUrl(fileId: string, verified = false): string {
+export function getStreamingDownloadUrl(fileId: string, token?: string): string {
   const baseUrl = import.meta.env.VITE_SUPABASE_URL;
   const params = new URLSearchParams({ fileId });
-  if (verified) params.append('verified', 'true');
+  // password-protected files need the signed token from slicebox-verify-password
+  if (token) params.append('token', token);
   return `${baseUrl}/functions/v1/file-stream?${params.toString()}`;
 }
 

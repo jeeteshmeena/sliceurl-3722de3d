@@ -1,0 +1,68 @@
+# SliceURL on Cloudflare: one Worker serves the React SPA (static assets)
+# and the whole backend (auth, data API, functions, file storage).
+name = "sliceurl"
+main = "src/index.ts"
+compatibility_date = "2025-09-01"
+compatibility_flags = ["nodejs_compat"]
+
+# Built frontend (run `npm run build` in the repo root first -> ../dist)
+[assets]
+directory = "../dist"
+binding = "ASSETS"
+not_found_handling = "single-page-application"
+run_worker_first = [
+  "/auth/v1/*",
+  "/rest/v1/*",
+  "/functions/v1/*",
+  "/storage/v1/*",
+  "/AryaPremium*",
+  "/aryaPremium*"
+]
+
+# `wrangler d1 create sliceurl-db` -> paste the database_id here
+[[d1_databases]]
+binding = "DB"
+database_name = "sliceurl-db"
+database_id = "REPLACE_WITH_D1_DATABASE_ID"
+migrations_dir = "migrations"
+
+# `wrangler r2 bucket create sliceurl-files`
+[[r2_buckets]]
+binding = "FILES"
+bucket_name = "sliceurl-files"
+
+# Cloudflare Workers AI: auto-titles in bulk-shorten (replaces the Lovable AI gateway)
+[ai]
+binding = "AI"
+
+# Expired SliceBox/LittleSlice file cleanup (replaces slicebox-cleanup + pg_cron)
+[triggers]
+crons = ["17 3 * * *", "*/30 * * * *"]  # daily file cleanup, Dodo payment reconcile every 30 min
+
+[vars]
+SITE_URL = "https://sliceurl.app"
+R2_BUCKET_NAME = "sliceurl-files"
+# Secrets (set with `wrangler secret put NAME`, never commit them):
+#   GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET     -> Google login
+#   RESEND_API_KEY, EMAIL_FROM                 -> password reset / welcome mail
+#   R2_ACCOUNT_ID, R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY -> direct browser uploads (presigned URLs)
+#   DOWNLOAD_TOKEN_SECRET                      -> signs password-protected download links (any long random string)
+#   GOOGLE_SAFE_BROWSING_API_KEY, PAYTM_*, DODO_PAYMENTS_API_KEY, AI_API_KEY (later modules)
+
+# ------------------------------------------------------------------
+# Local development without a Cloudflare login: same as above minus Workers AI
+# (bulk-shorten auto-titles are simply skipped). Used by `npm run dev`.
+[env.local]
+[[env.local.d1_databases]]
+binding = "DB"
+database_name = "sliceurl-db"
+database_id = "REPLACE_WITH_D1_DATABASE_ID"
+migrations_dir = "migrations"
+
+[[env.local.r2_buckets]]
+binding = "FILES"
+bucket_name = "sliceurl-files"
+
+[env.local.vars]
+SITE_URL = "http://127.0.0.1:8787"
+R2_BUCKET_NAME = "sliceurl-files"

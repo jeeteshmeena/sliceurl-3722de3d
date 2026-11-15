@@ -164,7 +164,7 @@ export default function ShortFileView({ expectedServiceType }: ShortFileViewProp
         }
 
         // Use streaming endpoint with verified flag
-        const streamUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/file-stream?fileId=${file.fileId}&verified=true`;
+        const streamUrl = response.data.downloadUrl as string; // short-lived signed link
         
         // Create a hidden link and trigger download
         const a = document.createElement("a");

@@ -409,7 +409,7 @@ export default function AppPage() {
     setDownloadProgress(0);
     try {
       await simulateProgress();
-      const streamUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/file-stream?fileId=${fileInfo.file_id}${passwordForDownload ? '&verified=true' : ''}`;
+      const streamUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/file-stream?fileId=${fileInfo.file_id}`;
       const a = document.createElement("a");
       a.href = streamUrl;
       a.download = fileInfo.original_name;
@@ -445,7 +445,7 @@ export default function AppPage() {
       if (!data.success) { toast.error(data.error || "Invalid password"); return; }
       setShowPasswordDialog(false);
       setPassword("");
-      const streamUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/file-stream?fileId=${fileInfo.file_id}&verified=true`;
+      const streamUrl = data.downloadUrl as string; // short-lived signed link
       const a = document.createElement("a");
       a.href = streamUrl;
       a.download = fileInfo.original_name;

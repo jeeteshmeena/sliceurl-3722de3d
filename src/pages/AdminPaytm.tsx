@@ -229,7 +229,7 @@ export default function AdminPaytm() {
     return "text-red-600";
   };
 
-  const apiBase = `${SUPABASE_URL}/functions/v1/merchant-api`;
+  const apiBase = `${SUPABASE_URL || window.location.origin}/functions/v1/merchant-api`;
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
@@ -309,7 +309,7 @@ export default function AdminPaytm() {
                   </div>
                   {!dodo.webhook_secret && <p className="text-xs text-destructive">Webhook secret is required before subscriptions can be activated automatically.</p>}
                   <p className="text-xs text-muted-foreground">
-                    Webhook URL to paste in Dodo: <code className="text-[11px] break-all">{SUPABASE_URL}/functions/v1/dodo-webhook</code>
+                    Webhook URL to paste in Dodo: <code className="text-[11px] break-all">{SUPABASE_URL || window.location.origin}/functions/v1/dodo-webhook</code>
                   </p>
                   <p className="text-xs text-muted-foreground">
                     Subscribe to events: <code className="text-[11px]">payment.succeeded</code>, <code className="text-[11px]">payment.failed</code>, <code className="text-[11px]">subscription.active</code>, <code className="text-[11px]">subscription.renewed</code>, <code className="text-[11px]">subscription.cancelled</code>.
@@ -356,7 +356,7 @@ export default function AdminPaytm() {
                     <Button onClick={save} disabled={saving} className="rounded-xl">{saving ? "Saving…" : "Save Settings"}</Button>
                   </div>
                   <p className="text-xs text-muted-foreground">
-                    Paytm callback URL: <code className="text-[11px]">{SUPABASE_URL}/functions/v1/paytm-callback</code>
+                    Paytm callback URL: <code className="text-[11px]">{SUPABASE_URL || window.location.origin}/functions/v1/paytm-callback</code>
                   </p>
                 </>
               )}

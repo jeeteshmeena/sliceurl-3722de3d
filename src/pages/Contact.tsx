@@ -25,8 +25,8 @@ export default function Contact() {
       legalName: "Jeetesh Meena",
       email: "Sliceurl@Gmail.com",
       telephone: "+91-9691520194",
-      url: "https://s1liceurl.lovable.app/",
-      image: "https://s1liceurl.lovable.app/sliceurl-icon.png",
+      url: "https://sliceurl.app/",
+      image: "https://sliceurl.app/sliceurl-icon.png",
       address: {
         "@type": "PostalAddress",
         streetAddress: "Bamori",
