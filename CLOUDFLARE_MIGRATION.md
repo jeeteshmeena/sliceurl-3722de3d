@@ -2,6 +2,20 @@
 
 Lovable Cloud (Supabase) ko poori tarah hata kar SliceURL ko Cloudflare par chalane ka plan aur status.
 
+**Live on Cloudflare since 2026-11-15.** `sliceurl.app` (and `www` → apex) is served by the Worker `sliceurl` in account *JeetX* via Worker Routes; D1 `sliceurl-db` (`8c68fd0f-65a7-410d-a6a7-ca0ad7a91abf`, APAC) and R2 `sliceurl-files` exist, schema applied, `DOWNLOAD_TOKEN_SECRET` set. The database starts empty until the Lovable data is imported.
+
+## Auto-deploy from GitHub (Workers Builds)
+
+Cloudflare dashboard → Workers & Pages → `sliceurl` → Settings → Build → Connect repository `jeeteshmeena/sliceurl-3722de3d`, branch `main`:
+
+| Setting | Value |
+|---|---|
+| Root directory | `worker` |
+| Build command | `cd .. && npm ci && npm run build && cd worker && npm ci` |
+| Deploy command | `npx wrangler d1 migrations apply sliceurl-db --remote && npx wrangler deploy` |
+
+Every push to `main` then builds the SPA, applies new D1 migrations and deploys. Vercel still builds `main` too but no longer receives traffic; disconnect the project there.
+
 **Status: code migration complete.** All 41 Supabase edge functions (+ the missing `send-deletion-email`) run in the Worker and were tested locally. Nothing is deployed yet; see the go-live checklist.
 
 ## Architecture

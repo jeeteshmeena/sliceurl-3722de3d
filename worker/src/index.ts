@@ -16,6 +16,16 @@ import { fileStream, publicFileInfo, sliceboxDownload, sliceboxUploadUrl, sliceb
 
 const app = new Hono<AppEnv>();
 
+// www.sliceurl.app -> sliceurl.app (same as the old Vercel setup)
+app.use("*", async (c, next) => {
+  const url = new URL(c.req.url);
+  if (url.hostname.startsWith("www.")) {
+    url.hostname = url.hostname.slice(4);
+    return c.redirect(url.toString(), 301);
+  }
+  return next();
+});
+
 const API_PREFIXES = ["/auth/v1", "/rest/v1", "/functions/v1", "/storage/v1"];
 app.use("*", async (c, next) => {
   if (!API_PREFIXES.some((p) => c.req.path.startsWith(p))) return next();
